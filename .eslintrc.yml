@@ -1,0 +1,34 @@
+extends: eslint-config-dmitmel/presets/node
+env:
+  browser: true
+parserOptions:
+  sourceType: module
+
+rules:
+  no-shadow:
+    - error
+    - builtinGlobals: true
+      hoist: functions
+      allow:
+        - name
+        - length
+        - location
+        - self
+        - status
+        - event
+
+  func-names: off
+
+  node/no-unsupported-features/es-syntax:
+    - error
+    - ignores:
+        - modules
+
+overrides:
+  - files: '**/*.ts'
+    extends: eslint-config-dmitmel/presets/typescript-with-type-checking-addon
+    parserOptions:
+      project: tsconfig.json
+
+    rules:
+      node/no-missing-import: off
