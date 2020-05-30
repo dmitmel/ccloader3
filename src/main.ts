@@ -1,11 +1,18 @@
 import * as modloader from './modloader.js';
 import { showDevTools, wait } from './utils.js';
 
+declare global {
+  interface Window {
+    modloader: typeof modloader;
+  }
+}
+
 (async () => {
   let env = window.process?.env as NodeJS.ProcessEnv | undefined;
 
   let urlOverride = env?.CCLOADER_OVERRIDE_MAIN_URL;
   if (urlOverride) {
+    delete env?.CCLOADER_OVERRIDE_MAIN_URL;
     window.location.replace(urlOverride);
     return;
   }
@@ -20,5 +27,7 @@ import { showDevTools, wait } from './utils.js';
   }
 
   await onloadPromise;
+  window.modloader = modloader;
+
   await modloader.boot();
 })();
