@@ -37,14 +37,21 @@ async function loadAllModMetadata(modsDir: string): Promise<Mod[]> {
 
   await Promise.all(
     (await fs.readdir(modsDir)).map(async name => {
-      // the `withFileTypes` option of `readdir` can't be used here because it
-      // doesn't dereference symbolic links similarly to `stat`
       let fullPath = `${modsDir}/${name}`;
-      let stat = await fs.stat(fullPath);
-      if (!stat.isDirectory()) return;
-      let mod = await loadModMetadata(fullPath);
-      if (mod == null) return;
-      mods.push(mod);
+      try {
+        // the `withFileTypes` option of `readdir` can't be used here because it
+        // doesn't dereference symbolic links similarly to `stat`
+        let stat = await fs.stat(fullPath);
+        if (!stat.isDirectory()) return;
+        let mod = await loadModMetadata(fullPath);
+        if (mod == null) return;
+        mods.push(mod);
+      } catch (err) {
+        console.error(
+          `An error occured while loading the metadata of a mod in '${fullPath}':`,
+          err,
+        );
+      }
     }),
   );
 
@@ -96,6 +103,7 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
   } catch (err) {
     if (err instanceof Error) {
       err.message = `Invalid mod manifest in '${manifestFile}': ${err.message}`;
+      // TODO: put a link to the documentation here
     }
     throw err;
   }

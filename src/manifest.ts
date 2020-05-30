@@ -94,9 +94,11 @@ function getType(value: unknown): Type {
   return Type.unknown;
 }
 
+// TODO: investigate prototype chain bugs when extending `Error` here
 export class ManifestValidationError extends Error {
   constructor(public problems: string[]) {
     super(`\n${problems.map(p => `- ${p}`).join('\n')}`);
+    this.name = new.target.name;
   }
 }
 
