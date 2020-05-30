@@ -1,5 +1,10 @@
 import * as files from './files.js';
-import { Manifest, ManifestLegacy } from './manifest.js';
+import {
+  Manifest,
+  ManifestInternal,
+  ManifestLegacy,
+  ManifestUtil,
+} from './manifest.js';
 import { Mod } from './mod.js';
 import { promises as fs } from './node-module-imports/_fs.js';
 import { SemVer } from './node-module-imports/_semver.js';
@@ -8,6 +13,8 @@ export const name = 'ccloader';
 export const version: SemVer = new SemVer('3.0.0-alpha');
 
 export let gameVersion: SemVer | null = null;
+
+let manifestUtil = new ManifestUtil();
 
 export async function boot(): Promise<void> {
   console.log(`${name} v${version}`);
@@ -64,9 +71,28 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
     }
   }
 
-  let manifestData: unknown;
+  let rawManifestData: unknown;
   try {
-    manifestData = JSON.parse(manifestText) as unknown;
+    rawManifestData = JSON.parse(manifestText) as unknown;
+  } catch (err) {
+    if (err instanceof Error) {
+      err.message = `Syntax error in mod manifest in '${manifestFile}': ${err.message}`;
+    }
+    throw err;
+  }
+
+  let manifest: ManifestInternal;
+
+  try {
+    if (legacyMode) {
+      manifestUtil.validateLegacy(rawManifestData as ManifestLegacy);
+      manifest = manifestUtil.convertFromLegacy(
+        rawManifestData as ManifestLegacy,
+      );
+    } else {
+      manifestUtil.validate(rawManifestData as Manifest, legacyMode);
+      manifest = manifestUtil.convertToInternal(rawManifestData as Manifest);
+    }
   } catch (err) {
     if (err instanceof Error) {
       err.message = `Invalid mod manifest in '${manifestFile}': ${err.message}`;
@@ -74,9 +100,5 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
     throw err;
   }
 
-  return new Mod(
-    baseDirectory,
-    manifestData as Manifest | ManifestLegacy,
-    legacyMode,
-  );
+  return new Mod(baseDirectory, manifest, legacyMode);
 }
