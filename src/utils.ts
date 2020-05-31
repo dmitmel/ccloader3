@@ -8,3 +8,8 @@ export function showDevTools(): Promise<void> {
 export function wait(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function compare(a: any, b: any): number {
+  return a > b ? 1 : a < b ? -1 : 0;
+}

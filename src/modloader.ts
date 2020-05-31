@@ -4,10 +4,12 @@ import {
   ManifestInternal,
   ManifestLegacy,
   ManifestUtil,
+  ModId,
 } from './manifest.js';
 import { Mod } from './mod.js';
 import { promises as fs } from './node-module-imports/_fs.js';
 import { SemVer } from './node-module-imports/_semver.js';
+import { compare } from './utils.js';
 
 export const name = 'ccloader';
 export const version: SemVer = new SemVer('3.0.0-alpha');
@@ -20,7 +22,10 @@ export async function boot(): Promise<void> {
   console.log(`${name} v${version}`);
   gameVersion = await loadGameVersion();
   console.log(`crosscode v${gameVersion}`);
-  console.log(await loadAllModMetadata('assets/mods'));
+
+  let allMods = await loadAllModMetadata('assets/mods');
+  console.log(allMods);
+  console.log(sortModsInLoadOrder(allMods));
 }
 
 async function loadGameVersion(): Promise<SemVer> {
@@ -32,8 +37,8 @@ async function loadGameVersion(): Promise<SemVer> {
   return new SemVer(latestVersion);
 }
 
-async function loadAllModMetadata(modsDir: string): Promise<Mod[]> {
-  let mods: Mod[] = [];
+async function loadAllModMetadata(modsDir: string): Promise<Map<ModId, Mod>> {
+  let mods = new Map<ModId, Mod>();
 
   await Promise.all(
     (await fs.readdir(modsDir)).map(async name => {
@@ -45,7 +50,16 @@ async function loadAllModMetadata(modsDir: string): Promise<Mod[]> {
         if (!stat.isDirectory()) return;
         let mod = await loadModMetadata(fullPath);
         if (mod == null) return;
-        mods.push(mod);
+
+        let { id } = mod.manifest;
+        let modWithSameId = mods.get(id);
+        if (modWithSameId != null) {
+          throw new Error(
+            `a mod with ID '${id}' has already been loaded from '${modWithSameId.baseDirectory}'`,
+          );
+        } else {
+          mods.set(id, mod);
+        }
       } catch (err) {
         console.error(
           `An error occured while loading the metadata of a mod in '${fullPath}':`,
@@ -109,4 +123,56 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
   }
 
   return new Mod(baseDirectory, manifest, legacyMode);
+}
+
+// note that maps preserve insertion order as defined in the ECMAScript spec
+function sortModsInLoadOrder(allModsMap: Map<ModId, Mod>): Map<ModId, Mod> {
+  let orderedModsMap = new Map<ModId, Mod>();
+
+  let unorderedMods: Mod[] = Array.from(
+    allModsMap.values(),
+  ).sort((mod1, mod2) => compare(mod1.manifest.id, mod2.manifest.id));
+
+  while (unorderedMods.length > 0) {
+    // dependency cycles can be detected by checking if we removed any
+    // dependencies in this iteration, although see the comment below
+    let dependencyCyclesExist = true;
+
+    for (let i = 0; i < unorderedMods.length; ) {
+      let mod = unorderedMods[i];
+      if (!hasUnmetDependencies(mod, orderedModsMap, allModsMap)) {
+        unorderedMods.splice(i, 1);
+        orderedModsMap.set(mod.manifest.id, mod);
+        dependencyCyclesExist = false;
+      } else {
+        i++;
+      }
+    }
+
+    if (dependencyCyclesExist) {
+      // Detection of **exactly** which mods caused this isn't implemented yet
+      // because 2767mr said it isn't worth the effort (to which I agreed) for
+      // now, but if you know how to do that - please implement. For anyone
+      // interested google "circular dependency detection" or "detect graph edge
+      // cycles" and you'll most likely find something useful for our case.
+      throw new Error('Detected a dependency cycle');
+    }
+  }
+
+  return orderedModsMap;
+}
+
+function hasUnmetDependencies(
+  mod: Mod,
+  orderedModsMap: Map<ModId, Mod>,
+  _allModsMap: Map<ModId, Mod>, // unused right now, but won't be when optional deps are implemented
+): boolean {
+  return (
+    Object.keys(mod.dependencies).findIndex(
+      depId =>
+        !orderedModsMap.has(depId) &&
+        depId !== 'crosscode' &&
+        depId !== 'ccloader',
+    ) >= 0
+  );
 }
