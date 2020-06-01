@@ -14,15 +14,12 @@ export interface Manifest {
   assets?: FilePath[];
   assetsDir?: FilePath;
 
+  legacyLoadAsScript?: boolean;
   main?: FilePath;
   preload?: FilePath;
   postload?: FilePath;
   prestart?: FilePath;
   poststart?: FilePath;
-}
-
-export interface ManifestInternal extends Manifest {
-  legacyLoadAsScript?: boolean;
 }
 
 export interface ManifestLegacy {
@@ -164,6 +161,13 @@ export class ManifestUtil {
       this._assertAssets(['assets'], data.assets);
       this._assertType(['assetsDir'], data.assetsDir, [Type.string], true);
 
+      // eslint-disable-next-line no-undefined
+      if (data.legacyLoadAsScript !== undefined) {
+        this._problems.push(
+          'legacy_main exists only for backwards compatibility reasons, must not be used and will be removed soon',
+        );
+      }
+
       this._assertType(['main'], data.main, [Type.string], true);
       this._assertType(['preload'], data.preload, [Type.string], true);
       this._assertType(['postload'], data.postload, [Type.string], true);
@@ -174,10 +178,6 @@ export class ManifestUtil {
     if (this._problems.length > 0) {
       throw new ManifestValidationError(this._problems);
     }
-  }
-
-  convertToInternal(data: Manifest): ManifestInternal {
-    return data;
   }
 
   validateLegacy(data: ManifestLegacy): void {
@@ -219,7 +219,7 @@ export class ManifestUtil {
     }
   }
 
-  convertFromLegacy(data: ManifestLegacy): ManifestInternal {
+  convertFromLegacy(data: ManifestLegacy): Manifest {
     /* eslint-disable no-undefined */
     return {
       id: data.name,

@@ -1,11 +1,5 @@
 import * as files from './files.js';
-import {
-  Manifest,
-  ManifestInternal,
-  ManifestLegacy,
-  ManifestUtil,
-  ModId,
-} from './manifest.js';
+import { Manifest, ManifestLegacy, ManifestUtil, ModId } from './manifest.js';
 import { Mod } from './mod.js';
 import { promises as fs } from './node-module-imports/_fs.js';
 import { SemVer } from './node-module-imports/_semver.js';
@@ -94,9 +88,10 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
     }
   }
 
-  let rawManifestData: unknown;
+  let manifestData: Manifest | ManifestLegacy;
   try {
-    rawManifestData = JSON.parse(manifestText) as unknown;
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    manifestData = JSON.parse(manifestText);
   } catch (err) {
     if (err instanceof Error) {
       err.message = `Syntax error in mod manifest in '${manifestFile}': ${err.message}`;
@@ -104,17 +99,14 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
     throw err;
   }
 
-  let manifest: ManifestInternal;
-
   try {
     if (legacyMode) {
-      manifestUtil.validateLegacy(rawManifestData as ManifestLegacy);
-      manifest = manifestUtil.convertFromLegacy(
-        rawManifestData as ManifestLegacy,
-      );
+      manifestData = manifestData as ManifestLegacy;
+      manifestUtil.validateLegacy(manifestData);
+      manifestData = manifestUtil.convertFromLegacy(manifestData);
     } else {
-      manifestUtil.validate(rawManifestData as Manifest);
-      manifest = manifestUtil.convertToInternal(rawManifestData as Manifest);
+      manifestData = manifestData as Manifest;
+      manifestUtil.validate(manifestData);
     }
   } catch (err) {
     if (err instanceof Error) {
@@ -124,7 +116,7 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
     throw err;
   }
 
-  return new Mod(baseDirectory, manifest, legacyMode);
+  return new Mod(baseDirectory, manifestData, legacyMode);
 }
 
 // note that maps preserve insertion order as defined in the ECMAScript spec
