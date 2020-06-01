@@ -18,6 +18,8 @@ export let gameVersion: SemVer | null = null;
 
 let manifestUtil = new ManifestUtil();
 
+type ModsMap = Map<ModId, Mod>;
+
 export async function boot(): Promise<void> {
   console.log(`${name} v${version}`);
   gameVersion = await loadGameVersion();
@@ -37,7 +39,7 @@ async function loadGameVersion(): Promise<SemVer> {
   return new SemVer(latestVersion);
 }
 
-async function loadAllModMetadata(modsDir: string): Promise<Map<ModId, Mod>> {
+async function loadAllModMetadata(modsDir: string): Promise<ModsMap> {
   let mods = new Map<ModId, Mod>();
 
   await Promise.all(
@@ -126,7 +128,7 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
 }
 
 // note that maps preserve insertion order as defined in the ECMAScript spec
-function sortModsInLoadOrder(allModsMap: Map<ModId, Mod>): Map<ModId, Mod> {
+function sortModsInLoadOrder(allModsMap: ModsMap): ModsMap {
   let orderedModsMap = new Map<ModId, Mod>();
 
   let unorderedMods: Mod[] = Array.from(
@@ -140,7 +142,9 @@ function sortModsInLoadOrder(allModsMap: Map<ModId, Mod>): Map<ModId, Mod> {
 
     for (let i = 0; i < unorderedMods.length; ) {
       let mod = unorderedMods[i];
-      if (!hasUnmetDependencies(mod, orderedModsMap, allModsMap)) {
+      if (
+        !modHasUnorderedInstalledDependencies(mod, orderedModsMap, allModsMap)
+      ) {
         unorderedMods.splice(i, 1);
         orderedModsMap.set(mod.manifest.id, mod);
         dependencyCyclesExist = false;
@@ -162,17 +166,20 @@ function sortModsInLoadOrder(allModsMap: Map<ModId, Mod>): Map<ModId, Mod> {
   return orderedModsMap;
 }
 
-function hasUnmetDependencies(
+function modHasUnorderedInstalledDependencies(
   mod: Mod,
-  orderedModsMap: Map<ModId, Mod>,
-  _allModsMap: Map<ModId, Mod>, // unused right now, but won't be when optional deps are implemented
+  orderedModsMap: ModsMap,
+  allModsMap: ModsMap,
 ): boolean {
-  return (
-    Object.keys(mod.dependencies).findIndex(
-      depId =>
-        !orderedModsMap.has(depId) &&
-        depId !== 'crosscode' &&
-        depId !== 'ccloader',
-    ) >= 0
-  );
+  for (let depId of Object.keys(mod.dependencies)) {
+    if (
+      !orderedModsMap.has(depId) &&
+      allModsMap.has(depId) &&
+      depId !== 'crosscode' &&
+      depId !== 'ccloader'
+    ) {
+      return true;
+    }
+  }
+  return false;
 }
