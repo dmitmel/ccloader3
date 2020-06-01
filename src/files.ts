@@ -7,7 +7,7 @@ export function loadText(url: string): Promise<string> {
   //   let response = await fetch(url);
   //   return await response.text();
   // } catch (err) {
-  //   if (err instanceof Error) {
+  //   if (errorHasMessage(err) {
   //     err.message = `Failed to load file '${url}': ${err.message}`;
   //   }
   //   throw err;

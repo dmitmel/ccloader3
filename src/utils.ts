@@ -13,3 +13,9 @@ export function wait(ms: number): Promise<void> {
 export function compare(a: any, b: any): number {
   return a > b ? 1 : a < b ? -1 : 0;
 }
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function errorHasMessage(error: any): error is { message: string } {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+  return typeof error.message === 'string';
+}

@@ -1,27 +1,39 @@
 import * as files from './files.js';
 import { Manifest, ManifestLegacy, ManifestUtil, ModId } from './manifest.js';
-import { Mod } from './mod.js';
+import { Mod, ModDependency } from './mod.js';
 import { promises as fs } from './node-module-imports/_fs.js';
 import { SemVer } from './node-module-imports/_semver.js';
-import { compare } from './utils.js';
+import { compare, errorHasMessage } from './utils.js';
 
 export const name = 'ccloader';
 export const version: SemVer = new SemVer('3.0.0-alpha');
 
-export let gameVersion: SemVer | null = null;
+export let gameVersion: SemVer = new SemVer('0.0.0');
+export let mods: ReadonlyMap<ModId, Mod>;
 
 let manifestUtil = new ManifestUtil();
-
-type ModsMap = Map<ModId, Mod>;
 
 export async function boot(): Promise<void> {
   console.log(`${name} v${version}`);
   gameVersion = await loadGameVersion();
   console.log(`crosscode v${gameVersion}`);
 
-  let allMods = await loadAllModMetadata('assets/mods');
-  console.log(allMods);
-  console.log(sortModsInLoadOrder(allMods));
+  await loadAllModMetadata('assets/mods');
+  sortModsInLoadOrder();
+
+  for (let mod of mods.values()) {
+    for (let [depId, dep] of mod.dependencies) {
+      let problem = checkDependencyConstraints(depId, dep);
+      if (problem != null) {
+        mod.shouldBeLoaded = false;
+        console.error(`Could not load mod '${mod.manifest.id}': ${problem}`);
+        // not breaking out of the loop here, let's list potential problems with
+        // other dependencies as well
+      }
+    }
+  }
+
+  console.log(mods);
 }
 
 async function loadGameVersion(): Promise<SemVer> {
@@ -33,8 +45,8 @@ async function loadGameVersion(): Promise<SemVer> {
   return new SemVer(latestVersion);
 }
 
-async function loadAllModMetadata(modsDir: string): Promise<ModsMap> {
-  let mods = new Map<ModId, Mod>();
+async function loadAllModMetadata(modsDir: string): Promise<void> {
+  let foundMods = new Map<ModId, Mod>();
 
   await Promise.all(
     (await fs.readdir(modsDir)).map(async name => {
@@ -48,13 +60,13 @@ async function loadAllModMetadata(modsDir: string): Promise<ModsMap> {
         if (mod == null) return;
 
         let { id } = mod.manifest;
-        let modWithSameId = mods.get(id);
+        let modWithSameId = foundMods.get(id);
         if (modWithSameId != null) {
           throw new Error(
             `a mod with ID '${id}' has already been loaded from '${modWithSameId.baseDirectory}'`,
           );
         } else {
-          mods.set(id, mod);
+          foundMods.set(id, mod);
         }
       } catch (err) {
         console.error(
@@ -65,7 +77,7 @@ async function loadAllModMetadata(modsDir: string): Promise<ModsMap> {
     }),
   );
 
-  return mods;
+  mods = foundMods;
 }
 
 async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
@@ -93,7 +105,7 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     manifestData = JSON.parse(manifestText);
   } catch (err) {
-    if (err instanceof Error) {
+    if (errorHasMessage(err)) {
       err.message = `Syntax error in mod manifest in '${manifestFile}': ${err.message}`;
     }
     throw err;
@@ -109,7 +121,7 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
       manifestUtil.validate(manifestData);
     }
   } catch (err) {
-    if (err instanceof Error) {
+    if (errorHasMessage(err)) {
       err.message = `Invalid mod manifest in '${manifestFile}': ${err.message}`;
       // TODO: put a link to the documentation here
     }
@@ -119,26 +131,24 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
   return new Mod(baseDirectory, manifestData, legacyMode);
 }
 
-// note that maps preserve insertion order as defined in the ECMAScript spec
-function sortModsInLoadOrder(allModsMap: ModsMap): ModsMap {
-  let orderedModsMap = new Map<ModId, Mod>();
+function sortModsInLoadOrder(): void {
+  // note that maps preserve insertion order as defined in the ECMAScript spec
+  let orderedMods = new Map<ModId, Mod>();
 
-  let unorderedMods: Mod[] = Array.from(
-    allModsMap.values(),
-  ).sort((mod1, mod2) => compare(mod1.manifest.id, mod2.manifest.id));
+  let unorderedModsList: Mod[] = Array.from(mods.values()).sort((mod1, mod2) =>
+    compare(mod1.manifest.id, mod2.manifest.id),
+  );
 
-  while (unorderedMods.length > 0) {
+  while (unorderedModsList.length > 0) {
     // dependency cycles can be detected by checking if we removed any
     // dependencies in this iteration, although see the comment below
     let dependencyCyclesExist = true;
 
-    for (let i = 0; i < unorderedMods.length; ) {
-      let mod = unorderedMods[i];
-      if (
-        !modHasUnorderedInstalledDependencies(mod, orderedModsMap, allModsMap)
-      ) {
-        unorderedMods.splice(i, 1);
-        orderedModsMap.set(mod.manifest.id, mod);
+    for (let i = 0; i < unorderedModsList.length; ) {
+      let mod = unorderedModsList[i];
+      if (!modHasUnorderedInstalledDependencies(mod, orderedMods)) {
+        unorderedModsList.splice(i, 1);
+        orderedMods.set(mod.manifest.id, mod);
         dependencyCyclesExist = false;
       } else {
         i++;
@@ -155,18 +165,17 @@ function sortModsInLoadOrder(allModsMap: ModsMap): ModsMap {
     }
   }
 
-  return orderedModsMap;
+  mods = orderedMods;
 }
 
 function modHasUnorderedInstalledDependencies(
   mod: Mod,
-  orderedModsMap: ModsMap,
-  allModsMap: ModsMap,
+  orderedMods: Map<ModId, Mod>,
 ): boolean {
-  for (let depId of Object.keys(mod.dependencies)) {
+  for (let depId of mod.dependencies.keys()) {
     if (
-      !orderedModsMap.has(depId) &&
-      allModsMap.has(depId) &&
+      !orderedMods.has(depId) &&
+      mods.has(depId) &&
       depId !== 'crosscode' &&
       depId !== 'ccloader'
     ) {
@@ -174,4 +183,45 @@ function modHasUnorderedInstalledDependencies(
     }
   }
   return false;
+}
+
+function checkDependencyConstraints(
+  depId: ModId,
+  depConstraints: ModDependency,
+): string | null {
+  let availableDepVersion: SemVer;
+  let depTitle = depId;
+
+  switch (depId) {
+    case 'crosscode': {
+      availableDepVersion = gameVersion;
+      break;
+    }
+
+    case 'ccloader': {
+      availableDepVersion = version;
+      break;
+    }
+
+    default: {
+      depTitle = `mod '${depId}'`;
+
+      let depMod = mods.get(depId);
+      if (depMod == null) {
+        return depConstraints.optional ? null : `${depTitle} is not installed`;
+      }
+
+      if (!depMod.shouldBeLoaded) {
+        return depConstraints.optional ? null : `${depTitle} is not loaded`;
+      }
+
+      availableDepVersion = depMod.version;
+    }
+  }
+
+  if (!depConstraints.version.test(availableDepVersion)) {
+    return `version of ${depTitle} (${availableDepVersion}) is not in range '${depConstraints.version}'`;
+  }
+
+  return null;
 }
