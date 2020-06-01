@@ -111,7 +111,7 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
         rawManifestData as ManifestLegacy,
       );
     } else {
-      manifestUtil.validate(rawManifestData as Manifest, legacyMode);
+      manifestUtil.validate(rawManifestData as Manifest);
       manifest = manifestUtil.convertToInternal(rawManifestData as Manifest);
     }
   } catch (err) {
