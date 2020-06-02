@@ -39,7 +39,7 @@ export async function boot(): Promise<void> {
 }
 
 async function loadGameVersion(): Promise<void> {
-  let changelogText = await files.loadText('assets/data/changelog.json');
+  let changelogText = await files.loadText('/assets/data/changelog.json');
   let { changelog } = JSON.parse(changelogText) as {
     changelog: Array<{ version: string }>;
   };
@@ -90,16 +90,14 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
   let legacyMode = false;
 
   try {
-    manifestFile = `${baseDirectory}/ccmod.json`;
+    manifestFile = `/${baseDirectory}/ccmod.json`;
     manifestText = await files.loadText(manifestFile);
   } catch (_e1) {
     try {
       legacyMode = true;
-      manifestFile = `${baseDirectory}/package.json`;
+      manifestFile = `/${baseDirectory}/package.json`;
       manifestText = await files.loadText(manifestFile);
     } catch (_e2) {
-      console.warn(_e1);
-      console.warn(_e2);
       return null;
     }
   }
