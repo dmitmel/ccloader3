@@ -1,10 +1,10 @@
 import * as modloader from './modloader.js';
 import { showDevTools, wait } from './utils.js';
 
+type modloaderImpl = typeof modloader;
 declare global {
-  interface Window {
-    modloader: typeof modloader;
-  }
+  // eslint-disable-next-line no-var
+  var modloader: modloaderImpl;
 }
 
 (async () => {

@@ -1,9 +1,10 @@
 import * as files from './files.js';
 import { Manifest, ManifestLegacy, ManifestUtil, ModId } from './manifest.js';
 import { Mod, ModDependency } from './mod.js';
+import * as game from './game.js';
 import { promises as fs } from './node-module-imports/_fs.js';
 import { SemVer } from './node-module-imports/_semver.js';
-import { compare, errorHasMessage } from './utils.js';
+import { compare, errorHasMessage, wait } from './utils.js';
 
 export const name = 'ccloader';
 export const version: SemVer = new SemVer('3.0.0-alpha');
@@ -11,38 +12,39 @@ export const version: SemVer = new SemVer('3.0.0-alpha');
 export let gameVersion: SemVer = new SemVer('0.0.0');
 export let mods: ReadonlyMap<ModId, Mod>;
 
-let manifestUtil = new ManifestUtil();
-
 export async function boot(): Promise<void> {
   console.log(`${name} v${version}`);
-  gameVersion = await loadGameVersion();
+
+  await loadGameVersion();
   console.log(`crosscode v${gameVersion}`);
 
   await loadAllModMetadata('assets/mods');
   sortModsInLoadOrder();
-
-  for (let mod of mods.values()) {
-    for (let [depId, dep] of mod.dependencies) {
-      let problem = checkDependencyConstraints(depId, dep);
-      if (problem != null) {
-        mod.shouldBeLoaded = false;
-        console.error(`Could not load mod '${mod.manifest.id}': ${problem}`);
-        // not breaking out of the loop here, let's list potential problems with
-        // other dependencies as well
-      }
-    }
-  }
+  verifyModDependencies();
 
   console.log(mods);
+
+  await game.buildNecessaryDOM();
+
+  await executeStage('preload');
+  let domReadyCallback = await game.loadMainScript();
+  await executeStage('postload');
+  domReadyCallback();
+
+  let startGame = await game.getStartFunction();
+  await executeStage('prestart');
+  startGame();
+  await game.waitForIgGameInitialization();
+  await executeStage('poststart');
 }
 
-async function loadGameVersion(): Promise<SemVer> {
+async function loadGameVersion(): Promise<void> {
   let changelogText = await files.loadText('assets/data/changelog.json');
   let { changelog } = JSON.parse(changelogText) as {
     changelog: Array<{ version: string }>;
   };
   let latestVersion = changelog[0].version;
-  return new SemVer(latestVersion);
+  gameVersion = new SemVer(latestVersion);
 }
 
 async function loadAllModMetadata(modsDir: string): Promise<void> {
@@ -79,6 +81,8 @@ async function loadAllModMetadata(modsDir: string): Promise<void> {
 
   mods = foundMods;
 }
+
+let manifestUtil = new ManifestUtil();
 
 async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
   let manifestFile: string;
@@ -185,9 +189,23 @@ function modHasUnorderedInstalledDependencies(
   return false;
 }
 
-function checkDependencyConstraints(
+function verifyModDependencies(): void {
+  for (let mod of mods.values()) {
+    for (let [depId, dep] of mod.dependencies) {
+      let problem = checkDependencyConstraint(depId, dep);
+      if (problem != null) {
+        mod.shouldBeLoaded = false;
+        console.error(`Could not load mod '${mod.manifest.id}': ${problem}`);
+        // not breaking out of the loop here, let's list potential problems with
+        // other dependencies as well
+      }
+    }
+  }
+}
+
+function checkDependencyConstraint(
   depId: ModId,
-  depConstraints: ModDependency,
+  depConstraint: ModDependency,
 ): string | null {
   let availableDepVersion: SemVer;
   let depTitle = depId;
@@ -208,20 +226,28 @@ function checkDependencyConstraints(
 
       let depMod = mods.get(depId);
       if (depMod == null) {
-        return depConstraints.optional ? null : `${depTitle} is not installed`;
+        return depConstraint.optional ? null : `${depTitle} is not installed`;
       }
 
       if (!depMod.shouldBeLoaded) {
-        return depConstraints.optional ? null : `${depTitle} is not loaded`;
+        return depConstraint.optional ? null : `${depTitle} is not loaded`;
       }
 
       availableDepVersion = depMod.version;
     }
   }
 
-  if (!depConstraints.version.test(availableDepVersion)) {
-    return `version of ${depTitle} (${availableDepVersion}) is not in range '${depConstraints.version}'`;
+  if (!depConstraint.version.test(availableDepVersion)) {
+    return `version of ${depTitle} (${availableDepVersion}) is not in range '${depConstraint.version}'`;
   }
 
   return null;
+}
+
+async function executeStage(
+  stageName: 'preload' | 'postload' | 'prestart' | 'poststart',
+): Promise<void> {
+  console.log('exec', stageName);
+  await wait(250);
+  console.log('done', stageName);
 }
