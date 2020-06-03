@@ -1,11 +1,6 @@
 import * as modloader from './modloader.js';
 import { showDevTools, wait } from './utils.js';
 
-declare global {
-  // eslint-disable-next-line no-var
-  var modloader: modloader.ModloaderAPI;
-}
-
 (async () => {
   let env = window.process?.env as NodeJS.ProcessEnv | undefined;
 
@@ -21,7 +16,9 @@ declare global {
   );
 
   if (env?.CCLOADER_OPEN_DEVTOOLS) {
+    let win = nw.Window.get();
     await showDevTools();
+    win.focus();
     await wait(500);
   }
 

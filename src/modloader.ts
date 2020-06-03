@@ -1,6 +1,8 @@
 import * as files from './files.js';
-import { Manifest, ManifestLegacy, ManifestUtil, ModId } from './manifest.js';
-import { Mod, ModDependency, ModLoadingStage } from './mod.js';
+import { Manifest, ManifestLegacy, ModId } from './public/manifest';
+import { ManifestUtil } from './manifest.js';
+import { ModDependency, ModLoadingStage } from './public/mod';
+import { Mod } from './mod.js';
 import * as game from './game.js';
 import { promises as fs } from './node-module-imports/_fs.js';
 import { SemVer } from './node-module-imports/_semver.js';

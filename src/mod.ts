@@ -1,25 +1,16 @@
-import * as semver from './node-module-imports/_semver.js';
-import { SemVer } from './node-module-imports/_semver.js';
-import { Manifest, ModId } from './manifest.js';
+import { SemVer, Range as SemVerRange } from './node-module-imports/_semver.js';
+import { Manifest, ModId } from './public/manifest';
+import {
+  ModClass,
+  ModDependency,
+  ModLoadingStage,
+  Mod as ModPublic,
+} from './public/mod';
 import * as paths from './paths.js';
 import { errorHasMessage } from './utils.js';
 import * as game from './game.js';
 
-export interface ModDependency {
-  version: semver.Range;
-  optional: boolean;
-}
-
-export interface ModClass {
-  preload?(mod: Mod): Promise<void> | void;
-  postload?(mod: Mod): Promise<void> | void;
-  prestart?(mod: Mod): Promise<void> | void;
-  poststart?(mod: Mod): Promise<void> | void;
-}
-
-export type ModLoadingStage = 'preload' | 'postload' | 'prestart' | 'poststart';
-
-export class Mod {
+export class Mod implements ModPublic {
   readonly version: SemVer;
   readonly dependencies: ReadonlyMap<ModId, ModDependency>;
   shouldBeLoaded = true;
@@ -47,9 +38,9 @@ export class Mod {
         let dep = manifest.dependencies[depId];
         if (typeof dep === 'string') dep = { version: dep };
 
-        let depVersionRange: semver.Range;
+        let depVersionRange: SemVerRange;
         try {
-          depVersionRange = new semver.Range(dep.version);
+          depVersionRange = new SemVerRange(dep.version);
         } catch (err) {
           if (errorHasMessage(err)) {
             err.message = `dependency version constraint '${dep.version}' for mod '${depId}' is not a valid semver range: ${err.message}`;

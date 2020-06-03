@@ -29,9 +29,13 @@ rules:
 overrides:
   - files: '**/*.ts'
     extends: eslint-config-dmitmel/presets/typescript-with-type-checking-addon
-
     rules:
       node/no-missing-import: off
+      '@typescript-eslint/no-namespace': off
+
+  - files: '**/*.d.ts'
+    rules:
+      no-var: off
 
   - files: 'src/**/*.ts'
     parserOptions:
