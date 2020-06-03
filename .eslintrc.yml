@@ -16,6 +16,7 @@ rules:
         - self
         - status
         - event
+        - hasOwnProperty
 
   func-names: off
 
@@ -23,6 +24,7 @@ rules:
     - error
     - ignores:
         - modules
+        - dynamicImport
 
 overrides:
   - files: '**/*.ts'

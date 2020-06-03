@@ -1,10 +1,10 @@
 import * as files from './files.js';
 import { Manifest, ManifestLegacy, ManifestUtil, ModId } from './manifest.js';
-import { Mod, ModDependency } from './mod.js';
+import { Mod, ModDependency, ModLoadingStage } from './mod.js';
 import * as game from './game.js';
 import { promises as fs } from './node-module-imports/_fs.js';
 import { SemVer } from './node-module-imports/_semver.js';
-import { compare, errorHasMessage, wait } from './utils.js';
+import { compare, errorHasCode, errorHasMessage } from './utils.js';
 
 export const name = 'ccloader';
 export const version: SemVer = new SemVer('3.0.0-alpha');
@@ -23,6 +23,8 @@ export async function boot(): Promise<void> {
   verifyModDependencies();
 
   console.log(mods);
+
+  await initModClasses();
 
   await game.buildNecessaryDOM();
 
@@ -50,8 +52,23 @@ async function loadGameVersion(): Promise<void> {
 async function loadAllModMetadata(modsDir: string): Promise<void> {
   let foundMods = new Map<ModId, Mod>();
 
+  let modsDirectoryContents: string[];
+
+  try {
+    modsDirectoryContents = await fs.readdir(modsDir);
+  } catch (err) {
+    if (errorHasCode(err) && err.code === 'ENOENT') {
+      console.error(
+        `Directory '${modsDir}' not found, did you forget to create it?`,
+      );
+      modsDirectoryContents = [];
+    } else {
+      throw err;
+    }
+  }
+
   await Promise.all(
-    (await fs.readdir(modsDir)).map(async name => {
+    modsDirectoryContents.map(async name => {
       let fullPath = `${modsDir}/${name}`;
       try {
         // the `withFileTypes` option of `readdir` can't be used here because it
@@ -130,7 +147,7 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
     throw err;
   }
 
-  return new Mod(baseDirectory, manifestData, legacyMode);
+  return new Mod(`${baseDirectory}/`, manifestData, legacyMode);
 }
 
 function sortModsInLoadOrder(): void {
@@ -242,10 +259,30 @@ function checkDependencyConstraint(
   return null;
 }
 
-async function executeStage(
-  stageName: 'preload' | 'postload' | 'prestart' | 'poststart',
-): Promise<void> {
-  console.log('exec', stageName);
-  await wait(250);
-  console.log('done', stageName);
+async function initModClasses(): Promise<void> {
+  for (let mod of mods.values()) {
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      await mod.initClass();
+    } catch (err) {
+      console.error(
+        `Failed to initialize class of mod '${mod.manifest.id}':`,
+        err,
+      );
+    }
+  }
+}
+
+async function executeStage(stage: ModLoadingStage): Promise<void> {
+  for (let mod of mods.values()) {
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      await mod.executeStage(stage);
+    } catch (err) {
+      console.error(
+        `Failed to execute ${stage} of mod '${mod.manifest.id}':`,
+        err,
+      );
+    }
+  }
 }

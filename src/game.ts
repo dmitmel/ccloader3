@@ -154,7 +154,7 @@ export async function loadMainScript(): Promise<() => void> {
   return domReadyCallback;
 }
 
-function loadStylesheet(url: string): Promise<void> {
+export function loadStylesheet(url: string): Promise<void> {
   return new Promise((resolve, reject) => {
     let link = document.createElement('link');
     link.rel = 'stylesheet';
@@ -167,13 +167,14 @@ function loadStylesheet(url: string): Promise<void> {
   });
 }
 
-function loadScript(
+export function loadScript(
   url: string,
-  options: { async?: boolean } = {},
+  options: { type?: string | null; async?: boolean | null } = {},
 ): Promise<void> {
   return new Promise((resolve, reject) => {
     let script = document.createElement('script');
     script.src = url;
+    if (options.type != null) script.type = options.type;
     if (options.async != null) script.async = options.async;
     script.addEventListener('load', () => resolve());
     script.addEventListener('error', () =>
