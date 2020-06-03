@@ -1,10 +1,9 @@
 import * as modloader from './modloader.js';
 import { showDevTools, wait } from './utils.js';
 
-type modloaderImpl = typeof modloader;
 declare global {
   // eslint-disable-next-line no-var
-  var modloader: modloaderImpl;
+  var modloader: modloader.ModloaderAPI;
 }
 
 (async () => {
@@ -27,7 +26,7 @@ declare global {
   }
 
   await onloadPromise;
-  window.modloader = modloader;
+  window.modloader = modloader.publicAPI;
 
   await modloader.boot();
 })();

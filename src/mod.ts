@@ -68,8 +68,6 @@ export class Mod {
   }
 
   async initClass(): Promise<void> {
-    if (!this.shouldBeLoaded) return;
-
     let script = this.manifest.main;
     if (script == null) return;
     let scriptFullPath = this.resolvePath(script);
@@ -95,8 +93,6 @@ export class Mod {
   }
 
   async executeStage(stage: ModLoadingStage): Promise<void> {
-    if (!this.shouldBeLoaded) return;
-
     if (this.classInstance != null && stage in this.classInstance) {
       await this.classInstance[stage]!(this);
     }
