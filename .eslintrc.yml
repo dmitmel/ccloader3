@@ -29,8 +29,14 @@ rules:
 overrides:
   - files: '**/*.ts'
     extends: eslint-config-dmitmel/presets/typescript-with-type-checking-addon
-    parserOptions:
-      project: tsconfig.json
 
     rules:
       node/no-missing-import: off
+
+  - files: 'src/**/*.ts'
+    parserOptions:
+      project: tsconfig.json
+
+  - files: 'runtime/src/**/*.ts'
+    parserOptions:
+      project: runtime/tsconfig.json

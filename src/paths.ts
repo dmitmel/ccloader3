@@ -73,7 +73,6 @@ function normalizeString(path: string, allowAboveRoot: boolean): string {
   return res;
 }
 
-// path.resolve([from ...], to)
 export function resolve(...args: string[]): string {
   let resolvedPath = '';
   let resolvedAbsolute = false;
@@ -125,6 +124,15 @@ export function normalize(path: string): string {
 export function isAbsolute(path: string): boolean {
   validateString(path, 'path');
   return path.length > 0 && path.charCodeAt(0) === CHAR_FORWARD_SLASH;
+}
+
+// equivalent to path.relative('/', path)
+export function stripRoot(path: string): string {
+  validateString(path, 'path');
+  if (path.length > 0 && path.charCodeAt(0) === CHAR_FORWARD_SLASH) {
+    path = path.slice(1);
+  }
+  return path;
 }
 
 export function join(...args: string[]): string {

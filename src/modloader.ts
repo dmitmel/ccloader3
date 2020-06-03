@@ -5,6 +5,11 @@ import * as game from './game.js';
 import { promises as fs } from './node-module-imports/_fs.js';
 import { SemVer } from './node-module-imports/_semver.js';
 import { compare, errorHasCode, errorHasMessage } from './utils.js';
+import * as paths from './paths.js';
+
+const CCLOADER_DIR: string = paths.stripRoot(
+  paths.join(paths.dirname(new URL(import.meta.url).pathname), '..'),
+);
 
 export interface ModloaderAPI {
   readonly name: string;
@@ -30,18 +35,39 @@ export async function boot(): Promise<void> {
   await loadGameVersion();
   console.log(`crosscode v${api.gameVersion}`);
 
-  await loadAllModMetadata('assets/mods');
-  sortModsInLoadOrder();
+  let runtimeModBaseDirectory = `${CCLOADER_DIR}/runtime`;
+  let runtimeMod: Mod | null;
+  try {
+    // the runtime mod is added to `installedMods` in `sortModsInLoadOrder`
+    runtimeMod = await loadModMetadata(runtimeModBaseDirectory);
+    if (runtimeMod == null) {
+      throw new Error('Assertion failed: runtimeMod != null');
+    }
+  } catch (err) {
+    console.error(
+      `Failed to load metadata of the runtime mod in '${runtimeModBaseDirectory}', please check if you installed CCLoader correctly!`,
+      err,
+    );
+    return;
+  }
+
+  await loadAllModMetadata('/assets/mods');
+  sortModsInLoadOrder(runtimeMod);
   verifyModDependencies();
+  if (!runtimeMod.shouldBeLoaded) {
+    throw new Error(
+      'Could not load the runtime mod, game initialization is impossible!',
+    );
+  }
   for (let [modId, mod] of api.installedMods.entries()) {
     if (mod.shouldBeLoaded) api.loadedMods.set(modId, mod);
   }
 
   console.log(api.loadedMods);
 
-  await initModClasses();
-
   await game.buildNecessaryDOM();
+
+  await initModClasses();
 
   await executeStage('preload');
   let domReadyCallback = await game.loadMainScript();
@@ -67,6 +93,7 @@ async function loadGameVersion(): Promise<void> {
 async function loadAllModMetadata(modsDir: string): Promise<void> {
   let modsDirectoryContents: string[];
 
+  modsDir = paths.stripRoot(modsDir);
   try {
     modsDirectoryContents = await fs.readdir(modsDir);
   } catch (err) {
@@ -161,9 +188,11 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
   return new Mod(`${baseDirectory}/`, manifestData, legacyMode);
 }
 
-function sortModsInLoadOrder(): void {
+function sortModsInLoadOrder(runtimeMod: Mod): void {
   // note that maps preserve insertion order as defined in the ECMAScript spec
   let orderedMods = new Map<ModId, Mod>();
+
+  orderedMods.set(runtimeMod.manifest.id, runtimeMod);
 
   let unorderedModsList: Mod[] = Array.from(
     api.installedMods.values(),
