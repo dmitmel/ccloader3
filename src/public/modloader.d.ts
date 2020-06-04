@@ -2,6 +2,20 @@ import { Mod } from './mod';
 import { ModId } from './manifest';
 import { SemVer } from 'semver';
 
+declare module 'semver' {
+  interface SemVer {
+    toString(this: this): string;
+  }
+
+  interface Comparator {
+    toString(this: this): string;
+  }
+
+  interface Range {
+    toString(this: this): string;
+  }
+}
+
 declare global {
   namespace modloader {
     const name: string;

@@ -17,4 +17,10 @@ declare namespace sc {
       'mods-description': sc.OptionDefinition.INFO;
     }
   }
+
+  interface CCLoaderVersionGuiMixin {
+    ccloaderVersionGui: sc.TextGui;
+  }
+  interface TitleScreenGui extends CCLoaderVersionGuiMixin {}
+  interface PauseScreenGui extends CCLoaderVersionGuiMixin {}
 }
