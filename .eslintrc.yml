@@ -26,6 +26,8 @@ rules:
         - modules
         - dynamicImport
 
+  node/no-unpublished-import: off
+
 overrides:
   - files: '**/*.ts'
     extends: eslint-config-dmitmel/presets/typescript-with-type-checking-addon
