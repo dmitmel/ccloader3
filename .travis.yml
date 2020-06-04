@@ -5,6 +5,11 @@ cache:
   yarn: true
 
 install:
+  - (cd - &&
+    git clone --depth=1 https://github.com/dmitmel/ultimate-crosscode-typedefs &&
+    cd ultimate-crosscode-typedefs &&
+    yarn link)
+  - yarn link ultimate-crosscode-typedefs
   - yarn install
 
 script:
