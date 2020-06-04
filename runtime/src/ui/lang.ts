@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment */
 
-import { getLocalizedString, getModTitle } from '../utils.js';
+import { getLocalizedString, getModTitle } from './utils.js';
 
 let langGui = ig.lang.labels.sc.gui;
 

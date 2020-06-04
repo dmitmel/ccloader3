@@ -1,13 +1,3 @@
-declare namespace sc.OptionDefinition {
-  interface CHECKBOX {
-    checkboxRightAlign?: boolean;
-  }
-
-  interface INFO {
-    marginBottom?: number;
-  }
-}
-
 ig.module('ccloader-runtime.stdlib.options.gui')
   .requires('game.feature.menu.gui.options.options-types')
   .defines(() => {

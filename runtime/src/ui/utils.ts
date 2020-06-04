@@ -1,5 +1,5 @@
-import { LocalizedString } from '../../src/public/manifest';
-import { Mod } from '../../src/public/mod';
+import { LocalizedString } from '../../../src/public/manifest';
+import { Mod } from '../../../src/public/mod';
 
 export function getLocalizedString(
   str: LocalizedString | null | undefined,
