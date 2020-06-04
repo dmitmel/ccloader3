@@ -9,17 +9,20 @@ import {
 import * as paths from './paths.js';
 import { errorHasMessage } from './utils.js';
 import * as game from './game.js';
+import { findFilesRecursively } from './files.js';
 
 export class Mod implements ModPublic {
   readonly version: SemVer;
   readonly dependencies: ReadonlyMap<ModId, ModDependency>;
+  readonly assetsDir: string;
+  assets: Set<string> = new Set();
   shouldBeLoaded = true;
   classInstance: ModClass | null = null;
 
   constructor(
-    public baseDirectory: string,
-    public manifest: Manifest,
-    public legacyMode: boolean,
+    readonly baseDirectory: string,
+    readonly manifest: Manifest,
+    readonly legacyMode: boolean,
   ) {
     try {
       this.version = new SemVer(manifest.version);
@@ -56,6 +59,14 @@ export class Mod implements ModPublic {
     }
 
     this.dependencies = dependencies;
+
+    this.assetsDir = this.resolvePath(
+      `${this.manifest.assetsDir ?? 'assets'}/`,
+    );
+  }
+
+  async findAllAssets(): Promise<void> {
+    this.assets = new Set(await findFilesRecursively(this.assetsDir));
   }
 
   async initClass(): Promise<void> {
@@ -67,7 +78,7 @@ export class Mod implements ModPublic {
     let module: { default: new (mod: Mod) => ModClass };
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-      module = await import(scriptFullPath);
+      module = await import(`/${scriptFullPath}`);
     } catch (err) {
       if (errorHasMessage(err)) {
         err.message = `Error when importing '${scriptFullPath}': ${err.message}`;
@@ -92,12 +103,12 @@ export class Mod implements ModPublic {
     if (script == null) return;
     let scriptFullPath = this.resolvePath(script);
 
-    await game.loadScript(scriptFullPath, {
+    await game.loadScript(`/${scriptFullPath}`, {
       type: this.manifest.legacyLoadAsScript ? null : 'module',
     });
   }
 
   resolvePath(path: string): string {
-    return paths.join('/', this.baseDirectory, paths.join('/', path));
+    return paths.join(this.baseDirectory, paths.join('/', path));
   }
 }

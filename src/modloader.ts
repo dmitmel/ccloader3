@@ -1,4 +1,4 @@
-import * as files from './files.js';
+import { findFilesRecursively, loadTextFile } from './files.js';
 import { Manifest, ManifestLegacy, ModId } from './public/manifest';
 import { ManifestUtil } from './manifest.js';
 import { ModDependency, ModLoadingStage } from './public/mod';
@@ -61,9 +61,23 @@ export async function boot(): Promise<void> {
       'Could not load the runtime mod, game initialization is impossible!',
     );
   }
+
+  let findAssetsPromises: Array<Promise<void>> = [];
   for (let [modId, mod] of api.installedMods.entries()) {
-    if (mod.shouldBeLoaded) api.loadedMods.set(modId, mod);
+    if (mod.shouldBeLoaded) {
+      api.loadedMods.set(modId, mod);
+
+      findAssetsPromises.push(
+        mod.findAllAssets().catch(err => {
+          console.error(
+            `An error occured while searching assets of mod '${mod.manifest.id}':`,
+            err,
+          );
+        }),
+      );
+    }
   }
+  await Promise.all(findAssetsPromises);
 
   console.log(api.loadedMods);
 
@@ -84,7 +98,7 @@ export async function boot(): Promise<void> {
 }
 
 async function loadGameVersion(): Promise<void> {
-  let changelogText = await files.loadText('/assets/data/changelog.json');
+  let changelogText = await loadTextFile('assets/data/changelog.json');
   let { changelog } = JSON.parse(changelogText) as {
     changelog: Array<{ version: string }>;
   };
@@ -147,13 +161,13 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
   let legacyMode = false;
 
   try {
-    manifestFile = `/${baseDirectory}/ccmod.json`;
-    manifestText = await files.loadText(manifestFile);
+    manifestFile = `${baseDirectory}/ccmod.json`;
+    manifestText = await loadTextFile(manifestFile);
   } catch (_e1) {
     try {
       legacyMode = true;
-      manifestFile = `/${baseDirectory}/package.json`;
-      manifestText = await files.loadText(manifestFile);
+      manifestFile = `${baseDirectory}/package.json`;
+      manifestText = await loadTextFile(manifestFile);
     } catch (_e2) {
       return null;
     }

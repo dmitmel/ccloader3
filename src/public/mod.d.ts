@@ -18,6 +18,8 @@ export type ModLoadingStage = 'preload' | 'postload' | 'prestart' | 'poststart';
 export class Mod {
   readonly baseDirectory: string;
   readonly manifest: Manifest;
+  readonly assetsDir: string;
+  readonly assets: ReadonlySet<string>;
   readonly legacyMode: boolean;
   readonly version: SemVer;
   readonly dependencies: ReadonlyMap<ModId, ModDependency>;
