@@ -122,7 +122,6 @@ export async function buildNecessaryDOM(): Promise<void> {
 }
 
 declare global {
-  // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace ig {
     function _DOMReady(): void;
 
@@ -148,8 +147,7 @@ export async function loadMainScript(): Promise<() => void> {
   // is being executed
   await loadScript(MAIN_SCRIPT_URL, { async: false });
 
-  if (domReadyCallback != null) domReadyCallback();
-  else throw new Error('domReadyCallback');
+  if (domReadyCallback == null) throw new Error('domReadyCallback');
 
   return domReadyCallback;
 }
