@@ -15,9 +15,28 @@ window.Image = class Image extends ImageOriginal {
   }
 
   set src(url: string) {
-    super.src = applyModUrlProtocol(url) ?? applyAssetOverrides(url) ?? url;
+    super.src = transformUrl(url);
   }
 };
+
+type XHROpenArgs = [
+  string, // method
+  string, // url
+  boolean?, // async
+  (string | null)?, // username
+  (string | null)?, // password
+];
+
+const xhrOpenOriginal = XMLHttpRequest.prototype.open;
+XMLHttpRequest.prototype.open = function (...args: XHROpenArgs) {
+  let url = args[1];
+  args[1] = transformUrl(url);
+  return (xhrOpenOriginal as (...args: XHROpenArgs) => void).apply(this, args);
+};
+
+function transformUrl(url: string): string {
+  return applyModUrlProtocol(url) ?? applyAssetOverrides(url) ?? url;
+}
 
 function applyAssetOverrides(url: string): string | null {
   if (!url.startsWith(IG_ROOT)) return null;
@@ -40,9 +59,7 @@ function applyAssetOverrides(url: string): string | null {
     );
   }
 
-  let overridenUrl = `/${overrides[0]}`;
-  console.log(`Replacing '${url}' with '${overridenUrl}'`);
-  return overridenUrl;
+  return `/${overrides[0]}`;
 }
 
 const MOD_PROTOCOL_PREFIX = 'mod://';
