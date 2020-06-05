@@ -294,8 +294,8 @@ escape-string-regexp@^1.0.5:
   integrity sha1-G2HAViGQqN/2rjuyzwIAyhMLhtQ=
 
 eslint-config-dmitmel@dmitmel/eslint-config-dmitmel:
-  version "5.0.0"
-  resolved "https://codeload.github.com/dmitmel/eslint-config-dmitmel/tar.gz/aa06ecfed0f4796591368ba7d7d6c31cfdddc191"
+  version "6.0.0"
+  resolved "https://codeload.github.com/dmitmel/eslint-config-dmitmel/tar.gz/f1a867de9f0594a10ee8715d14dfe50827c9bf78"
 
 eslint-plugin-es@^3.0.0:
   version "3.0.1"

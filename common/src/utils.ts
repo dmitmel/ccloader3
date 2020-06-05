@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
 
 export function showDevTools(): Promise<void> {
-  return new Promise(resolve =>
+  return new Promise((resolve) =>
     // eslint-disable-next-line no-undefined
     nw.Window.get().showDevTools(undefined, () => resolve()),
   );
 }
 
 export function wait(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 export function compare(a: any, b: any): number {

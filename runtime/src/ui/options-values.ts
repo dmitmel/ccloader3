@@ -25,15 +25,15 @@ function setLogFlag(index: number, value: boolean): void {
 Object.defineProperties(sc.options.values, {
   'logLevel-log': {
     get: () => getLogFlag(2),
-    set: value => setLogFlag(2, value),
+    set: (value) => setLogFlag(2, value),
   },
   'logLevel-warn': {
     get: () => getLogFlag(1),
-    set: value => setLogFlag(1, value),
+    set: (value) => setLogFlag(1, value),
   },
   'logLevel-error': {
     get: () => getLogFlag(0),
-    set: value => setLogFlag(0, value),
+    set: (value) => setLogFlag(0, value),
   },
 });
 

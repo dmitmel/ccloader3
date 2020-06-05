@@ -11,7 +11,7 @@ import { showDevTools, wait } from '../common/dist/utils.js';
     return;
   }
 
-  let onloadPromise = new Promise(resolve =>
+  let onloadPromise = new Promise((resolve) =>
     window.addEventListener('load', () => resolve()),
   );
 

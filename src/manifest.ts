@@ -40,7 +40,7 @@ function getType(value: unknown): Type {
 // TODO: investigate prototype chain bugs when extending `Error` here
 export class ManifestValidationError extends Error {
   constructor(public problems: string[]) {
-    super(`\n${problems.map(p => `- ${p}`).join('\n')}`);
+    super(`\n${problems.map((p) => `- ${p}`).join('\n')}`);
     this.name = new.target.name;
   }
 }

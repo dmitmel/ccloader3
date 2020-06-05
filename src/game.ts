@@ -112,8 +112,8 @@ export async function buildNecessaryDOM(): Promise<void> {
   Object.assign(window, IMPACT_CONFIGURATION);
 
   await Promise.all([
-    ...REQUIRED_STYLESHEET_URLS.map(url => loadStylesheet(url)),
-    ...REQUIRED_SCRIPT_URLS.map(url =>
+    ...REQUIRED_STYLESHEET_URLS.map((url) => loadStylesheet(url)),
+    ...REQUIRED_SCRIPT_URLS.map((url) =>
       // async is turned off so that these scripts are loaded in the order of
       // addition
       loadScript(url, { async: false }),
@@ -201,7 +201,7 @@ function callOnIgInitialization(callback: () => void): void {
 }
 
 export async function getStartFunction(): Promise<() => void> {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     // TODO: this replicates the behavior from the original HTML page, I hope we
     // can find a better solution to catch `window.startCrossCode` immediately.
     // Note that most of the time the `setTimeout` won't be fired since at this
@@ -220,7 +220,7 @@ export async function getStartFunction(): Promise<() => void> {
 }
 
 export async function waitForIgGameInitialization(): Promise<void> {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     let realSetGameNow = window.ig.system.setGameNow;
     window.ig.system.setGameNow = function (...args) {
       let result = realSetGameNow.apply(this, args);

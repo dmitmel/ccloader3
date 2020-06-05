@@ -70,7 +70,7 @@ export async function boot(): Promise<void> {
       api.loadedMods.set(modId, mod);
 
       findAssetsPromises.push(
-        mod.findAllAssets().catch(err => {
+        mod.findAllAssets().catch((err) => {
           console.error(
             `An error occured while searching assets of mod '${mod.manifest.id}':`,
             err,
@@ -128,7 +128,7 @@ async function loadAllModMetadata(modsDir: string): Promise<void> {
   }
 
   await Promise.all(
-    modsDirectoryContents.map(async name => {
+    modsDirectoryContents.map(async (name) => {
       let fullPath = `${modsDir}/${name}`;
       try {
         // the `withFileTypes` option of `readdir` can't be used here because it

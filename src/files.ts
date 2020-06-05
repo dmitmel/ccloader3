@@ -26,7 +26,7 @@ async function findFilesRecursivelyInternal(
   }
 
   await Promise.all(
-    contents.map(async name => {
+    contents.map(async (name) => {
       let fullPath = joinPaths(currentDir, name);
       let stat = await fs.stat(fullPath);
       if (stat.isDirectory()) {
