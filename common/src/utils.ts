@@ -25,6 +25,6 @@ export function errorHasCode(error: any): error is { code: string } {
   return typeof error.code === 'string';
 }
 
-export function hasOwnProperty(obj: unknown, property: PropertyKey): boolean {
-  return Object.prototype.hasOwnProperty.call(obj, property);
+export function hasKey(obj: unknown, key: PropertyKey): boolean {
+  return Object.prototype.hasOwnProperty.call(obj, key);
 }

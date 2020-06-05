@@ -17,14 +17,6 @@ const CCLOADER_DIR: string = paths.stripRoot(
   paths.join(paths.dirname(new URL(import.meta.url).pathname), '..'),
 );
 
-export interface ModloaderAPI {
-  readonly name: string;
-  readonly version: SemVer;
-  readonly gameVersion: SemVer;
-  readonly installedMods: ReadonlyMap<ModId, Mod>;
-  readonly loadedMods: ReadonlyMap<ModId, Mod>;
-}
-
 const api = {
   name: 'ccloader',
   version: new SemVer('3.0.0-alpha'),
