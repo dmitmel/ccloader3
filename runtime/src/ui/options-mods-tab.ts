@@ -7,7 +7,7 @@ ig.module('ccloader-runtime.ui.options.mods-tab')
   )
   .defines(() => {
     let icons = new ig.Font(
-      '/ccloader3/runtime/assets/media/font/icons/ccloader-runtime.png',
+      'mod://ccloader-runtime/media/icons.png',
       16,
       ig.MultiFont.ICON_START,
     );
