@@ -9,9 +9,5 @@ export function getLocalizedString(
 }
 
 export function getModTitle(mod: Mod): string {
-  return (
-    (mod.manifest.title != null
-      ? getLocalizedString(mod.manifest.title)
-      : null) ?? mod.manifest.id
-  );
+  return getLocalizedString(mod.manifest.title) ?? mod.manifest.id;
 }

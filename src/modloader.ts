@@ -1,4 +1,4 @@
-import { findFilesRecursively, loadTextFile } from './files.js';
+import { loadTextFile } from './files.js';
 import { Manifest, ManifestLegacy, ModId } from './public/manifest';
 import { ManifestUtil } from './manifest.js';
 import { ModDependency, ModLoadingStage } from './public/mod';
@@ -28,8 +28,6 @@ const api = {
   installedMods: new Map<ModId, Mod>(),
   loadedMods: new Map<ModId, Mod>(),
 };
-
-export const publicAPI: ModloaderAPI = api;
 
 export async function boot(): Promise<void> {
   console.log(`${api.name} v${api.version}`);
@@ -80,6 +78,8 @@ export async function boot(): Promise<void> {
   await Promise.all(findAssetsPromises);
 
   console.log(api.loadedMods);
+
+  window.modloader = api;
 
   await game.buildNecessaryDOM();
 

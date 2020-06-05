@@ -23,7 +23,6 @@ import { showDevTools, wait } from './utils.js';
   }
 
   await onloadPromise;
-  window.modloader = modloader.publicAPI;
 
   await modloader.boot();
 })();
