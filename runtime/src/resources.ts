@@ -87,7 +87,7 @@ function applyModUrlProtocol(fullUrl: string): string | null {
 
     return `/${mod.resolvePath(filePath)}`;
   } catch (err) {
-    if (ccmod.utils.errorHasMessage(err)) {
+    if (ccmod3.utils.errorHasMessage(err)) {
       err.message = `Invalid 'mod://' URL '${fullUrl}': ${err.message}`;
     }
     throw err;
