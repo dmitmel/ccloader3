@@ -1,5 +1,5 @@
 import * as modloader from './modloader.js';
-import { showDevTools, wait } from './utils.js';
+import { showDevTools, wait } from '../common/dist/utils.js';
 
 (async () => {
   let env = window.process?.env as NodeJS.ProcessEnv | undefined;

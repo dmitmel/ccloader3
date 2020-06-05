@@ -1,6 +1,6 @@
 import { promises as fs } from './node-module-imports/_fs.js';
 import { join as joinPaths } from './node-module-imports/_path.js';
-import { errorHasCode } from './utils.js';
+import { errorHasCode } from '../common/dist/utils.js';
 
 export function loadTextFile(url: string): Promise<string> {
   return fs.readFile(url, 'utf8');

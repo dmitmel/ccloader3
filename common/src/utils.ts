@@ -1,5 +1,3 @@
-// TODO: export this and `paths` into the `ccmod` namespace
-
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
 
 export function showDevTools(): Promise<void> {

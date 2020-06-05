@@ -7,8 +7,8 @@ import {
   ModLoadingStage,
   Mod as ModPublic,
 } from './public/mod';
-import * as paths from './paths.js';
-import { errorHasMessage } from './utils.js';
+import * as paths from '../common/dist/paths.js';
+import { errorHasMessage } from '../common/dist/utils.js';
 import * as game from './game.js';
 import { findFilesRecursively } from './files.js';
 

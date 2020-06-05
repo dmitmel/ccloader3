@@ -6,8 +6,12 @@ import { Mod } from './mod.js';
 import * as game from './game.js';
 import { promises as fs } from './node-module-imports/_fs.js';
 import { SemVer } from './node-module-imports/_semver.js';
-import { compare, errorHasCode, errorHasMessage } from './utils.js';
-import * as paths from './paths.js';
+import {
+  compare,
+  errorHasCode,
+  errorHasMessage,
+} from '../common/dist/utils.js';
+import * as paths from '../common/dist/paths.js';
 
 const CCLOADER_DIR: string = paths.stripRoot(
   paths.join(paths.dirname(new URL(import.meta.url).pathname), '..'),
