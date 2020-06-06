@@ -70,7 +70,7 @@ function jsonPathToString(path: JsonPath): string {
   return str;
 }
 
-export class ManifestUtil {
+export class ManifestValidator {
   private problems: string[] = [];
 
   public validate(data: Manifest): void {
@@ -156,41 +156,6 @@ export class ManifestUtil {
     if (this.problems.length > 0) {
       throw new ManifestValidationError(this.problems);
     }
-  }
-
-  public convertFromLegacy(data: ManifestLegacy): Manifest {
-    /* eslint-disable no-undefined */
-    return {
-      id: data.name,
-      version: data.version,
-      license: data.license,
-
-      title: {
-        en_US:
-          data.ccmodHumanName !== undefined ? data.ccmodHumanName : data.name,
-      },
-      description:
-        data.description !== undefined
-          ? { en_US: data.description }
-          : undefined,
-      homepage:
-        data.homepage !== undefined ? { en_US: data.homepage } : undefined,
-
-      dependencies:
-        data.ccmodDependencies !== undefined
-          ? data.ccmodDependencies
-          : data.dependencies,
-
-      assets: data.assets,
-
-      legacyLoadAsScript: !data.module,
-      main: data.plugin,
-      preload: data.preload,
-      postload: data.postload,
-      prestart: data.prestart,
-      poststart: data.main,
-    };
-    /* eslint-enable no-undefined */
   }
 
   private assertType(
@@ -328,4 +293,37 @@ export class ManifestUtil {
       this.assertType([...valuePath, index], value2, [Type.string]);
     }
   }
+}
+
+export function convertFromLegacy(data: ManifestLegacy): Manifest {
+  /* eslint-disable no-undefined */
+  return {
+    id: data.name,
+    version: data.version,
+    license: data.license,
+
+    title: {
+      en_US:
+        data.ccmodHumanName !== undefined ? data.ccmodHumanName : data.name,
+    },
+    description:
+      data.description !== undefined ? { en_US: data.description } : undefined,
+    homepage:
+      data.homepage !== undefined ? { en_US: data.homepage } : undefined,
+
+    dependencies:
+      data.ccmodDependencies !== undefined
+        ? data.ccmodDependencies
+        : data.dependencies,
+
+    assets: data.assets,
+
+    legacyLoadAsScript: !data.module,
+    main: data.plugin,
+    preload: data.preload,
+    postload: data.postload,
+    prestart: data.prestart,
+    poststart: data.main,
+  };
+  /* eslint-enable no-undefined */
 }

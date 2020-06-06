@@ -1,6 +1,9 @@
 import { loadTextFile } from './files.js';
 import { Manifest, ManifestLegacy, ModId } from './public/manifest';
-import { ManifestUtil } from './manifest.js';
+import {
+  ManifestValidator,
+  convertFromLegacy as convertManifestFromLegacy,
+} from './manifest.js';
 import { ModDependency, ModLoadingStage } from './public/mod';
 import { Mod } from './mod.js';
 import * as game from './game.js';
@@ -172,7 +175,7 @@ async function loadAllModMetadata(
   );
 }
 
-let manifestUtil = new ManifestUtil();
+let manifestValidator = new ManifestValidator();
 
 async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
   let manifestFile: string;
@@ -206,11 +209,11 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
   try {
     if (legacyMode) {
       manifestData = manifestData as ManifestLegacy;
-      manifestUtil.validateLegacy(manifestData);
-      manifestData = manifestUtil.convertFromLegacy(manifestData);
+      manifestValidator.validateLegacy(manifestData);
+      manifestData = convertManifestFromLegacy(manifestData);
     } else {
       manifestData = manifestData as Manifest;
-      manifestUtil.validate(manifestData);
+      manifestValidator.validate(manifestData);
     }
   } catch (err) {
     if (errorHasMessage(err)) {
