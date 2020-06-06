@@ -14,7 +14,6 @@ export interface Manifest {
   assets?: FilePath[];
   assetsDir?: FilePath;
 
-  legacyLoadAsScript?: boolean;
   main?: FilePath;
   preload?: FilePath;
   postload?: FilePath;
@@ -36,7 +35,6 @@ export interface ManifestLegacy {
 
   assets?: FilePath[];
 
-  module?: boolean;
   plugin?: FilePath;
   preload?: FilePath;
   postload?: FilePath;

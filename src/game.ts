@@ -76,36 +76,6 @@ export async function loadMainScript(): Promise<() => void> {
   return domReadyCallback;
 }
 
-export function loadStylesheet(url: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    let link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = url;
-    link.addEventListener('load', () => resolve());
-    link.addEventListener('error', () =>
-      reject(new Error(`Failed to load stylesheet '${url}'`)),
-    );
-    document.head.appendChild(link);
-  });
-}
-
-export function loadScript(
-  url: string,
-  options: { type?: string | null; async?: boolean | null } = {},
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    let script = document.createElement('script');
-    script.src = url;
-    if (options.type != null) script.type = options.type;
-    if (options.async != null) script.async = options.async;
-    script.addEventListener('load', () => resolve());
-    script.addEventListener('error', () =>
-      reject(new Error(`Failed to load script '${url}'`)),
-    );
-    document.body.appendChild(script);
-  });
-}
-
 function callOnIgInitialization(callback: () => void): void {
   Object.defineProperty(window, 'ig', {
     configurable: true,
@@ -151,5 +121,35 @@ export async function waitForIgGameInitialization(): Promise<void> {
       resolve();
       return result;
     };
+  });
+}
+
+function loadStylesheet(url: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = url;
+    link.addEventListener('load', () => resolve());
+    link.addEventListener('error', () =>
+      reject(new Error(`Failed to load stylesheet '${url}'`)),
+    );
+    document.head.appendChild(link);
+  });
+}
+
+function loadScript(
+  url: string,
+  options: { type?: string | null; async?: boolean | null } = {},
+): Promise<void> {
+  return new Promise((resolve, reject) => {
+    let script = document.createElement('script');
+    script.src = url;
+    if (options.type != null) script.type = options.type;
+    if (options.async != null) script.async = options.async;
+    script.addEventListener('load', () => resolve());
+    script.addEventListener('error', () =>
+      reject(new Error(`Failed to load script '${url}'`)),
+    );
+    document.body.appendChild(script);
   });
 }

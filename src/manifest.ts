@@ -100,13 +100,6 @@ export class ManifestValidator {
       this.assertAssets(['assets'], data.assets);
       this.assertType(['assetsDir'], data.assetsDir, [Type.string], true);
 
-      // eslint-disable-next-line no-undefined
-      if (data.legacyLoadAsScript !== undefined) {
-        this.problems.push(
-          'legacy_main exists only for backwards compatibility reasons, must not be used and will be removed soon',
-        );
-      }
-
       this.assertType(['main'], data.main, [Type.string], true);
       this.assertType(['preload'], data.preload, [Type.string], true);
       this.assertType(['postload'], data.postload, [Type.string], true);
@@ -145,7 +138,6 @@ export class ManifestValidator {
 
       this.assertAssets(['assets'], data.assets);
 
-      this.assertType(['module'], data.module, [Type.boolean], true);
       this.assertType(['plugin'], data.plugin, [Type.string], true);
       this.assertType(['preload'], data.preload, [Type.string], true);
       this.assertType(['postload'], data.postload, [Type.string], true);
@@ -318,7 +310,6 @@ export function convertFromLegacy(data: ManifestLegacy): Manifest {
 
     assets: data.assets,
 
-    legacyLoadAsScript: !data.module,
     main: data.plugin,
     preload: data.preload,
     postload: data.postload,

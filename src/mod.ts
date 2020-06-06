@@ -116,9 +116,7 @@ export class Mod implements ModPublic {
     if (script == null) return;
     let scriptFullPath = this.resolvePath(script);
 
-    await game.loadScript(`/${scriptFullPath}`, {
-      type: this.manifest.legacyLoadAsScript ? null : 'module',
-    });
+    await import(`/${scriptFullPath}`);
   }
 
   public resolvePath(path: string): string {
