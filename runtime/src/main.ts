@@ -1,5 +1,6 @@
 import * as paths from '../../common/dist/paths.js';
 import * as utils from '../../common/dist/utils.js';
+import { requireFixed } from '../../common/dist/require.js';
 import * as semver from '../../common/vendor-libs/semver.js';
 
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
@@ -9,6 +10,7 @@ export default class CCLoaderRuntimeModClass {
     Object.assign(ccmod3, {
       paths,
       utils,
+      require: requireFixed,
       semver,
     });
   }
