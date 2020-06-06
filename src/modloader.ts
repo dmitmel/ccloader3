@@ -19,6 +19,7 @@ const CCLOADER_DIR: string = paths.stripRoot(
 
 type ModsMap = Map<ModId, Mod>;
 type ReadonlyModsMap = ReadonlyMap<ModId, Mod>;
+type ReadonlyVirtualPackagesMap = ReadonlyMap<ModId, SemVer>;
 
 export async function boot(): Promise<void> {
   let modloaderMetadata = await loadModloaderMetadata();
@@ -47,7 +48,11 @@ export async function boot(): Promise<void> {
   let installedMods = new Map<ModId, Mod>();
   await loadAllModMetadata('assets/mods', installedMods);
   installedMods = sortModsInLoadOrder(runtimeMod, installedMods);
-  verifyModDependencies(installedMods, gameVersion, modloaderMetadata.version);
+
+  let virtualPackages = new Map<ModId, SemVer>();
+  virtualPackages.set('crosscode', gameVersion);
+  virtualPackages.set('ccloader', modloaderMetadata.version);
+  verifyModDependencies(installedMods, virtualPackages);
   if (!runtimeMod.shouldBeLoaded) {
     throw new Error(
       'Could not load the runtime mod, game initialization is impossible!',
@@ -268,31 +273,22 @@ function modHasUnsortedInstalledDependencies(
   installedMods: ReadonlyModsMap,
 ): boolean {
   for (let depId of mod.dependencies.keys()) {
-    if (
-      !sortedMods.has(depId) &&
-      installedMods.has(depId) &&
-      depId !== 'crosscode' &&
-      depId !== 'ccloader'
-    ) {
-      return true;
-    }
+    if (!sortedMods.has(depId) && installedMods.has(depId)) return true;
   }
   return false;
 }
 
 function verifyModDependencies(
   installedMods: ReadonlyModsMap,
-  gameVersion: SemVer,
-  modloaderVersion: SemVer,
+  virtualPackages: ReadonlyVirtualPackagesMap,
 ): void {
   for (let mod of installedMods.values()) {
     for (let [depId, dep] of mod.dependencies) {
       let problem = checkDependencyConstraint(
         depId,
         dep,
-        gameVersion,
-        modloaderVersion,
         installedMods,
+        virtualPackages,
       );
       if (problem != null) {
         mod.shouldBeLoaded = false;
@@ -307,38 +303,28 @@ function verifyModDependencies(
 function checkDependencyConstraint(
   depId: ModId,
   depConstraint: ModDependency,
-  gameVersion: SemVer,
-  modloaderVersion: SemVer,
   installedMods: ReadonlyModsMap,
+  virtualPackages: ReadonlyVirtualPackagesMap,
 ): string | null {
   let availableDepVersion: SemVer;
   let depTitle = depId;
 
-  switch (depId) {
-    case 'crosscode': {
-      availableDepVersion = gameVersion;
-      break;
+  let virtualPackageVersion = virtualPackages.get(depId);
+  if (virtualPackageVersion != null) {
+    availableDepVersion = virtualPackageVersion;
+  } else {
+    depTitle = `mod '${depId}'`;
+
+    let depMod = installedMods.get(depId);
+    if (depMod == null) {
+      return depConstraint.optional ? null : `${depTitle} is not installed`;
     }
 
-    case 'ccloader': {
-      availableDepVersion = modloaderVersion;
-      break;
+    if (!depMod.shouldBeLoaded) {
+      return depConstraint.optional ? null : `${depTitle} is not loaded`;
     }
 
-    default: {
-      depTitle = `mod '${depId}'`;
-
-      let depMod = installedMods.get(depId);
-      if (depMod == null) {
-        return depConstraint.optional ? null : `${depTitle} is not installed`;
-      }
-
-      if (!depMod.shouldBeLoaded) {
-        return depConstraint.optional ? null : `${depTitle} is not loaded`;
-      }
-
-      availableDepVersion = depMod.version;
-    }
+    availableDepVersion = depMod.version;
   }
 
   if (!depConstraint.version.test(availableDepVersion)) {
