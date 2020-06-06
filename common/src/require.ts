@@ -1,7 +1,7 @@
 // This code is based on the `mod-require-fix` mod:
 // https://github.com/CCDirectLink/CCdiscord/blob/8c5dce9653b170ecb4d4a1ba5b170629539c2644/mod-require-fix/preload.js
 
-/* eslint-disable global-require, @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access */
+/* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access */
 
 let requireFixed: NodeRequire;
 

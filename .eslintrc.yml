@@ -18,6 +18,8 @@ rules:
         - event
         - hasOwnProperty
 
+  global-require: off
+
   func-names: off
 
   node/no-unsupported-features/es-syntax:
