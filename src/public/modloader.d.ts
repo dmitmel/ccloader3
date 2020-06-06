@@ -1,6 +1,6 @@
 import { Mod } from './mod';
 import { ModId } from './manifest';
-import { SemVer } from 'semver';
+import { SemVer } from '../../common/vendor-libs/semver';
 
 declare module 'semver' {
   interface SemVer {

@@ -1,4 +1,4 @@
-import { SemVer, Range as SemVerRange } from 'semver';
+import { SemVer, Range as SemVerRange } from '../../common/vendor-libs/semver';
 import { Manifest, ModId } from './manifest';
 
 export interface ModDependency {

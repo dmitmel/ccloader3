@@ -1,4 +1,4 @@
-import { SemVer, Range as SemVerRange } from './node-module-imports/_semver.js';
+import { SemVer, Range as SemVerRange } from '../common/vendor-libs/semver.js';
 import { Manifest, ModId } from './public/manifest';
 // TODO: consider using `import * as cls` here
 import {

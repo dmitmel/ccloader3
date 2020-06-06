@@ -1,0 +1,342 @@
+--- node_modules/semver/semver.js	2019-10-22 22:49:53.231000000 +0300
++++ common/vendor-libs/semver.js	2020-06-06 23:39:14.070339459 +0300
+@@ -1,4 +1,4 @@
+-exports = module.exports = SemVer
++// Rewritten into an ES module from https://github.com/npm/node-semver/blob/v6.3.0/semver.js
+ 
+ var debug
+ /* istanbul ignore next */
+@@ -17,7 +17,7 @@
+ 
+ // Note: this is the semver.org version of the spec that it implements
+ // Not necessarily the package version of this code.
+-exports.SEMVER_SPEC_VERSION = '2.0.0'
++export var SEMVER_SPEC_VERSION = '2.0.0'
+ 
+ var MAX_LENGTH = 256
+ var MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER ||
+@@ -26,10 +26,11 @@
+ // Max safe segment length for coercion.
+ var MAX_SAFE_COMPONENT_LENGTH = 16
+ 
+-// The actual regexps go on exports.re
+-var re = exports.re = []
+-var src = exports.src = []
+-var t = exports.tokens = {}
++// The actual regexps go on re
++export var re = []
++export var src = []
++export var tokens = {};
++var t = tokens;
+ var R = 0
+ 
+ function tok (n) {
+@@ -250,8 +251,7 @@
+   }
+ }
+ 
+-exports.parse = parse
+-function parse (version, options) {
++export function parse (version, options) {
+   if (!options || typeof options !== 'object') {
+     options = {
+       loose: !!options,
+@@ -283,21 +283,17 @@
+   }
+ }
+ 
+-exports.valid = valid
+-function valid (version, options) {
++export function valid (version, options) {
+   var v = parse(version, options)
+   return v ? v.version : null
+ }
+ 
+-exports.clean = clean
+-function clean (version, options) {
++export function clean (version, options) {
+   var s = parse(version.trim().replace(/^[=v]+/, ''), options)
+   return s ? s.version : null
+ }
+ 
+-exports.SemVer = SemVer
+-
+-function SemVer (version, options) {
++export function SemVer (version, options) {
+   if (!options || typeof options !== 'object') {
+     options = {
+       loose: !!options,
+@@ -566,8 +562,7 @@
+   return this
+ }
+ 
+-exports.inc = inc
+-function inc (version, release, loose, identifier) {
++export function inc (version, release, loose, identifier) {
+   if (typeof (loose) === 'string') {
+     identifier = loose
+     loose = undefined
+@@ -580,8 +575,7 @@
+   }
+ }
+ 
+-exports.diff = diff
+-function diff (version1, version2) {
++export function diff (version1, version2) {
+   if (eq(version1, version2)) {
+     return null
+   } else {
+@@ -603,10 +597,8 @@
+   }
+ }
+ 
+-exports.compareIdentifiers = compareIdentifiers
+-
+ var numeric = /^[0-9]+$/
+-function compareIdentifiers (a, b) {
++export function compareIdentifiers (a, b) {
+   var anum = numeric.test(a)
+   var bnum = numeric.test(b)
+ 
+@@ -622,94 +614,77 @@
+     : 1
+ }
+ 
+-exports.rcompareIdentifiers = rcompareIdentifiers
+-function rcompareIdentifiers (a, b) {
++export function rcompareIdentifiers (a, b) {
+   return compareIdentifiers(b, a)
+ }
+ 
+-exports.major = major
+-function major (a, loose) {
++export function major (a, loose) {
+   return new SemVer(a, loose).major
+ }
+ 
+-exports.minor = minor
+-function minor (a, loose) {
++export function minor (a, loose) {
+   return new SemVer(a, loose).minor
+ }
+ 
+-exports.patch = patch
+-function patch (a, loose) {
++export function patch (a, loose) {
+   return new SemVer(a, loose).patch
+ }
+ 
+-exports.compare = compare
+-function compare (a, b, loose) {
++export function compare (a, b, loose) {
+   return new SemVer(a, loose).compare(new SemVer(b, loose))
+ }
+ 
+-exports.compareLoose = compareLoose
+-function compareLoose (a, b) {
++export function compareLoose (a, b) {
+   return compare(a, b, true)
+ }
+ 
+-exports.compareBuild = compareBuild
+-function compareBuild (a, b, loose) {
++export function compareBuild (a, b, loose) {
+   var versionA = new SemVer(a, loose)
+   var versionB = new SemVer(b, loose)
+   return versionA.compare(versionB) || versionA.compareBuild(versionB)
+ }
+ 
+-exports.rcompare = rcompare
+-function rcompare (a, b, loose) {
++export function rcompare (a, b, loose) {
+   return compare(b, a, loose)
+ }
+ 
+-exports.sort = sort
+-function sort (list, loose) {
++export function sort (list, loose) {
+   return list.sort(function (a, b) {
+-    return exports.compareBuild(a, b, loose)
++    return compareBuild(a, b, loose)
+   })
+ }
+ 
+-exports.rsort = rsort
+-function rsort (list, loose) {
++export function rsort (list, loose) {
+   return list.sort(function (a, b) {
+-    return exports.compareBuild(b, a, loose)
++    return compareBuild(b, a, loose)
+   })
+ }
+ 
+-exports.gt = gt
+-function gt (a, b, loose) {
++export function gt (a, b, loose) {
+   return compare(a, b, loose) > 0
+ }
+ 
+-exports.lt = lt
+-function lt (a, b, loose) {
++export function lt (a, b, loose) {
+   return compare(a, b, loose) < 0
+ }
+ 
+-exports.eq = eq
+-function eq (a, b, loose) {
++export function eq (a, b, loose) {
+   return compare(a, b, loose) === 0
+ }
+ 
+-exports.neq = neq
+-function neq (a, b, loose) {
++export function neq (a, b, loose) {
+   return compare(a, b, loose) !== 0
+ }
+ 
+-exports.gte = gte
+-function gte (a, b, loose) {
++export function gte (a, b, loose) {
+   return compare(a, b, loose) >= 0
+ }
+ 
+-exports.lte = lte
+-function lte (a, b, loose) {
++export function lte (a, b, loose) {
+   return compare(a, b, loose) <= 0
+ }
+ 
+-exports.cmp = cmp
+-function cmp (a, op, b, loose) {
++export function cmp (a, op, b, loose) {
+   switch (op) {
+     case '===':
+       if (typeof a === 'object')
+@@ -750,8 +725,7 @@
+   }
+ }
+ 
+-exports.Comparator = Comparator
+-function Comparator (comp, options) {
++export function Comparator (comp, options) {
+   if (!options || typeof options !== 'object') {
+     options = {
+       loose: !!options,
+@@ -881,8 +855,7 @@
+     oppositeDirectionsLessThan || oppositeDirectionsGreaterThan
+ }
+ 
+-exports.Range = Range
+-function Range (range, options) {
++export function Range (range, options) {
+   if (!options || typeof options !== 'object') {
+     options = {
+       loose: !!options,
+@@ -1019,8 +992,7 @@
+ }
+ 
+ // Mostly just for testing and legacy API reasons
+-exports.toComparators = toComparators
+-function toComparators (range, options) {
++export function toComparators (range, options) {
+   return new Range(range, options).set.map(function (comp) {
+     return comp.map(function (c) {
+       return c.value
+@@ -1330,8 +1302,7 @@
+   return true
+ }
+ 
+-exports.satisfies = satisfies
+-function satisfies (version, range, options) {
++export function satisfies (version, range, options) {
+   try {
+     range = new Range(range, options)
+   } catch (er) {
+@@ -1340,8 +1311,7 @@
+   return range.test(version)
+ }
+ 
+-exports.maxSatisfying = maxSatisfying
+-function maxSatisfying (versions, range, options) {
++export function maxSatisfying (versions, range, options) {
+   var max = null
+   var maxSV = null
+   try {
+@@ -1362,8 +1332,7 @@
+   return max
+ }
+ 
+-exports.minSatisfying = minSatisfying
+-function minSatisfying (versions, range, options) {
++export function minSatisfying (versions, range, options) {
+   var min = null
+   var minSV = null
+   try {
+@@ -1384,8 +1353,7 @@
+   return min
+ }
+ 
+-exports.minVersion = minVersion
+-function minVersion (range, loose) {
++export function minVersion (range, loose) {
+   range = new Range(range, loose)
+ 
+   var minver = new SemVer('0.0.0')
+@@ -1438,8 +1406,7 @@
+   return null
+ }
+ 
+-exports.validRange = validRange
+-function validRange (range, options) {
++export function validRange (range, options) {
+   try {
+     // Return '*' instead of '' so that truthiness works.
+     // This will throw if it's invalid anyway
+@@ -1450,19 +1417,16 @@
+ }
+ 
+ // Determine if version is less than all the versions possible in the range
+-exports.ltr = ltr
+-function ltr (version, range, options) {
++export function ltr (version, range, options) {
+   return outside(version, range, '<', options)
+ }
+ 
+ // Determine if version is greater than all the versions possible in the range.
+-exports.gtr = gtr
+-function gtr (version, range, options) {
++export function gtr (version, range, options) {
+   return outside(version, range, '>', options)
+ }
+ 
+-exports.outside = outside
+-function outside (version, range, hilo, options) {
++export function outside (version, range, hilo, options) {
+   version = new SemVer(version, options)
+   range = new Range(range, options)
+ 
+@@ -1531,21 +1495,18 @@
+   return true
+ }
+ 
+-exports.prerelease = prerelease
+-function prerelease (version, options) {
++export function prerelease (version, options) {
+   var parsed = parse(version, options)
+   return (parsed && parsed.prerelease.length) ? parsed.prerelease : null
+ }
+ 
+-exports.intersects = intersects
+-function intersects (r1, r2, options) {
++export function intersects (r1, r2, options) {
+   r1 = new Range(r1, options)
+   r2 = new Range(r2, options)
+   return r1.intersects(r2)
+ }
+ 
+-exports.coerce = coerce
+-function coerce (version, options) {
++export function coerce (version, options) {
+   if (version instanceof SemVer) {
+     return version
+   }
