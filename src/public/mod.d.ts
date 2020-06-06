@@ -16,15 +16,15 @@ export interface ModClass {
 export type ModLoadingStage = 'preload' | 'postload' | 'prestart' | 'poststart';
 
 export class Mod {
-  readonly baseDirectory: string;
-  readonly manifest: Manifest;
-  readonly assetsDir: string;
-  readonly assets: ReadonlySet<string>;
-  readonly legacyMode: boolean;
-  readonly version: SemVer;
-  readonly dependencies: ReadonlyMap<ModId, ModDependency>;
-  readonly shouldBeLoaded: boolean;
-  readonly classInstance: ModClass | null;
+  public readonly baseDirectory: string;
+  public readonly manifest: Manifest;
+  public readonly assetsDir: string;
+  public readonly assets: ReadonlySet<string>;
+  public readonly legacyMode: boolean;
+  public readonly version: SemVer;
+  public readonly dependencies: ReadonlyMap<ModId, ModDependency>;
+  public readonly shouldBeLoaded: boolean;
+  public readonly classInstance: ModClass | null;
 
-  resolvePath(path: string): string;
+  public resolvePath(path: string): string;
 }

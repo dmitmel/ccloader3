@@ -13,17 +13,17 @@ import * as game from './game.js';
 import { findFilesRecursively } from './files.js';
 
 export class Mod implements ModPublic {
-  readonly version: SemVer;
-  readonly dependencies: ReadonlyMap<ModId, ModDependency>;
-  readonly assetsDir: string;
-  assets: Set<string> = new Set();
-  shouldBeLoaded = true;
-  classInstance: ModClass | null = null;
+  public readonly version: SemVer;
+  public readonly dependencies: ReadonlyMap<ModId, ModDependency>;
+  public readonly assetsDir: string;
+  public assets: Set<string> = new Set();
+  public shouldBeLoaded = true;
+  public classInstance: ModClass | null = null;
 
-  constructor(
-    readonly baseDirectory: string,
-    readonly manifest: Manifest,
-    readonly legacyMode: boolean,
+  public constructor(
+    public readonly baseDirectory: string,
+    public readonly manifest: Manifest,
+    public readonly legacyMode: boolean,
   ) {
     try {
       this.version = new SemVer(manifest.version);
@@ -66,11 +66,11 @@ export class Mod implements ModPublic {
     );
   }
 
-  async findAllAssets(): Promise<void> {
+  public async findAllAssets(): Promise<void> {
     this.assets = new Set(await findFilesRecursively(this.assetsDir));
   }
 
-  async initClass(): Promise<void> {
+  public async initClass(): Promise<void> {
     let script = this.manifest.main;
     if (script == null) return;
     let scriptFullPath = this.resolvePath(script);
@@ -95,7 +95,7 @@ export class Mod implements ModPublic {
     this.classInstance = new module.default(this);
   }
 
-  async executeStage(stage: ModLoadingStage): Promise<void> {
+  public async executeStage(stage: ModLoadingStage): Promise<void> {
     if (this.classInstance != null && stage in this.classInstance) {
       await this.classInstance[stage]!(this);
     }
@@ -109,7 +109,7 @@ export class Mod implements ModPublic {
     });
   }
 
-  resolvePath(path: string): string {
+  public resolvePath(path: string): string {
     return paths.join(this.baseDirectory, paths.join('/', path));
   }
 }

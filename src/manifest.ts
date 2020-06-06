@@ -39,7 +39,7 @@ function getType(value: unknown): Type {
 
 // TODO: investigate prototype chain bugs when extending `Error` here
 export class ManifestValidationError extends Error {
-  constructor(public problems: string[]) {
+  public constructor(public problems: string[]) {
     super(`\n${problems.map((p) => `- ${p}`).join('\n')}`);
     this.name = new.target.name;
   }
@@ -71,94 +71,94 @@ function jsonPathToString(path: JsonPath): string {
 }
 
 export class ManifestUtil {
-  public _problems: string[] = [];
+  private problems: string[] = [];
 
-  validate(data: Manifest): void {
-    this._problems = [];
+  public validate(data: Manifest): void {
+    this.problems = [];
 
-    if (this._assertType([], data, [Type.object]).status === 'ok') {
-      if (this._assertType(['id'], data.id, [Type.string]).status === 'ok') {
+    if (this.assertType([], data, [Type.object]).status === 'ok') {
+      if (this.assertType(['id'], data.id, [Type.string]).status === 'ok') {
         if (!/^[a-zA-Z0-9_-]+$/.test(data.id)) {
-          this._problems.push(
+          this.problems.push(
             'id must consist only of one or more alphanumberic characters, hyphens or underscores',
           );
         }
       }
 
-      this._assertType(['version'], data.version, [Type.string]);
+      this.assertType(['version'], data.version, [Type.string]);
 
-      this._assertLocalizedString(['title'], data.title, true);
-      this._assertLocalizedString(['description'], data.description, true);
-      this._assertType(['license'], data.license, [Type.string], true);
-      this._assertLocalizedString(['homepage'], data.homepage, true);
-      this._assertKeywords(['keywords'], data.keywords);
+      this.assertLocalizedString(['title'], data.title, true);
+      this.assertLocalizedString(['description'], data.description, true);
+      this.assertType(['license'], data.license, [Type.string], true);
+      this.assertLocalizedString(['homepage'], data.homepage, true);
+      this.assertKeywords(['keywords'], data.keywords);
 
-      this._assertPeople(['authors'], data.authors);
+      this.assertPeople(['authors'], data.authors);
 
-      this._assertDependencies(['dependencies'], data.dependencies);
+      this.assertDependencies(['dependencies'], data.dependencies);
 
-      this._assertAssets(['assets'], data.assets);
-      this._assertType(['assetsDir'], data.assetsDir, [Type.string], true);
+      this.assertAssets(['assets'], data.assets);
+      this.assertType(['assetsDir'], data.assetsDir, [Type.string], true);
 
       // eslint-disable-next-line no-undefined
       if (data.legacyLoadAsScript !== undefined) {
-        this._problems.push(
+        this.problems.push(
           'legacy_main exists only for backwards compatibility reasons, must not be used and will be removed soon',
         );
       }
 
-      this._assertType(['main'], data.main, [Type.string], true);
-      this._assertType(['preload'], data.preload, [Type.string], true);
-      this._assertType(['postload'], data.postload, [Type.string], true);
-      this._assertType(['prestart'], data.prestart, [Type.string], true);
-      this._assertType(['poststart'], data.poststart, [Type.string], true);
+      this.assertType(['main'], data.main, [Type.string], true);
+      this.assertType(['preload'], data.preload, [Type.string], true);
+      this.assertType(['postload'], data.postload, [Type.string], true);
+      this.assertType(['prestart'], data.prestart, [Type.string], true);
+      this.assertType(['poststart'], data.poststart, [Type.string], true);
     }
 
-    if (this._problems.length > 0) {
-      throw new ManifestValidationError(this._problems);
+    if (this.problems.length > 0) {
+      throw new ManifestValidationError(this.problems);
     }
   }
 
-  validateLegacy(data: ManifestLegacy): void {
-    this._problems = [];
+  public validateLegacy(data: ManifestLegacy): void {
+    this.problems = [];
 
-    if (this._assertType([], data, [Type.object]).status === 'ok') {
-      this._assertType(['name'], data.name, [Type.string]);
-      this._assertType(['version'], data.version, [Type.string]);
+    if (this.assertType([], data, [Type.object]).status === 'ok') {
+      this.assertType(['name'], data.name, [Type.string]);
+      this.assertType(['version'], data.version, [Type.string]);
 
-      this._assertType(
+      this.assertType(
         ['ccmodHumanName'],
         data.ccmodHumanName,
         [Type.string],
         true,
       );
-      this._assertType(['description'], data.description, [Type.string], true);
-      this._assertType(['license'], data.license, [Type.string], true);
-      this._assertType(['homepage'], data.homepage, [Type.string], true);
+      this.assertType(['description'], data.description, [Type.string], true);
+      this.assertType(['license'], data.license, [Type.string], true);
+      this.assertType(['homepage'], data.homepage, [Type.string], true);
 
       // eslint-disable-next-line no-undefined
       if (data.ccmodDependencies !== undefined) {
-        this._assertDependencies(['ccmodDependencies'], data.ccmodDependencies);
+        this.assertDependencies(['ccmodDependencies'], data.ccmodDependencies);
       } else {
-        this._assertDependencies(['dependencies'], data.dependencies);
+        this.assertDependencies(['dependencies'], data.dependencies);
       }
 
-      this._assertAssets(['assets'], data.assets);
+      this.assertAssets(['assets'], data.assets);
 
-      this._assertType(['module'], data.module, [Type.boolean], true);
-      this._assertType(['plugin'], data.plugin, [Type.string], true);
-      this._assertType(['preload'], data.preload, [Type.string], true);
-      this._assertType(['postload'], data.postload, [Type.string], true);
-      this._assertType(['prestart'], data.prestart, [Type.string], true);
-      this._assertType(['main'], data.main, [Type.string], true);
+      this.assertType(['module'], data.module, [Type.boolean], true);
+      this.assertType(['plugin'], data.plugin, [Type.string], true);
+      this.assertType(['preload'], data.preload, [Type.string], true);
+      this.assertType(['postload'], data.postload, [Type.string], true);
+      this.assertType(['prestart'], data.prestart, [Type.string], true);
+      this.assertType(['main'], data.main, [Type.string], true);
     }
 
-    if (this._problems.length > 0) {
-      throw new ManifestValidationError(this._problems);
+    if (this.problems.length > 0) {
+      throw new ManifestValidationError(this.problems);
     }
   }
 
-  convertFromLegacy(data: ManifestLegacy): Manifest {
+  public convertFromLegacy(data: ManifestLegacy): Manifest {
     /* eslint-disable no-undefined */
     return {
       id: data.name,
@@ -193,7 +193,7 @@ export class ManifestUtil {
     /* eslint-enable no-undefined */
   }
 
-  _assertType(
+  private assertType(
     valuePath: JsonPath,
     value: unknown,
     expectedTypes: Type[],
@@ -204,7 +204,7 @@ export class ManifestUtil {
       if (optional) {
         return { status: 'optional' };
       } else {
-        this._problems.push(`'${jsonPathToString(valuePath)}' is required`);
+        this.problems.push(`'${jsonPathToString(valuePath)}' is required`);
         return { status: 'failed' };
       }
     }
@@ -213,7 +213,7 @@ export class ManifestUtil {
     if (!expectedTypes.includes(actualType)) {
       let valuePathStr = jsonPathToString(valuePath);
       let expectedTypesStr = expectedTypes.join(' or ');
-      this._problems.push(
+      this.problems.push(
         `expected type of '${valuePathStr}' to be '${expectedTypesStr}', got '${actualType}'`,
       );
       return { status: 'failed' };
@@ -222,12 +222,12 @@ export class ManifestUtil {
     return { status: 'ok', type: actualType };
   }
 
-  _assertLocalizedString(
+  private assertLocalizedString(
     valuePath: JsonPath,
     value: LocalizedString | undefined,
     optional = false,
   ): void {
-    let assertion = this._assertType(
+    let assertion = this.assertType(
       valuePath,
       value,
       [Type.object, Type.string],
@@ -238,37 +238,37 @@ export class ManifestUtil {
 
     if (assertion.type === Type.string) return;
     for (let [key, value2] of Object.entries(value as Record<Locale, string>)) {
-      this._assertType([...valuePath, key], value2, [Type.string]);
+      this.assertType([...valuePath, key], value2, [Type.string]);
     }
   }
 
-  _assertKeywords(
+  private assertKeywords(
     valuePath: JsonPath,
     value: LocalizedString[] | undefined,
   ): void {
-    let assertion = this._assertType(valuePath, value, [Type.array], true);
+    let assertion = this.assertType(valuePath, value, [Type.array], true);
     if (assertion.status !== 'ok') return;
     value = value!;
 
     for (let index = 0; index < value.length; index++) {
       let value2 = value[index];
-      this._assertLocalizedString([...valuePath, index], value2);
+      this.assertLocalizedString([...valuePath, index], value2);
     }
   }
 
-  _assertPeople(valuePath: JsonPath, value: Person[] | undefined): void {
-    let assertion = this._assertType(valuePath, value, [Type.array], true);
+  private assertPeople(valuePath: JsonPath, value: Person[] | undefined): void {
+    let assertion = this.assertType(valuePath, value, [Type.array], true);
     if (assertion.status !== 'ok') return;
     value = value!;
 
     for (let index = 0; index < value.length; index++) {
       let value2 = value[index];
-      this._assertPerson([...valuePath, index], value2);
+      this.assertPerson([...valuePath, index], value2);
     }
   }
 
-  _assertPerson(valuePath: JsonPath, value: Person): void {
-    let assertion = this._assertType(valuePath, value, [
+  private assertPerson(valuePath: JsonPath, value: Person): void {
+    let assertion = this.assertType(valuePath, value, [
       Type.object,
       Type.string,
     ]);
@@ -277,27 +277,27 @@ export class ManifestUtil {
     if (assertion.type === Type.string) return;
     value = value as PersonDetails;
 
-    this._assertLocalizedString([...valuePath, 'name'], value.name);
-    this._assertLocalizedString([...valuePath, 'email'], value.email, true);
-    this._assertLocalizedString([...valuePath, 'url'], value.url, true);
-    this._assertLocalizedString([...valuePath, 'comment'], value.comment, true);
+    this.assertLocalizedString([...valuePath, 'name'], value.name);
+    this.assertLocalizedString([...valuePath, 'email'], value.email, true);
+    this.assertLocalizedString([...valuePath, 'url'], value.url, true);
+    this.assertLocalizedString([...valuePath, 'comment'], value.comment, true);
   }
 
-  _assertDependencies(
+  private assertDependencies(
     valuePath: JsonPath,
     value: ModDependencies | undefined,
   ): void {
-    let assertion = this._assertType(valuePath, value, [Type.object], true);
+    let assertion = this.assertType(valuePath, value, [Type.object], true);
     if (assertion.status !== 'ok') return;
     value = value!;
 
     for (let [key, value2] of Object.entries(value)) {
-      this._assertDependency([...valuePath, key], value2);
+      this.assertDependency([...valuePath, key], value2);
     }
   }
 
-  _assertDependency(valuePath: JsonPath, value: ModDependency): void {
-    let assertion = this._assertType(valuePath, value, [
+  private assertDependency(valuePath: JsonPath, value: ModDependency): void {
+    let assertion = this.assertType(valuePath, value, [
       Type.object,
       Type.string,
     ]);
@@ -306,8 +306,8 @@ export class ManifestUtil {
     if (assertion.type === Type.string) return;
     value = value as ModDependencyDetails;
 
-    this._assertType([...valuePath, 'version'], value.version, [Type.string]);
-    this._assertType(
+    this.assertType([...valuePath, 'version'], value.version, [Type.string]);
+    this.assertType(
       [...valuePath, 'optional'],
       value.optional,
       [Type.boolean],
@@ -315,14 +315,17 @@ export class ManifestUtil {
     );
   }
 
-  _assertAssets(valuePath: JsonPath, value: FilePath[] | undefined): void {
-    let assertion = this._assertType(valuePath, value, [Type.array], true);
+  private assertAssets(
+    valuePath: JsonPath,
+    value: FilePath[] | undefined,
+  ): void {
+    let assertion = this.assertType(valuePath, value, [Type.array], true);
     if (assertion.status !== 'ok') return;
     value = value!;
 
     for (let index = 0; index < value.length; index++) {
       let value2 = value[index];
-      this._assertType([...valuePath, index], value2, [Type.string]);
+      this.assertType([...valuePath, index], value2, [Type.string]);
     }
   }
 }

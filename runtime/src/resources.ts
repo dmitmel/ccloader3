@@ -10,11 +10,11 @@ const IG_ROOT = window.IG_ROOT ?? '';
 const ImageOriginal = window.Image;
 // eslint-disable-next-line no-shadow
 window.Image = class Image extends ImageOriginal {
-  get src(): string {
+  public get src(): string {
     return super.src;
   }
 
-  set src(url: string) {
+  public set src(url: string) {
     super.src = transformUrl(url);
   }
 };
