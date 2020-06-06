@@ -1,4 +1,4 @@
-import { loadTextFile } from './files.js';
+import * as files from './files.js';
 import { Manifest, ManifestLegacy, ModId } from './public/manifest';
 import {
   ManifestValidator,
@@ -7,7 +7,6 @@ import {
 import { ModDependency, ModLoadingStage } from './public/mod';
 import { Mod } from './mod.js';
 import * as game from './game.js';
-import { promises as fs } from './node-module-imports/_fs.js';
 import { SemVer } from './node-module-imports/_semver.js';
 import {
   compare,
@@ -110,13 +109,13 @@ async function loadModloaderMetadata(): Promise<{
   name: string;
   version: SemVer;
 }> {
-  let toolJsonText = await loadTextFile(`${CCLOADER_DIR}/tool.json`);
+  let toolJsonText = await files.loadFile(`${CCLOADER_DIR}/tool.json`);
   let data = JSON.parse(toolJsonText) as { name: string; version: string };
   return { name: data.name, version: new SemVer(data.version) };
 }
 
 async function loadGameVersion(): Promise<SemVer> {
-  let changelogText = await loadTextFile('assets/data/changelog.json');
+  let changelogText = await files.loadFile('assets/data/changelog.json');
   let { changelog } = JSON.parse(changelogText) as {
     changelog: Array<{ version: string }>;
   };
@@ -130,29 +129,9 @@ async function loadAllModMetadata(
   // in the future
   installedMods: ModsMap,
 ): Promise<void> {
-  let modsDirectoryContents: string[];
-
-  try {
-    modsDirectoryContents = await fs.readdir(modsDir);
-  } catch (err) {
-    if (errorHasCode(err) && err.code === 'ENOENT') {
-      console.error(
-        `Directory '${modsDir}' not found, did you forget to create it?`,
-      );
-      modsDirectoryContents = [];
-    } else {
-      throw err;
-    }
-  }
-
   await Promise.all(
-    modsDirectoryContents.map(async (name) => {
-      let fullPath = `${modsDir}/${name}`;
+    (await files.getModDirectoriesIn(modsDir)).map(async (fullPath) => {
       try {
-        // the `withFileTypes` option of `readdir` can't be used here because it
-        // doesn't dereference symbolic links similarly to `stat`
-        let stat = await fs.stat(fullPath);
-        if (!stat.isDirectory()) return;
         let mod = await loadModMetadata(fullPath);
         if (mod == null) return;
 
@@ -184,12 +163,12 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
 
   try {
     manifestFile = `${baseDirectory}/ccmod.json`;
-    manifestText = await loadTextFile(manifestFile);
+    manifestText = await files.loadFile(manifestFile);
   } catch (_e1) {
     try {
       legacyMode = true;
       manifestFile = `${baseDirectory}/package.json`;
-      manifestText = await loadTextFile(manifestFile);
+      manifestText = await files.loadFile(manifestFile);
     } catch (_e2) {
       return null;
     }

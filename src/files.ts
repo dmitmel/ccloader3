@@ -2,17 +2,17 @@ import { promises as fs } from './node-module-imports/_fs.js';
 import { join as joinPaths } from './node-module-imports/_path.js';
 import { errorHasCode } from '../common/dist/utils.js';
 
-export function loadTextFile(url: string): Promise<string> {
+export function loadFile(url: string): Promise<string> {
   return fs.readFile(url, 'utf8');
 }
 
-export async function findFilesRecursively(dir: string): Promise<string[]> {
+export async function findRecursively(dir: string): Promise<string[]> {
   let fileList: string[] = [];
-  await findFilesRecursivelyInternal(dir, '', fileList);
+  await findRecursivelyInternal(dir, '', fileList);
   return fileList;
 }
 
-async function findFilesRecursivelyInternal(
+async function findRecursivelyInternal(
   currentDir: string,
   relativeDir: string,
   fileList: string[],
@@ -30,7 +30,7 @@ async function findFilesRecursivelyInternal(
       let fullPath = joinPaths(currentDir, name);
       let stat = await fs.stat(fullPath);
       if (stat.isDirectory()) {
-        await findFilesRecursivelyInternal(
+        await findRecursivelyInternal(
           fullPath,
           `${relativeDir}${name}/`,
           fileList,
@@ -40,4 +40,35 @@ async function findFilesRecursivelyInternal(
       }
     }),
   );
+}
+
+export async function getModDirectoriesIn(dir: string): Promise<string[]> {
+  let allContents: string[];
+
+  try {
+    allContents = await fs.readdir(dir);
+  } catch (err) {
+    if (errorHasCode(err) && err.code === 'ENOENT') {
+      console.warn(
+        `Directory '${dir}' not found, did you forget to create it?`,
+      );
+      allContents = [];
+    } else {
+      throw err;
+    }
+  }
+
+  let modDirectories: string[] = [];
+
+  await Promise.all(
+    allContents.map(async (name) => {
+      let fullPath = `${dir}/${name}`;
+      // the `withFileTypes` option of `readdir` can't be used here because it
+      // doesn't dereference symbolic links similarly to `stat`
+      let stat = await fs.stat(fullPath);
+      if (stat.isDirectory()) modDirectories.push(fullPath);
+    }),
+  );
+
+  return modDirectories;
 }

@@ -10,7 +10,7 @@ import {
 import * as paths from '../common/dist/paths.js';
 import { errorHasMessage } from '../common/dist/utils.js';
 import * as game from './game.js';
-import { findFilesRecursively } from './files.js';
+import * as files from './files.js';
 
 export class Mod implements ModPublic {
   public readonly version: SemVer;
@@ -67,7 +67,7 @@ export class Mod implements ModPublic {
   }
 
   public async findAllAssets(): Promise<void> {
-    this.assets = new Set(await findFilesRecursively(this.assetsDir));
+    this.assets = new Set(await files.findRecursively(this.assetsDir));
   }
 
   public async initClass(): Promise<void> {
