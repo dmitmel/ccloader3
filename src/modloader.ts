@@ -20,11 +20,10 @@ const CCLOADER_DIR: string = paths.stripRoot(
 type ModsMap = Map<ModId, Mod>;
 type ReadonlyModsMap = ReadonlyMap<ModId, Mod>;
 
-const MODLOADER_NAME = 'ccloader';
-const MODLOADER_VERSION = new SemVer('3.0.0-alpha');
-
 export async function boot(): Promise<void> {
-  console.log(`${MODLOADER_NAME} ${MODLOADER_VERSION}`);
+  let modloaderMetadata = await loadModloaderMetadata();
+
+  console.log(`${modloaderMetadata.name} ${modloaderMetadata.version}`);
 
   let gameVersion = await loadGameVersion();
   console.log(`crosscode v${gameVersion}`);
@@ -48,7 +47,7 @@ export async function boot(): Promise<void> {
   let installedMods = new Map<ModId, Mod>();
   await loadAllModMetadata('assets/mods', installedMods);
   installedMods = sortModsInLoadOrder(runtimeMod, installedMods);
-  verifyModDependencies(installedMods, gameVersion, MODLOADER_VERSION);
+  verifyModDependencies(installedMods, gameVersion, modloaderMetadata.version);
   if (!runtimeMod.shouldBeLoaded) {
     throw new Error(
       'Could not load the runtime mod, game initialization is impossible!',
@@ -76,8 +75,8 @@ export async function boot(): Promise<void> {
   console.log(loadedMods);
 
   window.modloader = {
-    name: MODLOADER_NAME,
-    version: MODLOADER_VERSION,
+    name: modloaderMetadata.name,
+    version: modloaderMetadata.version,
     gameVersion,
     installedMods,
     loadedMods,
@@ -97,6 +96,15 @@ export async function boot(): Promise<void> {
   startGame();
   await game.waitForIgGameInitialization();
   await executeStage(loadedMods, 'poststart');
+}
+
+async function loadModloaderMetadata(): Promise<{
+  name: string;
+  version: SemVer;
+}> {
+  let toolJsonText = await loadTextFile(`${CCLOADER_DIR}/tool.json`);
+  let data = JSON.parse(toolJsonText) as { name: string; version: string };
+  return { name: data.name, version: new SemVer(data.version) };
 }
 
 async function loadGameVersion(): Promise<SemVer> {
