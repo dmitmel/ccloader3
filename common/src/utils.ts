@@ -1,5 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-member-access */
 
+export enum PlatformType {
+  Desktop = 'Desktop',
+  Browser = 'Browser',
+}
+
+export const PLATFORM_TYPE =
+  typeof require === 'function' ? PlatformType.Desktop : PlatformType.Browser;
+
 export function showDevTools(): Promise<void> {
   return new Promise((resolve) =>
     // eslint-disable-next-line no-undefined

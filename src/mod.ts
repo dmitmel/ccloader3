@@ -8,7 +8,11 @@ import {
   Mod as ModPublic,
 } from './public/mod';
 import * as paths from '../common/dist/paths.js';
-import { errorHasMessage } from '../common/dist/utils.js';
+import {
+  PLATFORM_TYPE,
+  PlatformType,
+  errorHasMessage,
+} from '../common/dist/utils.js';
 import * as game from './game.js';
 import * as files from './files.js';
 
@@ -67,7 +71,15 @@ export class Mod implements ModPublic {
   }
 
   public async findAllAssets(): Promise<void> {
-    this.assets = new Set(await files.findRecursively(this.assetsDir));
+    let assets: string[] = [];
+    if (this.manifest.assets != null) {
+      assets = this.manifest.assets.map((path) =>
+        paths.stripRoot(paths.join('/', path)),
+      );
+    } else if (PLATFORM_TYPE === PlatformType.Desktop) {
+      assets = await files.findRecursively(this.assetsDir);
+    }
+    this.assets = new Set(assets);
   }
 
   public async initClass(): Promise<void> {
