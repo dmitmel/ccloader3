@@ -1,6 +1,8 @@
 import { errorHasCode } from '../common/dist/utils.js';
 
-const { promises: fs } = require('fs') as typeof import('fs');
+const { promises: fs } = (typeof require === 'function'
+  ? require('fs')
+  : {}) as typeof import('fs');
 
 export async function loadFile(path: string): Promise<string> {
   return fs.readFile(path, 'utf8');
