@@ -11,6 +11,8 @@ export interface ModClass {
   postload?(mod: Mod): Promise<void> | void;
   prestart?(mod: Mod): Promise<void> | void;
   poststart?(mod: Mod): Promise<void> | void;
+  // legacy, don't use
+  main?(mod: Mod): Promise<void> | void;
 }
 
 export type ModLoadingStage = 'preload' | 'postload' | 'prestart' | 'poststart';

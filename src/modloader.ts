@@ -25,7 +25,7 @@ export async function boot(): Promise<void> {
   console.log(`${modloaderMetadata.name} ${modloaderMetadata.version}`);
 
   let gameVersion = await loadGameVersion();
-  console.log(`crosscode v${gameVersion}`);
+  console.log(`crosscode ${gameVersion}`);
 
   let runtimeModBaseDirectory = `${CCLOADER_DIR}/runtime`;
   let runtimeMod: Mod | null;

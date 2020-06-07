@@ -13,7 +13,6 @@ import {
   PlatformType,
   errorHasMessage,
 } from '../common/dist/utils.js';
-import * as game from './game.js';
 import * as files from './files.js';
 
 export class Mod implements ModPublic {
@@ -108,8 +107,10 @@ export class Mod implements ModPublic {
   }
 
   public async executeStage(stage: ModLoadingStage): Promise<void> {
-    if (this.classInstance != null && stage in this.classInstance) {
-      await this.classInstance[stage]!(this);
+    let classMethodName: keyof ModClass = stage;
+    if (this.legacyMode && stage === 'poststart') classMethodName = 'main';
+    if (this.classInstance != null && classMethodName in this.classInstance) {
+      await this.classInstance[classMethodName]!(this);
     }
 
     let script = this.manifest[stage];
