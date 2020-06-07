@@ -70,6 +70,8 @@ function jsonPathToString(path: JsonPath): string {
   return str;
 }
 
+/* eslint-disable no-undefined */
+
 export class ManifestValidator {
   private problems: string[] = [];
 
@@ -129,7 +131,6 @@ export class ManifestValidator {
       this.assertType(['license'], data.license, [Type.string], true);
       this.assertType(['homepage'], data.homepage, [Type.string], true);
 
-      // eslint-disable-next-line no-undefined
       if (data.ccmodDependencies !== undefined) {
         this.assertDependencies(['ccmodDependencies'], data.ccmodDependencies);
       } else {
@@ -156,7 +157,6 @@ export class ManifestValidator {
     expectedTypes: Type[],
     optional = false,
   ): TypeAssertionResult {
-    // eslint-disable-next-line no-undefined
     if (value === undefined) {
       if (optional) {
         return { status: 'optional' };
@@ -288,7 +288,6 @@ export class ManifestValidator {
 }
 
 export function convertFromLegacy(data: ManifestLegacy): Manifest {
-  /* eslint-disable no-undefined */
   return {
     id: data.name,
     version: data.version,
@@ -316,5 +315,4 @@ export function convertFromLegacy(data: ManifestLegacy): Manifest {
     prestart: data.prestart,
     poststart: data.main,
   };
-  /* eslint-enable no-undefined */
 }

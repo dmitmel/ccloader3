@@ -89,7 +89,6 @@ export class Mod implements ModPublic {
     // eslint-disable-next-line no-shadow
     let module: { default: new (mod: Mod) => ModClass };
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       module = await import(`/${scriptFullPath}`);
     } catch (err) {
       if (errorHasMessage(err)) {

@@ -1,8 +1,6 @@
 // This code is based on the `mod-require-fix` mod:
 // https://github.com/CCDirectLink/CCdiscord/blob/8c5dce9653b170ecb4d4a1ba5b170629539c2644/mod-require-fix/preload.js
 
-/* eslint-disable @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-member-access */
-
 let requireFixed: NodeRequire;
 
 if (typeof require === 'function') {
@@ -22,7 +20,7 @@ if (typeof require === 'function') {
   }) as NodeRequire;
 
   for (let prop in require) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (requireFixed as any)[prop] = (require as any)[prop];
   }
 

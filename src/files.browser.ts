@@ -26,7 +26,6 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
   let index: string[];
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     index = JSON.parse(indexJsonText);
   } catch (err) {
     if (errorHasMessage(err)) {

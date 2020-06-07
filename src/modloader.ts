@@ -172,7 +172,6 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
 
   let manifestData: Manifest | ManifestLegacy;
   try {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     manifestData = JSON.parse(manifestText);
   } catch (err) {
     if (errorHasMessage(err)) {
