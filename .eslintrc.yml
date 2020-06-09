@@ -24,6 +24,10 @@ rules:
 
   curly: error
 
+  indent:
+    - error
+    - tab
+
   node/no-unsupported-features/es-syntax:
     - error
     - ignores:

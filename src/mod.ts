@@ -2,132 +2,132 @@ import { SemVer, Range as SemVerRange } from '../common/vendor-libs/semver.js';
 import { Manifest, ModId } from './types/manifest';
 // TODO: consider using `import * as cls` here
 import {
-  ModClass,
-  ModDependency,
-  ModLoadingStage,
-  Mod as ModPublic,
+	ModClass,
+	ModDependency,
+	ModLoadingStage,
+	Mod as ModPublic,
 } from './types/mod';
 import * as paths from '../common/dist/paths.js';
 import {
-  PLATFORM_TYPE,
-  PlatformType,
-  errorHasMessage,
+	PLATFORM_TYPE,
+	PlatformType,
+	errorHasMessage,
 } from '../common/dist/utils.js';
 import * as files from './files.js';
 
 export class Mod implements ModPublic {
-  public readonly version: SemVer;
-  public readonly dependencies: ReadonlyMap<ModId, ModDependency>;
-  public readonly assetsDir: string;
-  public assets: Set<string> = new Set();
-  public shouldBeLoaded = true;
-  public classInstance: ModClass | null = null;
+	public readonly version: SemVer;
+	public readonly dependencies: ReadonlyMap<ModId, ModDependency>;
+	public readonly assetsDir: string;
+	public assets: Set<string> = new Set();
+	public shouldBeLoaded = true;
+	public classInstance: ModClass | null = null;
 
-  public constructor(
-    public readonly baseDirectory: string,
-    public readonly manifest: Manifest,
-    public readonly legacyMode: boolean,
-  ) {
-    try {
-      this.version = new SemVer(manifest.version);
-    } catch (err) {
-      if (errorHasMessage(err)) {
-        // TODO: put a link to semver docs here
-        err.message = `mod version '${manifest.version}' is not a valid semver version: ${err.message}`;
-      }
-      throw err;
-    }
+	public constructor(
+		public readonly baseDirectory: string,
+		public readonly manifest: Manifest,
+		public readonly legacyMode: boolean,
+	) {
+		try {
+			this.version = new SemVer(manifest.version);
+		} catch (err) {
+			if (errorHasMessage(err)) {
+				// TODO: put a link to semver docs here
+				err.message = `mod version '${manifest.version}' is not a valid semver version: ${err.message}`;
+			}
+			throw err;
+		}
 
-    let dependencies = new Map<ModId, ModDependency>();
+		let dependencies = new Map<ModId, ModDependency>();
 
-    if (manifest.dependencies != null) {
-      for (let depId of Object.keys(manifest.dependencies)) {
-        let dep = manifest.dependencies[depId];
-        if (typeof dep === 'string') {
-          dep = { version: dep };
-        }
+		if (manifest.dependencies != null) {
+			for (let depId of Object.keys(manifest.dependencies)) {
+				let dep = manifest.dependencies[depId];
+				if (typeof dep === 'string') {
+					dep = { version: dep };
+				}
 
-        let depVersionRange: SemVerRange;
-        try {
-          depVersionRange = new SemVerRange(dep.version);
-        } catch (err) {
-          if (errorHasMessage(err)) {
-            err.message = `dependency version constraint '${dep.version}' for mod '${depId}' is not a valid semver range: ${err.message}`;
-          }
-          throw err;
-        }
+				let depVersionRange: SemVerRange;
+				try {
+					depVersionRange = new SemVerRange(dep.version);
+				} catch (err) {
+					if (errorHasMessage(err)) {
+						err.message = `dependency version constraint '${dep.version}' for mod '${depId}' is not a valid semver range: ${err.message}`;
+					}
+					throw err;
+				}
 
-        dependencies.set(depId, {
-          version: depVersionRange,
-          optional: dep.optional ?? false,
-        });
-      }
-    }
+				dependencies.set(depId, {
+					version: depVersionRange,
+					optional: dep.optional ?? false,
+				});
+			}
+		}
 
-    this.dependencies = dependencies;
+		this.dependencies = dependencies;
 
-    this.assetsDir = this.resolvePath(
-      `${this.manifest.assetsDir ?? 'assets'}/`,
-    );
-  }
+		this.assetsDir = this.resolvePath(
+			`${this.manifest.assetsDir ?? 'assets'}/`,
+		);
+	}
 
-  public async findAllAssets(): Promise<void> {
-    let assets: string[] = [];
-    if (this.manifest.assets != null) {
-      assets = this.manifest.assets.map((path) =>
-        paths.stripRoot(paths.join('/', path)),
-      );
-    } else if (PLATFORM_TYPE === PlatformType.Desktop) {
-      assets = await files.findRecursively(this.assetsDir);
-    }
-    this.assets = new Set(assets);
-  }
+	public async findAllAssets(): Promise<void> {
+		let assets: string[] = [];
+		if (this.manifest.assets != null) {
+			assets = this.manifest.assets.map((path) =>
+				paths.stripRoot(paths.join('/', path)),
+			);
+		} else if (PLATFORM_TYPE === PlatformType.Desktop) {
+			assets = await files.findRecursively(this.assetsDir);
+		}
+		this.assets = new Set(assets);
+	}
 
-  public async initClass(): Promise<void> {
-    let script = this.manifest.main;
-    if (script == null) {
-      return;
-    }
-    let scriptFullPath = this.resolvePath(script);
+	public async initClass(): Promise<void> {
+		let script = this.manifest.main;
+		if (script == null) {
+			return;
+		}
+		let scriptFullPath = this.resolvePath(script);
 
-    // eslint-disable-next-line no-shadow
-    let module: { default: new (mod: Mod) => ModClass };
-    try {
-      module = await import(`/${scriptFullPath}`);
-    } catch (err) {
-      if (errorHasMessage(err)) {
-        err.message = `Error when importing '${scriptFullPath}': ${err.message}`;
-      }
-      throw err;
-    }
+		// eslint-disable-next-line no-shadow
+		let module: { default: new (mod: Mod) => ModClass };
+		try {
+			module = await import(`/${scriptFullPath}`);
+		} catch (err) {
+			if (errorHasMessage(err)) {
+				err.message = `Error when importing '${scriptFullPath}': ${err.message}`;
+			}
+			throw err;
+		}
 
-    if (!('default' in module)) {
-      throw new Error(`Module '${scriptFullPath}' has no default export`);
-    }
+		if (!('default' in module)) {
+			throw new Error(`Module '${scriptFullPath}' has no default export`);
+		}
 
-    // eslint-disable-next-line new-cap
-    this.classInstance = new module.default(this);
-  }
+		// eslint-disable-next-line new-cap
+		this.classInstance = new module.default(this);
+	}
 
-  public async executeStage(stage: ModLoadingStage): Promise<void> {
-    let classMethodName: keyof ModClass = stage;
-    if (this.legacyMode && stage === 'poststart') {
-      classMethodName = 'main';
-    }
-    if (this.classInstance != null && classMethodName in this.classInstance) {
-      await this.classInstance[classMethodName]!(this);
-    }
+	public async executeStage(stage: ModLoadingStage): Promise<void> {
+		let classMethodName: keyof ModClass = stage;
+		if (this.legacyMode && stage === 'poststart') {
+			classMethodName = 'main';
+		}
+		if (this.classInstance != null && classMethodName in this.classInstance) {
+			await this.classInstance[classMethodName]!(this);
+		}
 
-    let script = this.manifest[stage];
-    if (script == null) {
-      return;
-    }
-    let scriptFullPath = this.resolvePath(script);
+		let script = this.manifest[stage];
+		if (script == null) {
+			return;
+		}
+		let scriptFullPath = this.resolvePath(script);
 
-    await import(`/${scriptFullPath}`);
-  }
+		await import(`/${scriptFullPath}`);
+	}
 
-  public resolvePath(path: string): string {
-    return paths.join(this.baseDirectory, paths.join('/', path));
-  }
+	public resolvePath(path: string): string {
+		return paths.join(this.baseDirectory, paths.join('/', path));
+	}
 }

@@ -3,4 +3,4 @@ import * as filesBrowser from './files.browser.js';
 import { PLATFORM_TYPE, PlatformType } from '../common/dist/utils.js';
 
 export const { loadFile, findRecursively, getModDirectoriesIn } =
-  PLATFORM_TYPE === PlatformType.Desktop ? filesDesktop : filesBrowser;
+	PLATFORM_TYPE === PlatformType.Desktop ? filesDesktop : filesBrowser;

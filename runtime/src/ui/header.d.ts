@@ -1,26 +1,26 @@
 declare namespace sc {
-  enum OPTION_CATEGORY {
-    MODS = 8,
-  }
+	enum OPTION_CATEGORY {
+		MODS = 8,
+	}
 
-  namespace OptionsTabBox {
-    interface Tabs {
-      mods: sc.ItemTabbedBox.TabButton;
-    }
-  }
+	namespace OptionsTabBox {
+		interface Tabs {
+			mods: sc.ItemTabbedBox.TabButton;
+		}
+	}
 
-  namespace OPTIONS_DEFINITION {
-    interface KnownTypesMap {
-      'logLevel-log': sc.OptionDefinition.CHECKBOX;
-      'logLevel-warn': sc.OptionDefinition.CHECKBOX;
-      'logLevel-error': sc.OptionDefinition.CHECKBOX;
-      'mods-description': sc.OptionDefinition.INFO;
-    }
-  }
+	namespace OPTIONS_DEFINITION {
+		interface KnownTypesMap {
+			'logLevel-log': sc.OptionDefinition.CHECKBOX;
+			'logLevel-warn': sc.OptionDefinition.CHECKBOX;
+			'logLevel-error': sc.OptionDefinition.CHECKBOX;
+			'mods-description': sc.OptionDefinition.INFO;
+		}
+	}
 
-  interface CCLoaderVersionGuiMixin {
-    ccloaderVersionGui: sc.TextGui;
-  }
-  interface TitleScreenGui extends CCLoaderVersionGuiMixin {}
-  interface PauseScreenGui extends CCLoaderVersionGuiMixin {}
+	interface CCLoaderVersionGuiMixin {
+		ccloaderVersionGui: sc.TextGui;
+	}
+	interface TitleScreenGui extends CCLoaderVersionGuiMixin {}
+	interface PauseScreenGui extends CCLoaderVersionGuiMixin {}
 }

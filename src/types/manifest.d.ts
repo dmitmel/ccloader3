@@ -1,45 +1,45 @@
 export interface Manifest {
-  id: ModId;
-  version: SemVer;
+	id: ModId;
+	version: SemVer;
 
-  title?: LocalizedString;
-  description?: LocalizedString;
-  license?: SpdxExpression;
-  homepage?: LocalizedString;
-  keywords?: LocalizedString[];
-  authors?: Person[];
+	title?: LocalizedString;
+	description?: LocalizedString;
+	license?: SpdxExpression;
+	homepage?: LocalizedString;
+	keywords?: LocalizedString[];
+	authors?: Person[];
 
-  dependencies?: ModDependencies;
+	dependencies?: ModDependencies;
 
-  assets?: FilePath[];
-  assetsDir?: FilePath;
+	assets?: FilePath[];
+	assetsDir?: FilePath;
 
-  main?: FilePath;
-  preload?: FilePath;
-  postload?: FilePath;
-  prestart?: FilePath;
-  poststart?: FilePath;
+	main?: FilePath;
+	preload?: FilePath;
+	postload?: FilePath;
+	prestart?: FilePath;
+	poststart?: FilePath;
 }
 
 export interface ManifestLegacy {
-  name: ModId;
-  version: SemVer;
+	name: ModId;
+	version: SemVer;
 
-  ccmodHumanName?: string;
-  description?: string;
-  license?: SpdxExpression;
-  homepage?: string;
+	ccmodHumanName?: string;
+	description?: string;
+	license?: SpdxExpression;
+	homepage?: string;
 
-  ccmodDependencies?: ModDependencies;
-  dependencies?: ModDependencies;
+	ccmodDependencies?: ModDependencies;
+	dependencies?: ModDependencies;
 
-  assets?: FilePath[];
+	assets?: FilePath[];
 
-  plugin?: FilePath;
-  preload?: FilePath;
-  postload?: FilePath;
-  prestart?: FilePath;
-  main?: FilePath;
+	plugin?: FilePath;
+	preload?: FilePath;
+	postload?: FilePath;
+	prestart?: FilePath;
+	main?: FilePath;
 }
 
 export type ModId = string;
@@ -51,8 +51,8 @@ export type ModDependencies = Record<ModId, ModDependency>;
 
 export type ModDependency = SemVerConstraint | ModDependencyDetails;
 export interface ModDependencyDetails {
-  version: SemVerConstraint;
-  optional?: boolean;
+	version: SemVerConstraint;
+	optional?: boolean;
 }
 
 export type SpdxExpression = string;
@@ -64,8 +64,8 @@ export type FilePath = string;
 
 export type Person = PersonDetails | string;
 export interface PersonDetails {
-  name: LocalizedString;
-  email?: LocalizedString;
-  url?: LocalizedString;
-  comment?: LocalizedString;
+	name: LocalizedString;
+	email?: LocalizedString;
+	url?: LocalizedString;
+	comment?: LocalizedString;
 }
