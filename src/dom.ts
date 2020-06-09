@@ -1,16 +1,17 @@
-import { IMPACT_CONFIGURATION, MAIN_SCRIPT_URL, REQUIRED_SCRIPT_URLS, REQUIRED_STYLESHEET_URLS } from './game.config.js';
+import { IMPACT_CONFIGURATION, MAIN_SCRIPT_URL, REQUIRED_SCRIPT_URLS, REQUIRED_STYLESHEET_URLS } from './dom.config.js';
 
-export async function buildNecessaryDOM(): Promise<void> {
+export async function loadGameBase(): Promise<void> {
 	const base = document.createElement('base');
 	base.href = `${location.origin}/assets/`;
 	document.head.appendChild(base);
 
 	// meta tags have been removed, they appear to not affect anything
 
-	const canvas = document.createElement('canvas');
-	canvas.id = 'canvas';
 	const div = document.createElement('div');
 	div.id = 'game';
+
+	const canvas = document.createElement('canvas');
+	canvas.id = 'canvas';
 	div.appendChild(canvas);
 
 	// By default the game's HTML page also contains a div element for the "option
@@ -40,24 +41,10 @@ export async function buildNecessaryDOM(): Promise<void> {
 	]);
 }
 
-declare global {
-	namespace ig {
-		function _DOMReady(): void;
-
-		interface System {
-			setGameNow(this: this, gameClass: unknown): void;
-		}
-
-		const system: System;
-	}
-
-	function startCrossCode(): void;
-}
-
 export async function loadMainScript(): Promise<() => void> {
-	let domReadyCallback: () => void = null!;
-	callOnIgInitialization(() => {
-		domReadyCallback = window.ig._DOMReady;
+	let domReadyCb: () => void = null!;
+	callOnIgInit(() => {
+		domReadyCb = window.ig._DOMReady;
 		window.ig._DOMReady = () => {};
 	});
 
@@ -65,14 +52,14 @@ export async function loadMainScript(): Promise<() => void> {
 	// is being executed
 	await loadScript(MAIN_SCRIPT_URL, { async: false });
 
-	if (domReadyCallback == null) {
+	if (domReadyCb == null) {
 		throw new Error('domReadyCallback');
 	}
 
-	return domReadyCallback;
+	return domReadyCb;
 }
 
-function callOnIgInitialization(callback: () => void): void {
+function callOnIgInit(callback: () => void): void {
 	Object.defineProperty(window, 'ig', {
 		configurable: true,
 		enumerable: true,
@@ -106,7 +93,7 @@ export async function getStartFunction(): Promise<() => void> {
 	});
 }
 
-export async function waitForIgGameInitialization(): Promise<void> {
+export async function igGameInit(): Promise<void> {
 	return new Promise((resolve) => {
 		const realSetGameNow = window.ig.system.setGameNow;
 		window.ig.system.setGameNow = function (...args) {

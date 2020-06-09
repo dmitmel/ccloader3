@@ -3,7 +3,7 @@ import { Manifest, ManifestLegacy, ModId } from './types/manifest';
 import { ManifestValidator, convertFromLegacy as convertManifestFromLegacy } from './manifest.js';
 import { ModDependency, ModLoadingStage } from './types/mod';
 import { Mod } from './mod.js';
-import * as game from './game.js';
+import * as dom from './dom.js';
 import { SemVer } from '../common/vendor-libs/semver.js';
 import { compare, errorHasMessage } from '../common/dist/utils.js';
 import * as paths from '../common/dist/paths.js';
@@ -75,19 +75,19 @@ export async function boot(): Promise<void> {
 		loadedMods,
 	};
 
-	await game.buildNecessaryDOM();
+	await dom.loadGameBase();
 
 	await initModClasses(loadedMods);
 
 	await executeStage(loadedMods, 'preload');
-	const domReadyCallback = await game.loadMainScript();
+	const domReadyCallback = await dom.loadMainScript();
 	await executeStage(loadedMods, 'postload');
 	domReadyCallback();
 
-	const startGame = await game.getStartFunction();
+	const startGame = await dom.getStartFunction();
 	await executeStage(loadedMods, 'prestart');
 	startGame();
-	await game.waitForIgGameInitialization();
+	await dom.igGameInit();
 	await executeStage(loadedMods, 'poststart');
 }
 
