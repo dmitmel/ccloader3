@@ -83,8 +83,6 @@ function jsonPathToString(path: JsonPath): string {
 	return str;
 }
 
-/* eslint-disable no-undefined */
-
 export class ManifestValidator {
 	private problems: string[] = [];
 
@@ -137,7 +135,7 @@ export class ManifestValidator {
 			this.assertType(['license'], data.license, [Type.string], true);
 			this.assertType(['homepage'], data.homepage, [Type.string], true);
 
-			if (data.ccmodDependencies !== undefined) {
+			if (data.ccmodDependencies) {
 				this.assertDependencies(['ccmodDependencies'], data.ccmodDependencies);
 			} else {
 				this.assertDependencies(['dependencies'], data.dependencies);
@@ -158,7 +156,7 @@ export class ManifestValidator {
 	}
 
 	private assertType(valuePath: JsonPath, value: unknown, expectedTypes: Type[], optional = false): TypeAssertionResult {
-		if (value === undefined) {
+		if (!value) {
 			if (optional) {
 				return { status: 'optional' };
 			} else {
@@ -278,18 +276,16 @@ export class ManifestValidator {
 }
 
 export function convertFromLegacy(data: ManifestLegacy): Manifest {
-	return {
+	const result: Manifest = {
 		id: data.name,
 		version: data.version,
 		license: data.license,
 
 		title: {
-			en_US: data.ccmodHumanName !== undefined ? data.ccmodHumanName : data.name,
+			en_US: data.ccmodHumanName ? data.ccmodHumanName : data.name,
 		},
-		description: data.description !== undefined ? { en_US: data.description } : undefined,
-		homepage: data.homepage !== undefined ? { en_US: data.homepage } : undefined,
 
-		dependencies: data.ccmodDependencies !== undefined ? data.ccmodDependencies : data.dependencies,
+		dependencies: data.ccmodDependencies ? data.ccmodDependencies : data.dependencies,
 
 		assets: data.assets,
 
@@ -299,4 +295,13 @@ export function convertFromLegacy(data: ManifestLegacy): Manifest {
 		prestart: data.prestart,
 		poststart: data.main,
 	};
+
+	if (data.description) {
+		result.description = { en_US: data.description };
+	}
+	if (data.homepage) {
+		result.homepage = { en_US: data.homepage };
+	}
+
+	return result;
 }

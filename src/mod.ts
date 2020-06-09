@@ -73,10 +73,9 @@ export class Mod implements ModPublic {
 		}
 		const scriptFullPath = this.resolvePath(script);
 
-		// eslint-disable-next-line no-shadow
-		let module: { default: new (mod: Mod) => ModClass };
+		let modModule: { default: new (mod: Mod) => ModClass };
 		try {
-			module = await import(`/${scriptFullPath}`);
+			modModule = await import(`/${scriptFullPath}`);
 		} catch (err) {
 			if (errorHasMessage(err)) {
 				err.message = `Error when importing '${scriptFullPath}': ${err.message}`;
@@ -84,12 +83,12 @@ export class Mod implements ModPublic {
 			throw err;
 		}
 
-		if (!('default' in module)) {
+		if (!('default' in modModule)) {
 			throw new Error(`Module '${scriptFullPath}' has no default export`);
 		}
 
-		// eslint-disable-next-line new-cap
-		this.classInstance = new module.default(this);
+		const ModCtor = modModule.default;
+		this.classInstance = new ModCtor(this);
 	}
 
 	public async executeStage(stage: ModLoadingStage): Promise<void> {

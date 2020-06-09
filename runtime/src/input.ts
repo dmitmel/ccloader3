@@ -107,8 +107,7 @@ ig.module('ccloader-runtime.stdlib.input')
 				}
 
 				if (isAlternative && unbind) {
-					// eslint-disable-next-line no-undefined
-					optionValue.key2 = undefined;
+					delete optionValue.key2;
 					return;
 				}
 

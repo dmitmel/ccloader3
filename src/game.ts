@@ -77,10 +77,7 @@ function callOnIgInitialization(callback: () => void): void {
 		configurable: true,
 		enumerable: true,
 
-		get() {
-			// eslint-disable-next-line no-undefined
-			return undefined;
-		},
+		get() {},
 
 		set(value: typeof ig) {
 			delete window.ig;
