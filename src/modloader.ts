@@ -1,7 +1,5 @@
 import * as files from './files.js';
-import * as manifestTypes from './types/manifest';
 import * as manifest from './manifest.js';
-import * as modTypes from './types/mod';
 import * as mod from './mod.js';
 import * as dom from './dom.js';
 import * as semver from '../common/vendor-libs/semver.js';
@@ -10,9 +8,9 @@ import * as paths from '../common/dist/paths.js';
 
 const CCLOADER_DIR: string = paths.stripRoot(paths.dirname(paths.dirname(new URL(import.meta.url).pathname)));
 
-type ModsMap = Map<manifestTypes.ModId, mod.Mod>;
-type ReadonlyModsMap = ReadonlyMap<manifestTypes.ModId, mod.Mod>;
-type ReadonlyVirtualPackagesMap = ReadonlyMap<manifestTypes.ModId, semver.SemVer>;
+type ModsMap = Map<manifest.ModId, mod.Mod>;
+type ReadonlyModsMap = ReadonlyMap<manifest.ModId, mod.Mod>;
+type ReadonlyVirtualPackagesMap = ReadonlyMap<manifest.ModId, semver.SemVer>;
 
 export async function start(): Promise<void> {
 	const meta = await loadModloaderMetadata();
@@ -27,7 +25,7 @@ export async function start(): Promise<void> {
 		return;
 	}
 
-	let installed = new Map<manifestTypes.ModId, mod.Mod>();
+	let installed = new Map<manifest.ModId, mod.Mod>();
 	await loadAllModMetadata('assets/mods', installed);
 	installed = sortModsInLoadOrder(runtime, installed);
 
@@ -154,7 +152,7 @@ async function loadModMetadata(baseDirectory: string): Promise<mod.Mod | null> {
 		}
 	}
 
-	let manifestData: manifestTypes.Manifest | manifestTypes.ManifestLegacy;
+	let manifestData: manifest.Manifest | manifest.ManifestLegacy;
 	try {
 		manifestData = JSON.parse(manifestText);
 	} catch (err) {
@@ -166,11 +164,11 @@ async function loadModMetadata(baseDirectory: string): Promise<mod.Mod | null> {
 
 	try {
 		if (legacyMode) {
-			manifestData = manifestData as manifestTypes.ManifestLegacy;
+			manifestData = manifestData as manifest.ManifestLegacy;
 			manifestValidator.validateLegacy(manifestData);
 			manifestData = manifest.convertFromLegacy(manifestData);
 		} else {
-			manifestData = manifestData as manifestTypes.Manifest;
+			manifestData = manifestData as manifest.Manifest;
 			manifestValidator.validate(manifestData);
 		}
 	} catch (err) {
@@ -186,7 +184,7 @@ async function loadModMetadata(baseDirectory: string): Promise<mod.Mod | null> {
 
 function sortModsInLoadOrder(runtimeMod: mod.Mod, installedMods: ReadonlyModsMap): ModsMap {
 	// note that maps preserve insertion order as defined in the ECMAScript spec
-	const sortedMods = new Map<manifestTypes.ModId, mod.Mod>();
+	const sortedMods = new Map<manifest.ModId, mod.Mod>();
 
 	sortedMods.set(runtimeMod.manifest.id, runtimeMod);
 
@@ -233,7 +231,7 @@ function modHasUnsortedInstalledDependencies(m: mod.Mod, sortedMods: ReadonlyMod
 }
 
 function createVirtualDependencies(gameVersion: semver.SemVer, modloaderVersion: semver.SemVer): ReadonlyVirtualPackagesMap {
-	const virtualPackages = new Map<manifestTypes.ModId, semver.SemVer>();
+	const virtualPackages = new Map<manifest.ModId, semver.SemVer>();
 	virtualPackages.set('crosscode', gameVersion);
 	virtualPackages.set('ccloader', modloaderVersion);
 	return virtualPackages;
@@ -254,7 +252,7 @@ function verifyModDependencies(installedMods: ReadonlyModsMap, virtualPackages: 
 }
 
 async function loadMods(installedMods: ReadonlyModsMap): Promise<ReadonlyModsMap> {
-	const loadedMods = new Map<manifestTypes.ModId, mod.Mod>();
+	const loadedMods = new Map<manifest.ModId, mod.Mod>();
 	const findAssetsPromises: Array<Promise<void>> = [];
 	for (const [modId, m] of installedMods.entries()) {
 		if (m.shouldBeLoaded) {
@@ -272,8 +270,8 @@ async function loadMods(installedMods: ReadonlyModsMap): Promise<ReadonlyModsMap
 }
 
 function checkDependencyConstraint(
-	depId: manifestTypes.ModId,
-	depConstraint: modTypes.ModDependency,
+	depId: manifest.ModId,
+	depConstraint: mod.ModDependency,
 	installedMods: ReadonlyModsMap,
 	virtualPackages: ReadonlyVirtualPackagesMap,
 ): string | null {
@@ -312,7 +310,7 @@ async function initModClasses(mods: ReadonlyModsMap): Promise<void> {
 	}
 }
 
-async function executeStage(mods: ReadonlyModsMap, stage: modTypes.ModLoadingStage): Promise<void> {
+async function executeStage(mods: ReadonlyModsMap, stage: mod.ModLoadingStage): Promise<void> {
 	for (const m of mods.values()) {
 		// eslint-disable-next-line no-await-in-loop
 		await m.executeStage(stage);

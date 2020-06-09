@@ -1,9 +1,11 @@
 import * as semver from '../common/vendor-libs/semver.js';
-import * as man from './types/manifest';
+import * as man from './manifest.js';
 import * as types from './types/mod';
 import * as paths from '../common/dist/paths.js';
 import * as utils from '../common/dist/utils.js';
 import * as files from './files.js';
+
+export * from './types/mod';
 
 export class Mod implements types.Mod {
 	public readonly version: semver.SemVer;

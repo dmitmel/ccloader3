@@ -1,5 +1,7 @@
 import * as types from './types/manifest';
 
+export * from './types/manifest';
+
 enum Type {
 	string = 'string',
 	number = 'number',
