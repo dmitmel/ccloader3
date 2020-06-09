@@ -1,6 +1,8 @@
 export {};
 declare global {
-	const IG_ROOT: string;
+	//TODO: look into why this onlyworks with var
+	// eslint-disable-next-line no-var
+	var IG_ROOT: string;
 }
 
 // eslint-disable-next-line no-shadow
