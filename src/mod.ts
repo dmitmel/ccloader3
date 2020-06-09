@@ -1,69 +1,59 @@
-import { SemVer, Range as SemVerRange } from '../common/vendor-libs/semver.js';
-import { Manifest, ModId } from './types/manifest';
-// TODO: consider using `import * as cls` here
-import { ModClass, ModDependency, ModLoadingStage, Mod as ModPublic } from './types/mod';
+import * as semver from '../common/vendor-libs/semver.js';
+import * as man from './types/manifest';
+import * as types from './types/mod';
 import * as paths from '../common/dist/paths.js';
-import { PLATFORM_TYPE, PlatformType, errorHasMessage } from '../common/dist/utils.js';
+import * as utils from '../common/dist/utils.js';
 import * as files from './files.js';
 
-export class Mod implements ModPublic {
-	public readonly version: SemVer;
-	public readonly dependencies: ReadonlyMap<ModId, ModDependency>;
+export class Mod implements types.Mod {
+	public readonly version: semver.SemVer;
+	public readonly dependencies: ReadonlyMap<man.ModId, types.ModDependency>;
 	public readonly assetsDir: string;
 	public assets: Set<string> = new Set();
 	public shouldBeLoaded = true;
-	public classInstance: ModClass | null = null;
+	public classInstance: types.ModClass | null = null;
 
-	public constructor(public readonly baseDirectory: string, public readonly manifest: Manifest, public readonly legacyMode: boolean) {
+	public constructor(public readonly baseDirectory: string, public readonly manifest: man.Manifest, public readonly legacyMode: boolean) {
 		try {
-			this.version = new SemVer(manifest.version);
+			this.version = new semver.SemVer(manifest.version);
 		} catch (err) {
-			if (errorHasMessage(err)) {
+			if (utils.errorHasMessage(err)) {
 				// TODO: put a link to semver docs here
 				err.message = `mod version '${manifest.version}' is not a valid semver version: ${err.message}`;
 			}
 			throw err;
 		}
 
-		const dependencies = new Map<ModId, ModDependency>();
-
-		if (manifest.dependencies != null) {
+		const dependencies = new Map<man.ModId, types.ModDependency>();
+		if (manifest.dependencies) {
 			for (const depId of Object.keys(manifest.dependencies)) {
-				let dep = manifest.dependencies[depId];
-				if (typeof dep === 'string') {
-					dep = { version: dep };
-				}
+				const dep = this.sanitizeDep(manifest.dependencies[depId]);
 
-				let depVersionRange: SemVerRange;
 				try {
-					depVersionRange = new SemVerRange(dep.version);
+					dependencies.set(depId, {
+						version: new semver.Range(dep.version),
+						optional: dep.optional ?? false,
+					});
 				} catch (err) {
-					if (errorHasMessage(err)) {
+					if (utils.errorHasMessage(err)) {
 						err.message = `dependency version constraint '${dep.version}' for mod '${depId}' is not a valid semver range: ${err.message}`;
 					}
 					throw err;
 				}
-
-				dependencies.set(depId, {
-					version: depVersionRange,
-					optional: dep.optional ?? false,
-				});
 			}
 		}
-
 		this.dependencies = dependencies;
 
 		this.assetsDir = this.resolvePath(`${this.manifest.assetsDir ?? 'assets'}/`);
 	}
 
 	public async findAllAssets(): Promise<void> {
-		let assets: string[] = [];
-		if (this.manifest.assets != null) {
-			assets = this.manifest.assets.map((path) => paths.stripRoot(paths.join('/', path)));
-		} else if (PLATFORM_TYPE === PlatformType.Desktop) {
-			assets = await files.findRecursively(this.assetsDir);
+		if (this.manifest.assets) {
+			const assets = this.manifest.assets.map((path) => paths.stripRoot(paths.join('/', path)));
+			this.assets = new Set(assets);
+		} else if (utils.PLATFORM_TYPE === utils.PlatformType.Desktop) {
+			this.assets = new Set(await files.findRecursively(this.assetsDir));
 		}
-		this.assets = new Set(assets);
 	}
 
 	public async initClass(): Promise<void> {
@@ -73,11 +63,11 @@ export class Mod implements ModPublic {
 		}
 		const scriptFullPath = this.resolvePath(script);
 
-		let modModule: { default: new (mod: Mod) => ModClass };
+		let modModule: { default: new (mod: Mod) => types.ModClass };
 		try {
 			modModule = await import(`/${scriptFullPath}`);
 		} catch (err) {
-			if (errorHasMessage(err)) {
+			if (utils.errorHasMessage(err)) {
 				err.message = `Error when importing '${scriptFullPath}': ${err.message}`;
 			}
 			throw err;
@@ -87,17 +77,31 @@ export class Mod implements ModPublic {
 			throw new Error(`Module '${scriptFullPath}' has no default export`);
 		}
 
-		const ModCtor = modModule.default;
-		this.classInstance = new ModCtor(this);
+		try {
+			const ModCtor = modModule.default;
+			this.classInstance = new ModCtor(this);
+		} catch (err) {
+			if (utils.errorHasMessage(err)) {
+				err.message = `Error when instantiating '${scriptFullPath}': ${err.message}`;
+			}
+			throw err;
+		}
 	}
 
-	public async executeStage(stage: ModLoadingStage): Promise<void> {
-		let classMethodName: keyof ModClass = stage;
+	public async executeStage(stage: types.ModLoadingStage): Promise<void> {
+		let classMethodName: keyof types.ModClass = stage;
 		if (this.legacyMode && stage === 'poststart') {
 			classMethodName = 'main';
 		}
 		if (this.classInstance != null && classMethodName in this.classInstance) {
-			await this.classInstance[classMethodName]!(this);
+			try {
+				await this.classInstance[classMethodName]!(this);
+			} catch (err) {
+				if (utils.errorHasMessage(err)) {
+					err.message = `Error when executing plugin ${stage} of '${this.manifest.id}': ${err.message}`;
+				}
+				throw err;
+			}
 		}
 
 		const script = this.manifest[stage];
@@ -106,10 +110,24 @@ export class Mod implements ModPublic {
 		}
 		const scriptFullPath = this.resolvePath(script);
 
-		await import(`/${scriptFullPath}`);
+		try {
+			await import(`/${scriptFullPath}`);
+		} catch (err) {
+			if (utils.errorHasMessage(err)) {
+				err.message = `Error when executing module ${stage} of '${this.manifest.id}': ${err.message}`;
+			}
+			throw err;
+		}
 	}
 
 	public resolvePath(path: string): string {
 		return paths.join(this.baseDirectory, paths.join('/', path));
+	}
+
+	private sanitizeDep(dep: man.ModDependency): man.ModDependencyDetails {
+		if (typeof dep === 'string') {
+			return { version: dep };
+		}
+		return dep;
 	}
 }
