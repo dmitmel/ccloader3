@@ -2,7 +2,7 @@ import { errorHasCode } from '../common/dist/utils.js';
 
 const { promises: fs } = (typeof require === 'function' ? require('fs') : {}) as typeof import('fs');
 
-export async function loadFile(path: string): Promise<string> {
+export async function load(path: string): Promise<string> {
 	return fs.readFile(path, 'utf8');
 }
 
@@ -40,7 +40,7 @@ async function findRecursivelyInternal(currentDir: string, relativePrefix: strin
 	);
 }
 
-export async function getModDirectoriesIn(dir: string): Promise<string[]> {
+export async function modDirectoriesIn(dir: string): Promise<string[]> {
 	if (dir.endsWith('/')) {
 		dir = dir.slice(-1);
 	}

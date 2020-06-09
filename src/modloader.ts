@@ -95,13 +95,13 @@ async function loadModloaderMetadata(): Promise<{
 	name: string;
 	version: SemVer;
 }> {
-	const toolJsonText = await files.loadFile(`${CCLOADER_DIR}/tool.json`);
+	const toolJsonText = await files.load(`${CCLOADER_DIR}/tool.json`);
 	const data = JSON.parse(toolJsonText) as { name: string; version: string };
 	return { name: data.name, version: new SemVer(data.version) };
 }
 
 async function loadGameVersion(): Promise<SemVer> {
-	const changelogText = await files.loadFile('assets/data/changelog.json');
+	const changelogText = await files.load('assets/data/changelog.json');
 	const { changelog } = JSON.parse(changelogText) as {
 		changelog: Array<{ version: string }>;
 	};
@@ -116,7 +116,7 @@ async function loadAllModMetadata(
 	installedMods: ModsMap,
 ): Promise<void> {
 	await Promise.all(
-		(await files.getModDirectoriesIn(modsDir)).map(async (fullPath) => {
+		(await files.modDirectoriesIn(modsDir)).map(async (fullPath) => {
 			try {
 				const mod = await loadModMetadata(fullPath);
 				if (mod == null) {
@@ -146,12 +146,12 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
 
 	try {
 		manifestFile = `${baseDirectory}/ccmod.json`;
-		manifestText = await files.loadFile(manifestFile);
+		manifestText = await files.load(manifestFile);
 	} catch (_e1) {
 		try {
 			legacyMode = true;
 			manifestFile = `${baseDirectory}/package.json`;
-			manifestText = await files.loadFile(manifestFile);
+			manifestText = await files.load(manifestFile);
 		} catch (_e2) {
 			return null;
 		}
