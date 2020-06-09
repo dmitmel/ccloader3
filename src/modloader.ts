@@ -1,10 +1,10 @@
 import * as files from './files.js';
-import { Manifest, ManifestLegacy, ModId } from './public/manifest';
+import { Manifest, ManifestLegacy, ModId } from './types/manifest';
 import {
   ManifestValidator,
   convertFromLegacy as convertManifestFromLegacy,
 } from './manifest.js';
-import { ModDependency, ModLoadingStage } from './public/mod';
+import { ModDependency, ModLoadingStage } from './types/mod';
 import { Mod } from './mod.js';
 import * as game from './game.js';
 import { SemVer } from '../common/vendor-libs/semver.js';

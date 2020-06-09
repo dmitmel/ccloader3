@@ -1,12 +1,12 @@
 import { SemVer, Range as SemVerRange } from '../common/vendor-libs/semver.js';
-import { Manifest, ModId } from './public/manifest';
+import { Manifest, ModId } from './types/manifest';
 // TODO: consider using `import * as cls` here
 import {
   ModClass,
   ModDependency,
   ModLoadingStage,
   Mod as ModPublic,
-} from './public/mod';
+} from './types/mod';
 import * as paths from '../common/dist/paths.js';
 import {
   PLATFORM_TYPE,

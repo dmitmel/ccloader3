@@ -9,7 +9,7 @@ import {
   ModDependencyDetails,
   Person,
   PersonDetails,
-} from './public/manifest';
+} from './types/manifest';
 
 enum Type {
   string = 'string',
