@@ -51,101 +51,101 @@
 // anything significant.
 
 ig.module('ccloader-runtime.stdlib.input')
-  .requires('game.feature.model.options-model')
-  .defines(() => {
-    // `sc.KEY_BLACK_LIST` contains keys which cannot be bound using graphical
-    // interface (i.e. `sc.KeyBinderGui`). Really it contains functional keys
-    // F1-F12 and the control key. The reason for blacklisting functional keys
-    // is explainable - they are already internally used for the following
-    // actions:
-    //
-    // - <F7>  opening the typo editor
-    // - <F8>  taking screenshots (which can't be saved, trololo)
-    // - <F10> importing/exporting savestrings
-    // - <F11> switching to the fullscreen mode
-    //
-    // Unfortunately it is not clear to me what did control forget there. The
-    // jetpack mod made use of it since the beginning of time, so I remove it
-    // from the blacklist here.
-    // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-    delete sc.KEY_BLACK_LIST[ig.KEY.CTRL];
+	.requires('game.feature.model.options-model')
+	.defines(() => {
+		// `sc.KEY_BLACK_LIST` contains keys which cannot be bound using graphical
+		// interface (i.e. `sc.KeyBinderGui`). Really it contains functional keys
+		// F1-F12 and the control key. The reason for blacklisting functional keys
+		// is explainable - they are already internally used for the following
+		// actions:
+		//
+		// - <F7>  opening the typo editor
+		// - <F8>  taking screenshots (which can't be saved, trololo)
+		// - <F10> importing/exporting savestrings
+		// - <F11> switching to the fullscreen mode
+		//
+		// Unfortunately it is not clear to me what did control forget there. The
+		// jetpack mod made use of it since the beginning of time, so I remove it
+		// from the blacklist here.
+		// eslint-disable-next-line @typescript-eslint/no-dynamic-delete
+		delete sc.KEY_BLACK_LIST[ig.KEY.CTRL];
 
-    sc.KeyBinder.inject({
-      // the loop which populates `KEY_OPTION_MAP` was moved directly here
-      initBindings() {
-        for (let optionId in sc.OPTIONS_DEFINITION) {
-          let optionDef = sc.OPTIONS_DEFINITION[optionId];
-          if (optionDef.type !== 'CONTROLS' || !optionId.startsWith('keys-')) {
-            continue;
-          }
+		sc.KeyBinder.inject({
+			// the loop which populates `KEY_OPTION_MAP` was moved directly here
+			initBindings() {
+				for (let optionId in sc.OPTIONS_DEFINITION) {
+					let optionDef = sc.OPTIONS_DEFINITION[optionId];
+					if (optionDef.type !== 'CONTROLS' || !optionId.startsWith('keys-')) {
+						continue;
+					}
 
-          let action = optionId.slice(5);
-          let { key1, key2 } = sc.options.values[
-            optionId
-          ] as sc.OptionDefinition.CONTROLS['init'];
-          if (key1 != null) {
-            ig.input.bind(key1, action);
-            sc.fontsystem.changeKeyCodeIcon(action, key1);
-          }
-          if (key2 != null) {
-            ig.input.bind(key2, action);
-          }
-        }
+					let action = optionId.slice(5);
+					let { key1, key2 } = sc.options.values[
+						optionId
+					] as sc.OptionDefinition.CONTROLS['init'];
+					if (key1 != null) {
+						ig.input.bind(key1, action);
+						sc.fontsystem.changeKeyCodeIcon(action, key1);
+					}
+					if (key2 != null) {
+						ig.input.bind(key2, action);
+					}
+				}
 
-        this.updateGamepadIcons();
-      },
+				this.updateGamepadIcons();
+			},
 
-      changeBinding(optionId, key, isAlternative, unbind) {
-        let optionValue = sc.options.values[
-          optionId
-        ] as sc.OptionDefinition.CONTROLS['init'];
-        sc.options.hasChanged = true;
+			changeBinding(optionId, key, isAlternative, unbind) {
+				let optionValue = sc.options.values[
+					optionId
+				] as sc.OptionDefinition.CONTROLS['init'];
+				sc.options.hasChanged = true;
 
-        // this assignment accessed `KEY_OPTION_MAP` to get the option value
-        // instead of directly reusing a variable directly
-        let oldKey = isAlternative ? optionValue.key2! : optionValue.key1;
-        // this condition seems to handle situations when `oldKey` is
-        // `undefined` or `null` correctly as well
-        if (ig.input.bindings[oldKey] != null) ig.input.unbind(oldKey);
+				// this assignment accessed `KEY_OPTION_MAP` to get the option value
+				// instead of directly reusing a variable directly
+				let oldKey = isAlternative ? optionValue.key2! : optionValue.key1;
+				// this condition seems to handle situations when `oldKey` is
+				// `undefined` or `null` correctly as well
+				if (ig.input.bindings[oldKey] != null) ig.input.unbind(oldKey);
 
-        if (isAlternative && unbind) {
-          // eslint-disable-next-line no-undefined
-          optionValue.key2 = undefined;
-          return;
-        }
+				if (isAlternative && unbind) {
+					// eslint-disable-next-line no-undefined
+					optionValue.key2 = undefined;
+					return;
+				}
 
-        let action = optionId.slice(5);
-        let conflictingAction = ig.input.bindings[key];
+				let action = optionId.slice(5);
+				let conflictingAction = ig.input.bindings[key];
 
-        ig.input.bind(key, action);
-        sc.fontsystem.changeKeyCodeIcon(action, key);
+				ig.input.bind(key, action);
+				sc.fontsystem.changeKeyCodeIcon(action, key);
 
-        if (conflictingAction != null) {
-          // this assignment used to access `KEY_OPTION_MAP` to get the option
-          // ID of the conflicting action
-          let conflictingOption = sc.options.values[
-            `keys-${conflictingAction}`
-          ] as sc.OptionDefinition.CONTROLS['init'];
+				if (conflictingAction != null) {
+					// this assignment used to access `KEY_OPTION_MAP` to get the option
+					// ID of the conflicting action
+					let conflictingOption = sc.options.values[
+						`keys-${conflictingAction}`
+					] as sc.OptionDefinition.CONTROLS['init'];
 
-          if (conflictingOption.key1 === key) {
-            conflictingOption.key1 = oldKey;
-          } else if (conflictingOption.key2 === key) {
-            conflictingOption.key2 = oldKey;
-          } else {
-            // this error message isn't present in the original code, I got this
-            // idea from 20kdc's implementation
-            console.error(
-              'input-api: unable to find the conflicting key binding. report ASAP!',
-            );
-          }
+					if (conflictingOption.key1 === key) {
+						conflictingOption.key1 = oldKey;
+					} else if (conflictingOption.key2 === key) {
+						conflictingOption.key2 = oldKey;
+					} else {
+						// this error message isn't present in the original code, I got this
+						// idea from 20kdc's implementation
+						console.error(
+							'input-api: unable to find the conflicting key binding. report ASAP!',
+						);
+					}
 
-          ig.input.bind(oldKey, conflictingAction);
-          sc.fontsystem.changeKeyCodeIcon(conflictingAction, oldKey);
-          sc.options.dispatchKeySwappedEvent();
-        }
+					ig.input.bind(oldKey, conflictingAction);
+					sc.fontsystem.changeKeyCodeIcon(conflictingAction, oldKey);
+					sc.options.dispatchKeySwappedEvent();
+				}
 
-        if (isAlternative) optionValue.key2 = key;
-        else optionValue.key1 = key;
-      },
-    });
-  });
+				if (isAlternative) optionValue.key2 = key;
+				else optionValue.key1 = key;
+			},
+		});
+	});
