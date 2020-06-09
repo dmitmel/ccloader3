@@ -12,7 +12,7 @@ async function main(): Promise<void> {
 	await openDevTools();
 	await onloadPromise;
 
-	await modloader.boot();
+	await modloader.start();
 }
 
 function redirect(): boolean {

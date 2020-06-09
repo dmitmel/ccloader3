@@ -67,10 +67,8 @@ export class Mod implements types.Mod {
 		try {
 			modModule = await import(`/${scriptFullPath}`);
 		} catch (err) {
-			if (utils.errorHasMessage(err)) {
-				err.message = `Error when importing '${scriptFullPath}': ${err.message}`;
-			}
-			throw err;
+			console.error(`Error while importing '${scriptFullPath}': ${err.message}`);
+			return;
 		}
 
 		if (!('default' in modModule)) {
@@ -81,10 +79,7 @@ export class Mod implements types.Mod {
 			const ModCtor = modModule.default;
 			this.classInstance = new ModCtor(this);
 		} catch (err) {
-			if (utils.errorHasMessage(err)) {
-				err.message = `Error when instantiating '${scriptFullPath}': ${err.message}`;
-			}
-			throw err;
+			console.error(`Error while instantiating '${this.manifest.id}': '${scriptFullPath}': ${err.message}`);
 		}
 	}
 
@@ -97,10 +92,7 @@ export class Mod implements types.Mod {
 			try {
 				await this.classInstance[classMethodName]!(this);
 			} catch (err) {
-				if (utils.errorHasMessage(err)) {
-					err.message = `Error when executing plugin ${stage} of '${this.manifest.id}': ${err.message}`;
-				}
-				throw err;
+				console.error(`Error while executing plugin ${stage} of '${this.manifest.id}': ${err.message}`);
 			}
 		}
 
@@ -113,10 +105,7 @@ export class Mod implements types.Mod {
 		try {
 			await import(`/${scriptFullPath}`);
 		} catch (err) {
-			if (utils.errorHasMessage(err)) {
-				err.message = `Error when executing module ${stage} of '${this.manifest.id}': ${err.message}`;
-			}
-			throw err;
+			console.error(`Error while executing module ${stage} of '${this.manifest.id}': ${err.message}`);
 		}
 	}
 
