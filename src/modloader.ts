@@ -1,6 +1,6 @@
 import * as files from './files.js';
 import { Manifest, ManifestLegacy, ModId } from './types/manifest';
-import { ManifestValidator, convertFromLegacy as convertManifestFromLegacy } from './manifest.js';
+import * as manifest from './manifest.js';
 import { ModDependency, ModLoadingStage } from './types/mod';
 import { Mod } from './mod.js';
 import * as dom from './dom.js';
@@ -137,7 +137,7 @@ async function loadAllModMetadata(
 	);
 }
 
-const manifestValidator = new ManifestValidator();
+const manifestValidator = new manifest.Validator();
 
 async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
 	let manifestFile: string;
@@ -171,7 +171,7 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
 		if (legacyMode) {
 			manifestData = manifestData as ManifestLegacy;
 			manifestValidator.validateLegacy(manifestData);
-			manifestData = convertManifestFromLegacy(manifestData);
+			manifestData = manifest.convertFromLegacy(manifestData);
 		} else {
 			manifestData = manifestData as Manifest;
 			manifestValidator.validate(manifestData);
