@@ -119,8 +119,7 @@ export function normalize(path: string): string {
 	}
 
 	const hasRoot = path.charCodeAt(0) === CHAR_FORWARD_SLASH;
-	const trailingSeparator =
-		path.charCodeAt(path.length - 1) === CHAR_FORWARD_SLASH;
+	const trailingSeparator = path.charCodeAt(path.length - 1) === CHAR_FORWARD_SLASH;
 
 	// Normalize the path
 	path = normalizeString(path, !hasRoot);

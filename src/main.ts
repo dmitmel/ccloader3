@@ -11,9 +11,7 @@ import { showDevTools, wait } from '../common/dist/utils.js';
 		return;
 	}
 
-	const onloadPromise = new Promise((resolve) =>
-		window.addEventListener('load', () => resolve()),
-	);
+	const onloadPromise = new Promise((resolve) => window.addEventListener('load', () => resolve()));
 
 	if (env?.CCLOADER_OPEN_DEVTOOLS) {
 		const win = nw.Window.get();

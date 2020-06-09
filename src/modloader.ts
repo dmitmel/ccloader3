@@ -1,9 +1,6 @@
 import * as files from './files.js';
 import { Manifest, ManifestLegacy, ModId } from './types/manifest';
-import {
-	ManifestValidator,
-	convertFromLegacy as convertManifestFromLegacy,
-} from './manifest.js';
+import { ManifestValidator, convertFromLegacy as convertManifestFromLegacy } from './manifest.js';
 import { ModDependency, ModLoadingStage } from './types/mod';
 import { Mod } from './mod.js';
 import * as game from './game.js';
@@ -11,9 +8,7 @@ import { SemVer } from '../common/vendor-libs/semver.js';
 import { compare, errorHasMessage } from '../common/dist/utils.js';
 import * as paths from '../common/dist/paths.js';
 
-const CCLOADER_DIR: string = paths.stripRoot(
-	paths.dirname(paths.dirname(new URL(import.meta.url).pathname)),
-);
+const CCLOADER_DIR: string = paths.stripRoot(paths.dirname(paths.dirname(new URL(import.meta.url).pathname)));
 
 type ModsMap = Map<ModId, Mod>;
 type ReadonlyModsMap = ReadonlyMap<ModId, Mod>;
@@ -52,9 +47,7 @@ export async function boot(): Promise<void> {
 	virtualPackages.set('ccloader', modloaderMetadata.version);
 	verifyModDependencies(installedMods, virtualPackages);
 	if (!runtimeMod.shouldBeLoaded) {
-		throw new Error(
-			'Could not load the runtime mod, game initialization is impossible!',
-		);
+		throw new Error('Could not load the runtime mod, game initialization is impossible!');
 	}
 
 	const loadedMods = new Map<ModId, Mod>();
@@ -65,10 +58,7 @@ export async function boot(): Promise<void> {
 
 			findAssetsPromises.push(
 				mod.findAllAssets().catch((err) => {
-					console.error(
-						`An error occured while searching assets of mod '${mod.manifest.id}':`,
-						err,
-					);
+					console.error(`An error occured while searching assets of mod '${mod.manifest.id}':`, err);
 				}),
 			);
 		}
@@ -136,17 +126,12 @@ async function loadAllModMetadata(
 				const { id } = mod.manifest;
 				const modWithSameId = installedMods.get(id);
 				if (modWithSameId != null) {
-					throw new Error(
-						`a mod with ID '${id}' has already been loaded from '${modWithSameId.baseDirectory}'`,
-					);
+					throw new Error(`a mod with ID '${id}' has already been loaded from '${modWithSameId.baseDirectory}'`);
 				} else {
 					installedMods.set(id, mod);
 				}
 			} catch (err) {
-				console.error(
-					`An error occured while loading the metadata of a mod in '${fullPath}':`,
-					err,
-				);
+				console.error(`An error occured while loading the metadata of a mod in '${fullPath}':`, err);
 			}
 		}),
 	);
@@ -202,18 +187,13 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
 	return new Mod(`${baseDirectory}/`, manifestData, legacyMode);
 }
 
-function sortModsInLoadOrder(
-	runtimeMod: Mod,
-	installedMods: ReadonlyModsMap,
-): ModsMap {
+function sortModsInLoadOrder(runtimeMod: Mod, installedMods: ReadonlyModsMap): ModsMap {
 	// note that maps preserve insertion order as defined in the ECMAScript spec
 	const sortedMods = new Map<ModId, Mod>();
 
 	sortedMods.set(runtimeMod.manifest.id, runtimeMod);
 
-	const unsortedModsList: Mod[] = Array.from(
-		installedMods.values(),
-	).sort((mod1, mod2) => compare(mod1.manifest.id, mod2.manifest.id));
+	const unsortedModsList: Mod[] = Array.from(installedMods.values()).sort((mod1, mod2) => compare(mod1.manifest.id, mod2.manifest.id));
 
 	while (unsortedModsList.length > 0) {
 		// dependency cycles can be detected by checking if we removed any
@@ -222,9 +202,7 @@ function sortModsInLoadOrder(
 
 		for (let i = 0; i < unsortedModsList.length; ) {
 			const mod = unsortedModsList[i];
-			if (
-				!modHasUnsortedInstalledDependencies(mod, sortedMods, installedMods)
-			) {
+			if (!modHasUnsortedInstalledDependencies(mod, sortedMods, installedMods)) {
 				unsortedModsList.splice(i, 1);
 				sortedMods.set(mod.manifest.id, mod);
 				dependencyCyclesExist = false;
@@ -246,11 +224,7 @@ function sortModsInLoadOrder(
 	return sortedMods;
 }
 
-function modHasUnsortedInstalledDependencies(
-	mod: Mod,
-	sortedMods: ReadonlyModsMap,
-	installedMods: ReadonlyModsMap,
-): boolean {
+function modHasUnsortedInstalledDependencies(mod: Mod, sortedMods: ReadonlyModsMap, installedMods: ReadonlyModsMap): boolean {
 	for (const depId of mod.dependencies.keys()) {
 		if (!sortedMods.has(depId) && installedMods.has(depId)) {
 			return true;
@@ -259,18 +233,10 @@ function modHasUnsortedInstalledDependencies(
 	return false;
 }
 
-function verifyModDependencies(
-	installedMods: ReadonlyModsMap,
-	virtualPackages: ReadonlyVirtualPackagesMap,
-): void {
+function verifyModDependencies(installedMods: ReadonlyModsMap, virtualPackages: ReadonlyVirtualPackagesMap): void {
 	for (const mod of installedMods.values()) {
 		for (const [depId, dep] of mod.dependencies) {
-			const problem = checkDependencyConstraint(
-				depId,
-				dep,
-				installedMods,
-				virtualPackages,
-			);
+			const problem = checkDependencyConstraint(depId, dep, installedMods, virtualPackages);
 			if (problem != null) {
 				mod.shouldBeLoaded = false;
 				console.error(`Could not load mod '${mod.manifest.id}': ${problem}`);
@@ -321,27 +287,18 @@ async function initModClasses(mods: ReadonlyModsMap): Promise<void> {
 			// eslint-disable-next-line no-await-in-loop
 			await mod.initClass();
 		} catch (err) {
-			console.error(
-				`Failed to initialize class of mod '${mod.manifest.id}':`,
-				err,
-			);
+			console.error(`Failed to initialize class of mod '${mod.manifest.id}':`, err);
 		}
 	}
 }
 
-async function executeStage(
-	mods: ReadonlyModsMap,
-	stage: ModLoadingStage,
-): Promise<void> {
+async function executeStage(mods: ReadonlyModsMap, stage: ModLoadingStage): Promise<void> {
 	for (const mod of mods.values()) {
 		try {
 			// eslint-disable-next-line no-await-in-loop
 			await mod.executeStage(stage);
 		} catch (err) {
-			console.error(
-				`Failed to execute ${stage} of mod '${mod.manifest.id}':`,
-				err,
-			);
+			console.error(`Failed to execute ${stage} of mod '${mod.manifest.id}':`, err);
 		}
 	}
 }

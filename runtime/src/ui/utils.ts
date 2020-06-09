@@ -1,9 +1,7 @@
 import { LocalizedString } from '../../../src/types/manifest';
 import { Mod } from '../../../src/types/mod';
 
-export function getLocalizedString(
-	str: LocalizedString | null | undefined,
-): string | null | undefined {
+export function getLocalizedString(str: LocalizedString | null | undefined): string | null | undefined {
 	if (str == null || typeof str === 'string') {
 		return str;
 	}

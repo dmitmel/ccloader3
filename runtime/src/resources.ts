@@ -55,11 +55,7 @@ function applyAssetOverrides(url: string): string | null {
 	}
 
 	if (overrides.length > 1) {
-		console.warn(
-			`Conflict between '${overrides.join("', '")}' found. Taking '${
-				overrides[0]
-			}'`,
-		);
+		console.warn(`Conflict between '${overrides.join("', '")}' found. Taking '${overrides[0]}'`);
 	}
 
 	return `/${overrides[0]}`;

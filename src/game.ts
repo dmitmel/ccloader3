@@ -1,9 +1,4 @@
-import {
-	IMPACT_CONFIGURATION,
-	MAIN_SCRIPT_URL,
-	REQUIRED_SCRIPT_URLS,
-	REQUIRED_STYLESHEET_URLS,
-} from './game.config.js';
+import { IMPACT_CONFIGURATION, MAIN_SCRIPT_URL, REQUIRED_SCRIPT_URLS, REQUIRED_STYLESHEET_URLS } from './game.config.js';
 
 export async function buildNecessaryDOM(): Promise<void> {
 	const base = document.createElement('base');
@@ -131,17 +126,12 @@ function loadStylesheet(url: string): Promise<void> {
 		link.rel = 'stylesheet';
 		link.href = url;
 		link.addEventListener('load', () => resolve());
-		link.addEventListener('error', () =>
-			reject(new Error(`Failed to load stylesheet '${url}'`)),
-		);
+		link.addEventListener('error', () => reject(new Error(`Failed to load stylesheet '${url}'`)));
 		document.head.appendChild(link);
 	});
 }
 
-function loadScript(
-	url: string,
-	options: { type?: string | null; async?: boolean | null } = {},
-): Promise<void> {
+function loadScript(url: string, options: { type?: string | null; async?: boolean | null } = {}): Promise<void> {
 	return new Promise((resolve, reject) => {
 		const script = document.createElement('script');
 		script.src = url;
@@ -152,9 +142,7 @@ function loadScript(
 			script.async = options.async;
 		}
 		script.addEventListener('load', () => resolve());
-		script.addEventListener('error', () =>
-			reject(new Error(`Failed to load script '${url}'`)),
-		);
+		script.addEventListener('error', () => reject(new Error(`Failed to load script '${url}'`)));
 		document.body.appendChild(script);
 	});
 }

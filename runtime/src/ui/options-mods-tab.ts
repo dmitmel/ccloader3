@@ -6,30 +6,20 @@ ig.module('ccloader-runtime.ui.options.mods-tab')
 		'game.feature.menu.gui.options.options-list',
 	)
 	.defines(() => {
-		const icons = new ig.Font(
-			'mod://ccloader-runtime/media/icons.png',
-			16,
-			ig.MultiFont.ICON_START,
-		);
+		const icons = new ig.Font('mod://ccloader-runtime/media/icons.png', 16, ig.MultiFont.ICON_START);
 		const ourIconSetIndex = sc.fontsystem.font.iconSets.length;
 		sc.fontsystem.font.iconSets.push(icons);
 		sc.fontsystem.font.setMapping({
 			mods: [ourIconSetIndex, 0],
 		});
 
-		(sc.OPTION_CATEGORY as { MODS: number }).MODS = Object.keys(
-			sc.OPTION_CATEGORY,
-		).length;
+		(sc.OPTION_CATEGORY as { MODS: number }).MODS = Object.keys(sc.OPTION_CATEGORY).length;
 
 		sc.OptionsTabBox.prototype.tabs.mods = null!;
 		sc.OptionsTabBox.inject({
 			init(...args) {
 				this.parent(...args);
-				this.tabs.mods = this._createTabButton(
-					'mods',
-					this.tabArray.length,
-					sc.OPTION_CATEGORY.MODS,
-				);
+				this.tabs.mods = this._createTabButton('mods', this.tabArray.length, sc.OPTION_CATEGORY.MODS);
 				this._rearrangeTabs();
 			},
 		});

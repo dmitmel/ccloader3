@@ -1,8 +1,6 @@
 import { errorHasCode } from '../common/dist/utils.js';
 
-const { promises: fs } = (typeof require === 'function'
-	? require('fs')
-	: {}) as typeof import('fs');
+const { promises: fs } = (typeof require === 'function' ? require('fs') : {}) as typeof import('fs');
 
 export async function loadFile(path: string): Promise<string> {
 	return fs.readFile(path, 'utf8');
@@ -18,11 +16,7 @@ export async function findRecursively(dir: string): Promise<string[]> {
 	return fileList;
 }
 
-async function findRecursivelyInternal(
-	currentDir: string,
-	relativePrefix: string,
-	fileList: string[],
-): Promise<void> {
+async function findRecursivelyInternal(currentDir: string, relativePrefix: string, fileList: string[]): Promise<void> {
 	let contents: string[];
 	try {
 		contents = await fs.readdir(currentDir);
@@ -38,11 +32,7 @@ async function findRecursivelyInternal(
 			const fullPath = `${currentDir}/${name}`;
 			const stat = await fs.stat(fullPath);
 			if (stat.isDirectory()) {
-				await findRecursivelyInternal(
-					fullPath,
-					`${relativePrefix}${name}/`,
-					fileList,
-				);
+				await findRecursivelyInternal(fullPath, `${relativePrefix}${name}/`, fileList);
 			} else {
 				fileList.push(`${relativePrefix}${name}`);
 			}
@@ -61,9 +51,7 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
 		allContents = await fs.readdir(dir);
 	} catch (err) {
 		if (errorHasCode(err) && err.code === 'ENOENT') {
-			console.warn(
-				`Directory '${dir}' not found, did you forget to create it?`,
-			);
+			console.warn(`Directory '${dir}' not found, did you forget to create it?`);
 			allContents = [];
 		} else {
 			throw err;

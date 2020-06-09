@@ -21,10 +21,7 @@ enum Type {
 	unknown = 'unknown',
 }
 
-type TypeAssertionResult =
-	| { status: 'ok'; type: Type }
-	| { status: 'optional' }
-	| { status: 'failed' };
+type TypeAssertionResult = { status: 'ok'; type: Type } | { status: 'optional' } | { status: 'failed' };
 
 function getType(value: unknown): Type {
 	// eslint-disable-next-line eqeqeq
@@ -97,9 +94,7 @@ export class ManifestValidator {
 		if (this.assertType([], data, [Type.object]).status === 'ok') {
 			if (this.assertType(['id'], data.id, [Type.string]).status === 'ok') {
 				if (!/^[a-zA-Z0-9_-]+$/.test(data.id)) {
-					this.problems.push(
-						'id must consist only of one or more alphanumberic characters, hyphens or underscores',
-					);
+					this.problems.push('id must consist only of one or more alphanumberic characters, hyphens or underscores');
 				}
 			}
 
@@ -137,12 +132,7 @@ export class ManifestValidator {
 			this.assertType(['name'], data.name, [Type.string]);
 			this.assertType(['version'], data.version, [Type.string]);
 
-			this.assertType(
-				['ccmodHumanName'],
-				data.ccmodHumanName,
-				[Type.string],
-				true,
-			);
+			this.assertType(['ccmodHumanName'], data.ccmodHumanName, [Type.string], true);
 			this.assertType(['description'], data.description, [Type.string], true);
 			this.assertType(['license'], data.license, [Type.string], true);
 			this.assertType(['homepage'], data.homepage, [Type.string], true);
@@ -167,12 +157,7 @@ export class ManifestValidator {
 		}
 	}
 
-	private assertType(
-		valuePath: JsonPath,
-		value: unknown,
-		expectedTypes: Type[],
-		optional = false,
-	): TypeAssertionResult {
+	private assertType(valuePath: JsonPath, value: unknown, expectedTypes: Type[], optional = false): TypeAssertionResult {
 		if (value === undefined) {
 			if (optional) {
 				return { status: 'optional' };
@@ -186,26 +171,15 @@ export class ManifestValidator {
 		if (!expectedTypes.includes(actualType)) {
 			const valuePathStr = jsonPathToString(valuePath);
 			const expectedTypesStr = expectedTypes.join(' or ');
-			this.problems.push(
-				`expected type of '${valuePathStr}' to be '${expectedTypesStr}', got '${actualType}'`,
-			);
+			this.problems.push(`expected type of '${valuePathStr}' to be '${expectedTypesStr}', got '${actualType}'`);
 			return { status: 'failed' };
 		}
 
 		return { status: 'ok', type: actualType };
 	}
 
-	private assertLocalizedString(
-		valuePath: JsonPath,
-		value: LocalizedString | undefined,
-		optional = false,
-	): void {
-		const assertion = this.assertType(
-			valuePath,
-			value,
-			[Type.object, Type.string],
-			optional,
-		);
+	private assertLocalizedString(valuePath: JsonPath, value: LocalizedString | undefined, optional = false): void {
+		const assertion = this.assertType(valuePath, value, [Type.object, Type.string], optional);
 		if (assertion.status !== 'ok') {
 			return;
 		}
@@ -219,10 +193,7 @@ export class ManifestValidator {
 		}
 	}
 
-	private assertKeywords(
-		valuePath: JsonPath,
-		value: LocalizedString[] | undefined,
-	): void {
+	private assertKeywords(valuePath: JsonPath, value: LocalizedString[] | undefined): void {
 		const assertion = this.assertType(valuePath, value, [Type.array], true);
 		if (assertion.status !== 'ok') {
 			return;
@@ -249,10 +220,7 @@ export class ManifestValidator {
 	}
 
 	private assertPerson(valuePath: JsonPath, value: Person): void {
-		const assertion = this.assertType(valuePath, value, [
-			Type.object,
-			Type.string,
-		]);
+		const assertion = this.assertType(valuePath, value, [Type.object, Type.string]);
 		if (assertion.status !== 'ok') {
 			return;
 		}
@@ -268,10 +236,7 @@ export class ManifestValidator {
 		this.assertLocalizedString([...valuePath, 'comment'], value.comment, true);
 	}
 
-	private assertDependencies(
-		valuePath: JsonPath,
-		value: ModDependencies | undefined,
-	): void {
+	private assertDependencies(valuePath: JsonPath, value: ModDependencies | undefined): void {
 		const assertion = this.assertType(valuePath, value, [Type.object], true);
 		if (assertion.status !== 'ok') {
 			return;
@@ -284,10 +249,7 @@ export class ManifestValidator {
 	}
 
 	private assertDependency(valuePath: JsonPath, value: ModDependency): void {
-		const assertion = this.assertType(valuePath, value, [
-			Type.object,
-			Type.string,
-		]);
+		const assertion = this.assertType(valuePath, value, [Type.object, Type.string]);
 		if (assertion.status !== 'ok') {
 			return;
 		}
@@ -298,18 +260,10 @@ export class ManifestValidator {
 		value = value as ModDependencyDetails;
 
 		this.assertType([...valuePath, 'version'], value.version, [Type.string]);
-		this.assertType(
-			[...valuePath, 'optional'],
-			value.optional,
-			[Type.boolean],
-			true,
-		);
+		this.assertType([...valuePath, 'optional'], value.optional, [Type.boolean], true);
 	}
 
-	private assertAssets(
-		valuePath: JsonPath,
-		value: FilePath[] | undefined,
-	): void {
+	private assertAssets(valuePath: JsonPath, value: FilePath[] | undefined): void {
 		const assertion = this.assertType(valuePath, value, [Type.array], true);
 		if (assertion.status !== 'ok') {
 			return;
@@ -330,18 +284,12 @@ export function convertFromLegacy(data: ManifestLegacy): Manifest {
 		license: data.license,
 
 		title: {
-			en_US:
-				data.ccmodHumanName !== undefined ? data.ccmodHumanName : data.name,
+			en_US: data.ccmodHumanName !== undefined ? data.ccmodHumanName : data.name,
 		},
-		description:
-			data.description !== undefined ? { en_US: data.description } : undefined,
-		homepage:
-			data.homepage !== undefined ? { en_US: data.homepage } : undefined,
+		description: data.description !== undefined ? { en_US: data.description } : undefined,
+		homepage: data.homepage !== undefined ? { en_US: data.homepage } : undefined,
 
-		dependencies:
-			data.ccmodDependencies !== undefined
-				? data.ccmodDependencies
-				: data.dependencies,
+		dependencies: data.ccmodDependencies !== undefined ? data.ccmodDependencies : data.dependencies,
 
 		assets: data.assets,
 
