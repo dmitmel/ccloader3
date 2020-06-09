@@ -4,7 +4,9 @@ import * as paths from '../common/dist/paths.js';
 export async function loadFile(url: string): Promise<string> {
   try {
     let res = await fetch(`/${url}`);
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    if (!res.ok) {
+      throw new Error(`${res.status} ${res.statusText}`);
+    }
     return await res.text();
   } catch (err) {
     if (errorHasMessage(err)) {
@@ -19,7 +21,9 @@ export function findRecursively(_dir: string): Promise<string[]> {
 }
 
 export async function getModDirectoriesIn(dir: string): Promise<string[]> {
-  if (dir.endsWith('/')) dir = dir.slice(0, -1);
+  if (dir.endsWith('/')) {
+    dir = dir.slice(0, -1);
+  }
 
   let indexPath = `${dir}/index.json`;
   let indexJsonText = await loadFile(indexPath);

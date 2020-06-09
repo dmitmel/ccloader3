@@ -106,7 +106,9 @@ ig.module('ccloader-runtime.stdlib.input')
         let oldKey = isAlternative ? optionValue.key2! : optionValue.key1;
         // this condition seems to handle situations when `oldKey` is
         // `undefined` or `null` correctly as well
-        if (ig.input.bindings[oldKey] != null) ig.input.unbind(oldKey);
+        if (ig.input.bindings[oldKey] != null) {
+          ig.input.unbind(oldKey);
+        }
 
         if (isAlternative && unbind) {
           // eslint-disable-next-line no-undefined
@@ -144,8 +146,11 @@ ig.module('ccloader-runtime.stdlib.input')
           sc.options.dispatchKeySwappedEvent();
         }
 
-        if (isAlternative) optionValue.key2 = key;
-        else optionValue.key1 = key;
+        if (isAlternative) {
+          optionValue.key2 = key;
+        } else {
+          optionValue.key1 = key;
+        }
       },
     });
   });

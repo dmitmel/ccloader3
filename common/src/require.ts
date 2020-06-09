@@ -28,15 +28,21 @@ if (typeof require === 'function') {
 
   function getRequireSearchPaths(caller: NodeJS.CallSite): string[] {
     let callerFileNameStr: string | null = caller.getFileName();
-    if (!callerFileNameStr) return [];
+    if (!callerFileNameStr) {
+      return [];
+    }
 
     let callerUrl = new URL(callerFileNameStr);
     let callerPath = callerUrl.pathname;
-    if (callerPath.startsWith('/')) callerPath = callerPath.slice(1);
+    if (callerPath.startsWith('/')) {
+      callerPath = callerPath.slice(1);
+    }
     callerPath = paths.resolve(callerPath);
 
     // just to avoid an infinite loop
-    if (!callerPath.startsWith(process.cwd())) return [];
+    if (!callerPath.startsWith(process.cwd())) {
+      return [];
+    }
 
     let searchPaths = [];
     let currentDirectory;

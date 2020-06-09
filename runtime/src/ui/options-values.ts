@@ -3,7 +3,9 @@ const DEFAULT_LOG_FLAGS = 0b011;
 function getLogFlagsBitset(): number {
   let logFlagsStr = localStorage.getItem('logFlags');
   let logFlags = logFlagsStr ? parseInt(logFlagsStr, 10) : DEFAULT_LOG_FLAGS;
-  if (Number.isNaN(logFlags)) logFlags = DEFAULT_LOG_FLAGS;
+  if (Number.isNaN(logFlags)) {
+    logFlags = DEFAULT_LOG_FLAGS;
+  }
   return logFlags;
 }
 
@@ -17,8 +19,11 @@ function getLogFlag(index: number): boolean {
 
 function setLogFlag(index: number, value: boolean): void {
   let bitset = getLogFlagsBitset();
-  if (value) bitset |= 1 << index;
-  else bitset &= ~(1 << index);
+  if (value) {
+    bitset |= 1 << index;
+  } else {
+    bitset &= ~(1 << index);
+  }
   setLogFlagsBitset(bitset);
 }
 
@@ -38,7 +43,9 @@ Object.defineProperties(sc.options.values, {
 });
 
 for (let modId of modloader.installedMods.keys()) {
-  if (modId === 'ccloader-runtime') continue;
+  if (modId === 'ccloader-runtime') {
+    continue;
+  }
   let optionId = `modEnabled-${modId}`;
 
   Object.defineProperty(sc.options.values, optionId, {

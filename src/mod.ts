@@ -43,7 +43,9 @@ export class Mod implements ModPublic {
     if (manifest.dependencies != null) {
       for (let depId of Object.keys(manifest.dependencies)) {
         let dep = manifest.dependencies[depId];
-        if (typeof dep === 'string') dep = { version: dep };
+        if (typeof dep === 'string') {
+          dep = { version: dep };
+        }
 
         let depVersionRange: SemVerRange;
         try {
@@ -83,7 +85,9 @@ export class Mod implements ModPublic {
 
   public async initClass(): Promise<void> {
     let script = this.manifest.main;
-    if (script == null) return;
+    if (script == null) {
+      return;
+    }
     let scriptFullPath = this.resolvePath(script);
 
     // eslint-disable-next-line no-shadow
@@ -107,13 +111,17 @@ export class Mod implements ModPublic {
 
   public async executeStage(stage: ModLoadingStage): Promise<void> {
     let classMethodName: keyof ModClass = stage;
-    if (this.legacyMode && stage === 'poststart') classMethodName = 'main';
+    if (this.legacyMode && stage === 'poststart') {
+      classMethodName = 'main';
+    }
     if (this.classInstance != null && classMethodName in this.classInstance) {
       await this.classInstance[classMethodName]!(this);
     }
 
     let script = this.manifest[stage];
-    if (script == null) return;
+    if (script == null) {
+      return;
+    }
     let scriptFullPath = this.resolvePath(script);
 
     await import(`/${scriptFullPath}`);

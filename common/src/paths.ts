@@ -19,9 +19,13 @@ function normalizeString(path: string, allowAboveRoot: boolean): string {
   let dots = 0;
   let code = 0;
   for (let i = 0; i <= path.length; i++) {
-    if (i < path.length) code = path.charCodeAt(i);
-    else if (code === CHAR_FORWARD_SLASH) break;
-    else code = CHAR_FORWARD_SLASH;
+    if (i < path.length) {
+      code = path.charCodeAt(i);
+    } else if (code === CHAR_FORWARD_SLASH) {
+      break;
+    } else {
+      code = CHAR_FORWARD_SLASH;
+    }
 
     if (code === CHAR_FORWARD_SLASH) {
       if (lastSlash === i - 1 || dots === 1) {
@@ -58,8 +62,11 @@ function normalizeString(path: string, allowAboveRoot: boolean): string {
           lastSegmentLength = 2;
         }
       } else {
-        if (res.length > 0) res += `/${path.slice(lastSlash + 1, i)}`;
-        else res = path.slice(lastSlash + 1, i);
+        if (res.length > 0) {
+          res += `/${path.slice(lastSlash + 1, i)}`;
+        } else {
+          res = path.slice(lastSlash + 1, i);
+        }
         lastSegmentLength = i - lastSlash - 1;
       }
       lastSlash = i;
@@ -83,7 +90,9 @@ export function resolve(...args: string[]): string {
     validateString(path, 'path');
 
     // Skip empty entries
-    if (path.length === 0) continue;
+    if (path.length === 0) {
+      continue;
+    }
 
     resolvedPath = `${path}/${resolvedPath}`;
     resolvedAbsolute = path.charCodeAt(0) === CHAR_FORWARD_SLASH;
@@ -95,7 +104,9 @@ export function resolve(...args: string[]): string {
   // Normalize the path
   resolvedPath = normalizeString(resolvedPath, !resolvedAbsolute);
 
-  if (resolvedAbsolute) return `/${resolvedPath}`;
+  if (resolvedAbsolute) {
+    return `/${resolvedPath}`;
+  }
 
   return resolvedPath.length > 0 ? resolvedPath : '.';
 }
@@ -103,7 +114,9 @@ export function resolve(...args: string[]): string {
 export function normalize(path: string): string {
   validateString(path, 'path');
 
-  if (path.length === 0) return '.';
+  if (path.length === 0) {
+    return '.';
+  }
 
   let hasRoot = path.charCodeAt(0) === CHAR_FORWARD_SLASH;
   let trailingSeparator =
@@ -113,10 +126,14 @@ export function normalize(path: string): string {
   path = normalizeString(path, !hasRoot);
 
   if (path.length === 0) {
-    if (hasRoot) return '/';
+    if (hasRoot) {
+      return '/';
+    }
     return trailingSeparator ? './' : '.';
   }
-  if (trailingSeparator) path += '/';
+  if (trailingSeparator) {
+    path += '/';
+  }
 
   return hasRoot ? `/${path}` : path;
 }
@@ -136,17 +153,24 @@ export function stripRoot(path: string): string {
 }
 
 export function join(...args: string[]): string {
-  if (args.length === 0) return '.';
+  if (args.length === 0) {
+    return '.';
+  }
   let joined: string | null = null;
   for (let i = 0; i < args.length; i++) {
     let arg = args[i];
     validateString(arg, 'path');
     if (arg.length > 0) {
-      if (joined == null) joined = arg;
-      else joined += `/${arg}`;
+      if (joined == null) {
+        joined = arg;
+      } else {
+        joined += `/${arg}`;
+      }
     }
   }
-  if (joined == null) return '.';
+  if (joined == null) {
+    return '.';
+  }
   return normalize(joined);
 }
 
@@ -154,13 +178,17 @@ export function relative(from: string, to: string): string {
   validateString(from, 'from');
   validateString(to, 'to');
 
-  if (from === to) return '';
+  if (from === to) {
+    return '';
+  }
 
   // Trim leading forward slashes.
   from = resolve(from);
   to = resolve(to);
 
-  if (from === to) return '';
+  if (from === to) {
+    return '';
+  }
 
   let fromStart = 1;
   let fromEnd = from.length;
@@ -174,8 +202,11 @@ export function relative(from: string, to: string): string {
   let i = 0;
   for (; i < length; i++) {
     let fromCode = from.charCodeAt(fromStart + i);
-    if (fromCode !== to.charCodeAt(toStart + i)) break;
-    else if (fromCode === CHAR_FORWARD_SLASH) lastCommonSep = i;
+    if (fromCode !== to.charCodeAt(toStart + i)) {
+      break;
+    } else if (fromCode === CHAR_FORWARD_SLASH) {
+      lastCommonSep = i;
+    }
   }
   if (i === length) {
     if (toLen > length) {
@@ -218,7 +249,9 @@ export function relative(from: string, to: string): string {
 
 export function dirname(path: string): string {
   validateString(path, 'path');
-  if (path.length === 0) return '.';
+  if (path.length === 0) {
+    return '.';
+  }
   let hasRoot = path.charCodeAt(0) === CHAR_FORWARD_SLASH;
   let end = -1;
   let matchedSlash = true;
@@ -234,13 +267,19 @@ export function dirname(path: string): string {
     }
   }
 
-  if (end === -1) return hasRoot ? '/' : '.';
-  if (hasRoot && end === 1) return '//';
+  if (end === -1) {
+    return hasRoot ? '/' : '.';
+  }
+  if (hasRoot && end === 1) {
+    return '//';
+  }
   return path.slice(0, end);
 }
 
 export function basename(path: string, ext?: string): string {
-  if (ext != null) validateString(ext, 'ext');
+  if (ext != null) {
+    validateString(ext, 'ext');
+  }
   validateString(path, 'path');
 
   let start = 0;
@@ -248,7 +287,9 @@ export function basename(path: string, ext?: string): string {
   let matchedSlash = true;
 
   if (ext != null && ext.length > 0 && ext.length <= path.length) {
-    if (ext === path) return '';
+    if (ext === path) {
+      return '';
+    }
     let extIdx = ext.length - 1;
     let firstNonSlashEnd = -1;
     for (let i = path.length - 1; i >= 0; --i) {
@@ -285,8 +326,11 @@ export function basename(path: string, ext?: string): string {
       }
     }
 
-    if (start === end) end = firstNonSlashEnd;
-    else if (end === -1) end = path.length;
+    if (start === end) {
+      end = firstNonSlashEnd;
+    } else if (end === -1) {
+      end = path.length;
+    }
     return path.slice(start, end);
   }
   for (let i = path.length - 1; i >= 0; --i) {
@@ -305,7 +349,9 @@ export function basename(path: string, ext?: string): string {
     }
   }
 
-  if (end === -1) return '';
+  if (end === -1) {
+    return '';
+  }
   return path.slice(start, end);
 }
 
@@ -337,8 +383,11 @@ export function extname(path: string): string {
     }
     if (code === CHAR_DOT) {
       // If this is our first dot, mark it as the start of our extension
-      if (startDot === -1) startDot = i;
-      else if (preDotState !== 1) preDotState = 1;
+      if (startDot === -1) {
+        startDot = i;
+      } else if (preDotState !== 1) {
+        preDotState = 1;
+      }
     } else if (startDot !== -1) {
       // We saw a non-dot and non-path separator before our dot, so we should
       // have a good chance at having a non-empty extension

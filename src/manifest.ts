@@ -28,12 +28,24 @@ type TypeAssertionResult =
 
 function getType(value: unknown): Type {
   // eslint-disable-next-line eqeqeq
-  if (value === null) return Type.null;
-  if (typeof value === 'string') return Type.string;
-  if (typeof value === 'number') return Type.number;
-  if (typeof value === 'boolean') return Type.boolean;
-  if (Array.isArray(value)) return Type.array;
-  if (typeof value === 'object') return Type.object;
+  if (value === null) {
+    return Type.null;
+  }
+  if (typeof value === 'string') {
+    return Type.string;
+  }
+  if (typeof value === 'number') {
+    return Type.number;
+  }
+  if (typeof value === 'boolean') {
+    return Type.boolean;
+  }
+  if (Array.isArray(value)) {
+    return Type.array;
+  }
+  if (typeof value === 'object') {
+    return Type.object;
+  }
   return Type.unknown;
 }
 
@@ -51,7 +63,9 @@ export class ManifestValidationError extends Error {
 type JsonPath = Array<string | number>;
 
 function jsonPathToString(path: JsonPath): string {
-  if (path.length === 0) return '<document>';
+  if (path.length === 0) {
+    return '<document>';
+  }
 
   let str = '';
 
@@ -60,7 +74,9 @@ function jsonPathToString(path: JsonPath): string {
     if (typeof key === 'number') {
       str += `[${key}]`;
     } else if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key)) {
-      if (i > 0) str += '.';
+      if (i > 0) {
+        str += '.';
+      }
       str += key;
     } else {
       str += `[${JSON.stringify(key)}]`;
@@ -190,10 +206,14 @@ export class ManifestValidator {
       [Type.object, Type.string],
       optional,
     );
-    if (assertion.status !== 'ok') return;
+    if (assertion.status !== 'ok') {
+      return;
+    }
     value = value as LocalizedString;
 
-    if (assertion.type === Type.string) return;
+    if (assertion.type === Type.string) {
+      return;
+    }
     for (let [key, value2] of Object.entries(value as Record<Locale, string>)) {
       this.assertType([...valuePath, key], value2, [Type.string]);
     }
@@ -204,7 +224,9 @@ export class ManifestValidator {
     value: LocalizedString[] | undefined,
   ): void {
     let assertion = this.assertType(valuePath, value, [Type.array], true);
-    if (assertion.status !== 'ok') return;
+    if (assertion.status !== 'ok') {
+      return;
+    }
     value = value!;
 
     for (let index = 0; index < value.length; index++) {
@@ -215,7 +237,9 @@ export class ManifestValidator {
 
   private assertPeople(valuePath: JsonPath, value: Person[] | undefined): void {
     let assertion = this.assertType(valuePath, value, [Type.array], true);
-    if (assertion.status !== 'ok') return;
+    if (assertion.status !== 'ok') {
+      return;
+    }
     value = value!;
 
     for (let index = 0; index < value.length; index++) {
@@ -229,9 +253,13 @@ export class ManifestValidator {
       Type.object,
       Type.string,
     ]);
-    if (assertion.status !== 'ok') return;
+    if (assertion.status !== 'ok') {
+      return;
+    }
 
-    if (assertion.type === Type.string) return;
+    if (assertion.type === Type.string) {
+      return;
+    }
     value = value as PersonDetails;
 
     this.assertLocalizedString([...valuePath, 'name'], value.name);
@@ -245,7 +273,9 @@ export class ManifestValidator {
     value: ModDependencies | undefined,
   ): void {
     let assertion = this.assertType(valuePath, value, [Type.object], true);
-    if (assertion.status !== 'ok') return;
+    if (assertion.status !== 'ok') {
+      return;
+    }
     value = value!;
 
     for (let [key, value2] of Object.entries(value)) {
@@ -258,9 +288,13 @@ export class ManifestValidator {
       Type.object,
       Type.string,
     ]);
-    if (assertion.status !== 'ok') return;
+    if (assertion.status !== 'ok') {
+      return;
+    }
 
-    if (assertion.type === Type.string) return;
+    if (assertion.type === Type.string) {
+      return;
+    }
     value = value as ModDependencyDetails;
 
     this.assertType([...valuePath, 'version'], value.version, [Type.string]);
@@ -277,7 +311,9 @@ export class ManifestValidator {
     value: FilePath[] | undefined,
   ): void {
     let assertion = this.assertType(valuePath, value, [Type.array], true);
-    if (assertion.status !== 'ok') return;
+    if (assertion.status !== 'ok') {
+      return;
+    }
     value = value!;
 
     for (let index = 0; index < value.length; index++) {

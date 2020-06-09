@@ -4,7 +4,9 @@ import { Mod } from '../../../src/types/mod';
 export function getLocalizedString(
   str: LocalizedString | null | undefined,
 ): string | null | undefined {
-  if (str == null || typeof str === 'string') return str;
+  if (str == null || typeof str === 'string') {
+    return str;
+  }
   return str[ig.currentLang] ?? str.en_US;
 }
 

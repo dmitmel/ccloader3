@@ -71,7 +71,9 @@ export async function loadMainScript(): Promise<() => void> {
   // is being executed
   await loadScript(MAIN_SCRIPT_URL, { async: false });
 
-  if (domReadyCallback == null) throw new Error('domReadyCallback');
+  if (domReadyCallback == null) {
+    throw new Error('domReadyCallback');
+  }
 
   return domReadyCallback;
 }
@@ -144,8 +146,12 @@ function loadScript(
   return new Promise((resolve, reject) => {
     let script = document.createElement('script');
     script.src = url;
-    if (options.type != null) script.type = options.type;
-    if (options.async != null) script.async = options.async;
+    if (options.type != null) {
+      script.type = options.type;
+    }
+    if (options.async != null) {
+      script.async = options.async;
+    }
     script.addEventListener('load', () => resolve());
     script.addEventListener('error', () =>
       reject(new Error(`Failed to load script '${url}'`)),

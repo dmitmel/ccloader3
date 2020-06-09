@@ -129,7 +129,9 @@ async function loadAllModMetadata(
     (await files.getModDirectoriesIn(modsDir)).map(async (fullPath) => {
       try {
         let mod = await loadModMetadata(fullPath);
-        if (mod == null) return;
+        if (mod == null) {
+          return;
+        }
 
         let { id } = mod.manifest;
         let modWithSameId = installedMods.get(id);
@@ -250,7 +252,9 @@ function modHasUnsortedInstalledDependencies(
   installedMods: ReadonlyModsMap,
 ): boolean {
   for (let depId of mod.dependencies.keys()) {
-    if (!sortedMods.has(depId) && installedMods.has(depId)) return true;
+    if (!sortedMods.has(depId) && installedMods.has(depId)) {
+      return true;
+    }
   }
   return false;
 }

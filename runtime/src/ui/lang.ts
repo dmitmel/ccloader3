@@ -26,7 +26,9 @@ langOptions['mods-description'] = {
 
 for (let mod of modloader.installedMods.values()) {
   let { id, description } = mod.manifest;
-  if (id === 'ccloader-runtime') continue;
+  if (id === 'ccloader-runtime') {
+    continue;
+  }
 
   let name = getModTitle(mod) || ' ';
   description = getLocalizedString(description) || ' ';
