@@ -53,8 +53,7 @@ declare global {
 			setGameNow(this: this, gameClass: unknown): void;
 		}
 
-		// eslint-disable-next-line no-var
-		var system: System;
+		const system: System;
 	}
 
 	function startCrossCode(): void;
