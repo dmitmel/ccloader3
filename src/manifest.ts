@@ -282,6 +282,7 @@ export function convertFromLegacy(data: ManifestLegacy): Manifest {
 		license: data.license,
 
 		title: {
+			// eslint-disable-next-line @typescript-eslint/naming-convention
 			en_US: data.ccmodHumanName ? data.ccmodHumanName : data.name,
 		},
 
@@ -297,9 +298,11 @@ export function convertFromLegacy(data: ManifestLegacy): Manifest {
 	};
 
 	if (data.description) {
+		// eslint-disable-next-line @typescript-eslint/naming-convention
 		result.description = { en_US: data.description };
 	}
 	if (data.homepage) {
+		// eslint-disable-next-line @typescript-eslint/naming-convention
 		result.homepage = { en_US: data.homepage };
 	}
 
