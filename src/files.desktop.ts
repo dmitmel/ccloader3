@@ -1,4 +1,4 @@
-import { errorHasCode } from '../common/dist/utils.js';
+import * as error from '../common/dist/error.js';
 
 const { promises: fs } = (typeof require === 'function' ? require('fs') : {}) as typeof import('fs');
 
@@ -21,7 +21,7 @@ async function findRecursivelyInternal(currentDir: string, relativePrefix: strin
 	try {
 		contents = await fs.readdir(currentDir);
 	} catch (err) {
-		if (errorHasCode(err) && err.code === 'ENOENT') {
+		if (error.hasCode(err) && err.code === 'ENOENT') {
 			return;
 		}
 		throw err;
@@ -50,7 +50,7 @@ export async function modDirectoriesIn(dir: string): Promise<string[]> {
 	try {
 		allContents = await fs.readdir(dir);
 	} catch (err) {
-		if (errorHasCode(err) && err.code === 'ENOENT') {
+		if (error.hasCode(err) && err.code === 'ENOENT') {
 			console.warn(`Directory '${dir}' not found, did you forget to create it?`);
 			allContents = [];
 		} else {

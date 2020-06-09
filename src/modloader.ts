@@ -4,6 +4,7 @@ import * as mod from './mod.js';
 import * as dom from './dom.js';
 import * as semver from '../common/vendor-libs/semver.js';
 import * as utils from '../common/dist/utils.js';
+import * as error from '../common/dist/error.js';
 import * as paths from '../common/dist/paths.js';
 
 const CCLOADER_DIR: string = paths.stripRoot(paths.dirname(paths.dirname(new URL(import.meta.url).pathname)));
@@ -156,7 +157,7 @@ async function loadModMetadata(baseDirectory: string): Promise<mod.Mod | null> {
 	try {
 		manifestData = JSON.parse(manifestText);
 	} catch (err) {
-		if (utils.errorHasMessage(err)) {
+		if (error.hasMessage(err)) {
 			err.message = `Syntax error in mod manifest in '${manifestFile}': ${err.message}`;
 		}
 		throw err;
@@ -172,7 +173,7 @@ async function loadModMetadata(baseDirectory: string): Promise<mod.Mod | null> {
 			manifestValidator.validate(manifestData);
 		}
 	} catch (err) {
-		if (utils.errorHasMessage(err)) {
+		if (error.hasMessage(err)) {
 			err.message = `Invalid mod manifest in '${manifestFile}': ${err.message}`;
 			// TODO: put a link to the documentation here
 		}

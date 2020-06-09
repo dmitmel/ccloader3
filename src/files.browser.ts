@@ -1,4 +1,4 @@
-import { errorHasMessage } from '../common/dist/utils.js';
+import * as error from '../common/dist/error.js';
 import * as paths from '../common/dist/paths.js';
 
 export async function load(url: string): Promise<string> {
@@ -9,7 +9,7 @@ export async function load(url: string): Promise<string> {
 		}
 		return await res.text();
 	} catch (err) {
-		if (errorHasMessage(err)) {
+		if (error.hasMessage(err)) {
 			err.message = `Failed to load file '${url}': ${err.message}`;
 		}
 		throw err;
@@ -32,7 +32,7 @@ export async function modDirectoriesIn(dir: string): Promise<string[]> {
 	try {
 		index = JSON.parse(indexJsonText);
 	} catch (err) {
-		if (errorHasMessage(err)) {
+		if (error.hasMessage(err)) {
 			err.message = `Syntax error in mods directory index in '${indexPath}': ${err.message}`;
 		}
 		throw err;

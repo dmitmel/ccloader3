@@ -3,6 +3,7 @@ import * as man from './manifest.js';
 import * as types from './types/mod';
 import * as paths from '../common/dist/paths.js';
 import * as utils from '../common/dist/utils.js';
+import * as error from '../common/dist/error.js';
 import * as files from './files.js';
 
 export * from './types/mod';
@@ -19,7 +20,7 @@ export class Mod implements types.Mod {
 		try {
 			this.version = new semver.SemVer(manifest.version);
 		} catch (err) {
-			if (utils.errorHasMessage(err)) {
+			if (error.hasMessage(err)) {
 				// TODO: put a link to semver docs here
 				err.message = `mod version '${manifest.version}' is not a valid semver version: ${err.message}`;
 			}
@@ -37,7 +38,7 @@ export class Mod implements types.Mod {
 						optional: dep.optional ?? false,
 					});
 				} catch (err) {
-					if (utils.errorHasMessage(err)) {
+					if (error.hasMessage(err)) {
 						err.message = `dependency version constraint '${dep.version}' for mod '${depId}' is not a valid semver range: ${err.message}`;
 					}
 					throw err;
