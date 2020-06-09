@@ -24,6 +24,10 @@ rules:
 
   curly: error
 
+  no-unused-vars: off
+  '@typescript-eslint/no-unused-vars': off
+  '@typescript-eslint/no-unused-vars-experimental': error
+
   indent:
     - error
     - tab
@@ -43,6 +47,7 @@ overrides:
       prefer-const: warn
       node/no-missing-import: off
       '@typescript-eslint/no-namespace': off
+      '@typescript-eslint/no-unused-vars': off
 
   - files: '**/src/**/*.ts'
     extends: eslint-config-dmitmel/rules/typescript/with-type-checking
@@ -51,6 +56,7 @@ overrides:
       '@typescript-eslint/no-unsafe-call': off
       '@typescript-eslint/no-unsafe-member-access': off
       '@typescript-eslint/no-unsafe-return': off
+      '@typescript-eslint/no-unused-vars': off
 
   - files: 'src/**/*.ts'
     parserOptions:
