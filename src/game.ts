@@ -6,15 +6,15 @@ import {
 } from './game.config.js';
 
 export async function buildNecessaryDOM(): Promise<void> {
-	let base = document.createElement('base');
+	const base = document.createElement('base');
 	base.href = `${location.origin}/assets/`;
 	document.head.appendChild(base);
 
 	// meta tags have been removed, they appear to not affect anything
 
-	let canvas = document.createElement('canvas');
+	const canvas = document.createElement('canvas');
 	canvas.id = 'canvas';
-	let div = document.createElement('div');
+	const div = document.createElement('div');
 	div.id = 'game';
 	div.appendChild(canvas);
 
@@ -117,9 +117,9 @@ export async function getStartFunction(): Promise<() => void> {
 
 export async function waitForIgGameInitialization(): Promise<void> {
 	return new Promise((resolve) => {
-		let realSetGameNow = window.ig.system.setGameNow;
+		const realSetGameNow = window.ig.system.setGameNow;
 		window.ig.system.setGameNow = function (...args) {
-			let result = realSetGameNow.apply(this, args);
+			const result = realSetGameNow.apply(this, args);
 			resolve();
 			return result;
 		};
@@ -128,7 +128,7 @@ export async function waitForIgGameInitialization(): Promise<void> {
 
 function loadStylesheet(url: string): Promise<void> {
 	return new Promise((resolve, reject) => {
-		let link = document.createElement('link');
+		const link = document.createElement('link');
 		link.rel = 'stylesheet';
 		link.href = url;
 		link.addEventListener('load', () => resolve());
@@ -144,7 +144,7 @@ function loadScript(
 	options: { type?: string | null; async?: boolean | null } = {},
 ): Promise<void> {
 	return new Promise((resolve, reject) => {
-		let script = document.createElement('script');
+		const script = document.createElement('script');
 		script.src = url;
 		if (options.type != null) {
 			script.type = options.type;

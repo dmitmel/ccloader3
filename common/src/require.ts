@@ -11,15 +11,15 @@ if (typeof require === 'function') {
 			return require(id);
 		} catch (_err) {}
 
-		let caller = getCaller();
-		let searchPaths = getRequireSearchPaths(caller);
+		const caller = getCaller();
+		const searchPaths = getRequireSearchPaths(caller);
 		// this will throw an error if it could not find it
-		let pathToId = require.resolve(id, { paths: searchPaths });
+		const pathToId = require.resolve(id, { paths: searchPaths });
 
 		return require(pathToId);
 	}) as NodeRequire;
 
-	for (let prop in require) {
+	for (const prop in require) {
 		// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		(requireFixed as any)[prop] = (require as any)[prop];
 	}
@@ -27,12 +27,12 @@ if (typeof require === 'function') {
 	requireFixed.prototype = { constructor: requireFixed };
 
 	function getRequireSearchPaths(caller: NodeJS.CallSite): string[] {
-		let callerFileNameStr: string | null = caller.getFileName();
+		const callerFileNameStr: string | null = caller.getFileName();
 		if (!callerFileNameStr) {
 			return [];
 		}
 
-		let callerUrl = new URL(callerFileNameStr);
+		const callerUrl = new URL(callerFileNameStr);
 		let callerPath = callerUrl.pathname;
 		if (callerPath.startsWith('/')) {
 			callerPath = callerPath.slice(1);
@@ -44,7 +44,7 @@ if (typeof require === 'function') {
 			return [];
 		}
 
-		let searchPaths = [];
+		const searchPaths = [];
 		let currentDirectory;
 		let currentPath = callerPath;
 		do {
@@ -64,8 +64,8 @@ if (typeof require === 'function') {
 
 		// https://v8.dev/docs/stack-trace-api
 		// https://stackoverflow.com/a/13227808/12005228
-		let err = new Error();
-		let originalPrepareStackTrace = Error.prepareStackTrace;
+		const err = new Error();
+		const originalPrepareStackTrace = Error.prepareStackTrace;
 		try {
 			Error.prepareStackTrace = function (_err, stack2) {
 				return stack2;

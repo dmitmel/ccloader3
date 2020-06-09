@@ -6,12 +6,12 @@ ig.module('ccloader-runtime.ui.options.mods-tab')
 		'game.feature.menu.gui.options.options-list',
 	)
 	.defines(() => {
-		let icons = new ig.Font(
+		const icons = new ig.Font(
 			'mod://ccloader-runtime/media/icons.png',
 			16,
 			ig.MultiFont.ICON_START,
 		);
-		let ourIconSetIndex = sc.fontsystem.font.iconSets.length;
+		const ourIconSetIndex = sc.fontsystem.font.iconSets.length;
 		sc.fontsystem.font.iconSets.push(icons);
 		sc.fontsystem.font.setMapping({
 			mods: [ourIconSetIndex, 0],

@@ -3,7 +3,7 @@ import * as paths from '../common/dist/paths.js';
 
 export async function loadFile(url: string): Promise<string> {
 	try {
-		let res = await fetch(`/${url}`);
+		const res = await fetch(`/${url}`);
 		if (!res.ok) {
 			throw new Error(`${res.status} ${res.statusText}`);
 		}
@@ -25,8 +25,8 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
 		dir = dir.slice(0, -1);
 	}
 
-	let indexPath = `${dir}/index.json`;
-	let indexJsonText = await loadFile(indexPath);
+	const indexPath = `${dir}/index.json`;
+	const indexJsonText = await loadFile(indexPath);
 	let index: string[];
 
 	try {

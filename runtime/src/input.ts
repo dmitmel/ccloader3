@@ -73,14 +73,14 @@ ig.module('ccloader-runtime.stdlib.input')
 		sc.KeyBinder.inject({
 			// the loop which populates `KEY_OPTION_MAP` was moved directly here
 			initBindings() {
-				for (let optionId in sc.OPTIONS_DEFINITION) {
-					let optionDef = sc.OPTIONS_DEFINITION[optionId];
+				for (const optionId in sc.OPTIONS_DEFINITION) {
+					const optionDef = sc.OPTIONS_DEFINITION[optionId];
 					if (optionDef.type !== 'CONTROLS' || !optionId.startsWith('keys-')) {
 						continue;
 					}
 
-					let action = optionId.slice(5);
-					let { key1, key2 } = sc.options.values[
+					const action = optionId.slice(5);
+					const { key1, key2 } = sc.options.values[
 						optionId
 					] as sc.OptionDefinition.CONTROLS['init'];
 					if (key1 != null) {
@@ -96,14 +96,14 @@ ig.module('ccloader-runtime.stdlib.input')
 			},
 
 			changeBinding(optionId, key, isAlternative, unbind) {
-				let optionValue = sc.options.values[
+				const optionValue = sc.options.values[
 					optionId
 				] as sc.OptionDefinition.CONTROLS['init'];
 				sc.options.hasChanged = true;
 
 				// this assignment accessed `KEY_OPTION_MAP` to get the option value
 				// instead of directly reusing a variable directly
-				let oldKey = isAlternative ? optionValue.key2! : optionValue.key1;
+				const oldKey = isAlternative ? optionValue.key2! : optionValue.key1;
 				// this condition seems to handle situations when `oldKey` is
 				// `undefined` or `null` correctly as well
 				if (ig.input.bindings[oldKey] != null) {
@@ -116,8 +116,8 @@ ig.module('ccloader-runtime.stdlib.input')
 					return;
 				}
 
-				let action = optionId.slice(5);
-				let conflictingAction = ig.input.bindings[key];
+				const action = optionId.slice(5);
+				const conflictingAction = ig.input.bindings[key];
 
 				ig.input.bind(key, action);
 				sc.fontsystem.changeKeyCodeIcon(action, key);
@@ -125,7 +125,7 @@ ig.module('ccloader-runtime.stdlib.input')
 				if (conflictingAction != null) {
 					// this assignment used to access `KEY_OPTION_MAP` to get the option
 					// ID of the conflicting action
-					let conflictingOption = sc.options.values[
+					const conflictingOption = sc.options.values[
 						`keys-${conflictingAction}`
 					] as sc.OptionDefinition.CONTROLS['init'];
 

@@ -40,6 +40,7 @@ overrides:
   - files: '**/*.ts'
     extends: eslint-config-dmitmel/presets/typescript-addon
     rules:
+      prefer-const: warn
       node/no-missing-import: off
       '@typescript-eslint/no-namespace': off
 

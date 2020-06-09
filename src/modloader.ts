@@ -20,14 +20,14 @@ type ReadonlyModsMap = ReadonlyMap<ModId, Mod>;
 type ReadonlyVirtualPackagesMap = ReadonlyMap<ModId, SemVer>;
 
 export async function boot(): Promise<void> {
-	let modloaderMetadata = await loadModloaderMetadata();
+	const modloaderMetadata = await loadModloaderMetadata();
 
 	console.log(`${modloaderMetadata.name} ${modloaderMetadata.version}`);
 
-	let gameVersion = await loadGameVersion();
+	const gameVersion = await loadGameVersion();
 	console.log(`crosscode ${gameVersion}`);
 
-	let runtimeModBaseDirectory = `${CCLOADER_DIR}/runtime`;
+	const runtimeModBaseDirectory = `${CCLOADER_DIR}/runtime`;
 	let runtimeMod: Mod | null;
 	try {
 		// the runtime mod is added to `installedMods` in `sortModsInLoadOrder`
@@ -47,7 +47,7 @@ export async function boot(): Promise<void> {
 	await loadAllModMetadata('assets/mods', installedMods);
 	installedMods = sortModsInLoadOrder(runtimeMod, installedMods);
 
-	let virtualPackages = new Map<ModId, SemVer>();
+	const virtualPackages = new Map<ModId, SemVer>();
 	virtualPackages.set('crosscode', gameVersion);
 	virtualPackages.set('ccloader', modloaderMetadata.version);
 	verifyModDependencies(installedMods, virtualPackages);
@@ -57,9 +57,9 @@ export async function boot(): Promise<void> {
 		);
 	}
 
-	let loadedMods = new Map<ModId, Mod>();
-	let findAssetsPromises: Array<Promise<void>> = [];
-	for (let [modId, mod] of installedMods.entries()) {
+	const loadedMods = new Map<ModId, Mod>();
+	const findAssetsPromises: Array<Promise<void>> = [];
+	for (const [modId, mod] of installedMods.entries()) {
 		if (mod.shouldBeLoaded) {
 			loadedMods.set(modId, mod);
 
@@ -90,11 +90,11 @@ export async function boot(): Promise<void> {
 	await initModClasses(loadedMods);
 
 	await executeStage(loadedMods, 'preload');
-	let domReadyCallback = await game.loadMainScript();
+	const domReadyCallback = await game.loadMainScript();
 	await executeStage(loadedMods, 'postload');
 	domReadyCallback();
 
-	let startGame = await game.getStartFunction();
+	const startGame = await game.getStartFunction();
 	await executeStage(loadedMods, 'prestart');
 	startGame();
 	await game.waitForIgGameInitialization();
@@ -105,17 +105,17 @@ async function loadModloaderMetadata(): Promise<{
 	name: string;
 	version: SemVer;
 }> {
-	let toolJsonText = await files.loadFile(`${CCLOADER_DIR}/tool.json`);
-	let data = JSON.parse(toolJsonText) as { name: string; version: string };
+	const toolJsonText = await files.loadFile(`${CCLOADER_DIR}/tool.json`);
+	const data = JSON.parse(toolJsonText) as { name: string; version: string };
 	return { name: data.name, version: new SemVer(data.version) };
 }
 
 async function loadGameVersion(): Promise<SemVer> {
-	let changelogText = await files.loadFile('assets/data/changelog.json');
-	let { changelog } = JSON.parse(changelogText) as {
+	const changelogText = await files.loadFile('assets/data/changelog.json');
+	const { changelog } = JSON.parse(changelogText) as {
 		changelog: Array<{ version: string }>;
 	};
-	let latestVersion = changelog[0].version;
+	const latestVersion = changelog[0].version;
 	return new SemVer(latestVersion);
 }
 
@@ -128,13 +128,13 @@ async function loadAllModMetadata(
 	await Promise.all(
 		(await files.getModDirectoriesIn(modsDir)).map(async (fullPath) => {
 			try {
-				let mod = await loadModMetadata(fullPath);
+				const mod = await loadModMetadata(fullPath);
 				if (mod == null) {
 					return;
 				}
 
-				let { id } = mod.manifest;
-				let modWithSameId = installedMods.get(id);
+				const { id } = mod.manifest;
+				const modWithSameId = installedMods.get(id);
 				if (modWithSameId != null) {
 					throw new Error(
 						`a mod with ID '${id}' has already been loaded from '${modWithSameId.baseDirectory}'`,
@@ -152,7 +152,7 @@ async function loadAllModMetadata(
 	);
 }
 
-let manifestValidator = new ManifestValidator();
+const manifestValidator = new ManifestValidator();
 
 async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
 	let manifestFile: string;
@@ -207,11 +207,11 @@ function sortModsInLoadOrder(
 	installedMods: ReadonlyModsMap,
 ): ModsMap {
 	// note that maps preserve insertion order as defined in the ECMAScript spec
-	let sortedMods = new Map<ModId, Mod>();
+	const sortedMods = new Map<ModId, Mod>();
 
 	sortedMods.set(runtimeMod.manifest.id, runtimeMod);
 
-	let unsortedModsList: Mod[] = Array.from(
+	const unsortedModsList: Mod[] = Array.from(
 		installedMods.values(),
 	).sort((mod1, mod2) => compare(mod1.manifest.id, mod2.manifest.id));
 
@@ -221,7 +221,7 @@ function sortModsInLoadOrder(
 		let dependencyCyclesExist = true;
 
 		for (let i = 0; i < unsortedModsList.length; ) {
-			let mod = unsortedModsList[i];
+			const mod = unsortedModsList[i];
 			if (
 				!modHasUnsortedInstalledDependencies(mod, sortedMods, installedMods)
 			) {
@@ -251,7 +251,7 @@ function modHasUnsortedInstalledDependencies(
 	sortedMods: ReadonlyModsMap,
 	installedMods: ReadonlyModsMap,
 ): boolean {
-	for (let depId of mod.dependencies.keys()) {
+	for (const depId of mod.dependencies.keys()) {
 		if (!sortedMods.has(depId) && installedMods.has(depId)) {
 			return true;
 		}
@@ -263,9 +263,9 @@ function verifyModDependencies(
 	installedMods: ReadonlyModsMap,
 	virtualPackages: ReadonlyVirtualPackagesMap,
 ): void {
-	for (let mod of installedMods.values()) {
-		for (let [depId, dep] of mod.dependencies) {
-			let problem = checkDependencyConstraint(
+	for (const mod of installedMods.values()) {
+		for (const [depId, dep] of mod.dependencies) {
+			const problem = checkDependencyConstraint(
 				depId,
 				dep,
 				installedMods,
@@ -290,13 +290,13 @@ function checkDependencyConstraint(
 	let availableDepVersion: SemVer;
 	let depTitle = depId;
 
-	let virtualPackageVersion = virtualPackages.get(depId);
+	const virtualPackageVersion = virtualPackages.get(depId);
 	if (virtualPackageVersion != null) {
 		availableDepVersion = virtualPackageVersion;
 	} else {
 		depTitle = `mod '${depId}'`;
 
-		let depMod = installedMods.get(depId);
+		const depMod = installedMods.get(depId);
 		if (depMod == null) {
 			return depConstraint.optional ? null : `${depTitle} is not installed`;
 		}
@@ -316,7 +316,7 @@ function checkDependencyConstraint(
 }
 
 async function initModClasses(mods: ReadonlyModsMap): Promise<void> {
-	for (let mod of mods.values()) {
+	for (const mod of mods.values()) {
 		try {
 			// eslint-disable-next-line no-await-in-loop
 			await mod.initClass();
@@ -333,7 +333,7 @@ async function executeStage(
 	mods: ReadonlyModsMap,
 	stage: ModLoadingStage,
 ): Promise<void> {
-	for (let mod of mods.values()) {
+	for (const mod of mods.values()) {
 		try {
 			// eslint-disable-next-line no-await-in-loop
 			await mod.executeStage(stage);

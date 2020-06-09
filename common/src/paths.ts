@@ -38,7 +38,7 @@ function normalizeString(path: string, allowAboveRoot: boolean): string {
 					res.charCodeAt(res.length - 2) !== CHAR_DOT
 				) {
 					if (res.length > 2) {
-						let lastSlashIndex = res.lastIndexOf('/');
+						const lastSlashIndex = res.lastIndexOf('/');
 						if (lastSlashIndex === -1) {
 							res = '';
 							lastSegmentLength = 0;
@@ -85,7 +85,7 @@ export function resolve(...args: string[]): string {
 	let resolvedAbsolute = false;
 
 	for (let i = args.length - 1; i >= -1 && !resolvedAbsolute; i--) {
-		let path = i >= 0 ? args[i] : process.cwd();
+		const path = i >= 0 ? args[i] : process.cwd();
 
 		validateString(path, 'path');
 
@@ -118,8 +118,8 @@ export function normalize(path: string): string {
 		return '.';
 	}
 
-	let hasRoot = path.charCodeAt(0) === CHAR_FORWARD_SLASH;
-	let trailingSeparator =
+	const hasRoot = path.charCodeAt(0) === CHAR_FORWARD_SLASH;
+	const trailingSeparator =
 		path.charCodeAt(path.length - 1) === CHAR_FORWARD_SLASH;
 
 	// Normalize the path
@@ -158,7 +158,7 @@ export function join(...args: string[]): string {
 	}
 	let joined: string | null = null;
 	for (let i = 0; i < args.length; i++) {
-		let arg = args[i];
+		const arg = args[i];
 		validateString(arg, 'path');
 		if (arg.length > 0) {
 			if (joined == null) {
@@ -190,18 +190,18 @@ export function relative(from: string, to: string): string {
 		return '';
 	}
 
-	let fromStart = 1;
-	let fromEnd = from.length;
-	let fromLen = fromEnd - fromStart;
-	let toStart = 1;
-	let toLen = to.length - toStart;
+	const fromStart = 1;
+	const fromEnd = from.length;
+	const fromLen = fromEnd - fromStart;
+	const toStart = 1;
+	const toLen = to.length - toStart;
 
 	// Compare paths to find the longest common path from root
-	let length = fromLen < toLen ? fromLen : toLen;
+	const length = fromLen < toLen ? fromLen : toLen;
 	let lastCommonSep = -1;
 	let i = 0;
 	for (; i < length; i++) {
-		let fromCode = from.charCodeAt(fromStart + i);
+		const fromCode = from.charCodeAt(fromStart + i);
 		if (fromCode !== to.charCodeAt(toStart + i)) {
 			break;
 		} else if (fromCode === CHAR_FORWARD_SLASH) {
@@ -252,7 +252,7 @@ export function dirname(path: string): string {
 	if (path.length === 0) {
 		return '.';
 	}
-	let hasRoot = path.charCodeAt(0) === CHAR_FORWARD_SLASH;
+	const hasRoot = path.charCodeAt(0) === CHAR_FORWARD_SLASH;
 	let end = -1;
 	let matchedSlash = true;
 	for (let i = path.length - 1; i >= 1; --i) {
@@ -293,7 +293,7 @@ export function basename(path: string, ext?: string): string {
 		let extIdx = ext.length - 1;
 		let firstNonSlashEnd = -1;
 		for (let i = path.length - 1; i >= 0; --i) {
-			let code = path.charCodeAt(i);
+			const code = path.charCodeAt(i);
 			if (code === CHAR_FORWARD_SLASH) {
 				// If we reached a path separator that was not part of a set of path
 				// separators at the end of the string, stop now
@@ -365,7 +365,7 @@ export function extname(path: string): string {
 	// after any path separator we find
 	let preDotState = 0;
 	for (let i = path.length - 1; i >= 0; --i) {
-		let code = path.charCodeAt(i);
+		const code = path.charCodeAt(i);
 		if (code === CHAR_FORWARD_SLASH) {
 			// If we reached a path separator that was not part of a set of path
 			// separators at the end of the string, stop now

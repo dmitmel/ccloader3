@@ -29,7 +29,7 @@ type XHROpenArgs = [
 
 const xhrOpenOriginal = XMLHttpRequest.prototype.open;
 XMLHttpRequest.prototype.open = function (...args: XHROpenArgs) {
-	let url = args[1];
+	const url = args[1];
 	args[1] = transformUrl(url);
 	return (xhrOpenOriginal as (...args: XHROpenArgs) => void).apply(this, args);
 };
@@ -44,8 +44,8 @@ function applyAssetOverrides(url: string): string | null {
 	}
 	url = url.slice(IG_ROOT.length);
 
-	let overrides = [];
-	for (let mod of modloader.loadedMods.values()) {
+	const overrides = [];
+	for (const mod of modloader.loadedMods.values()) {
 		if (mod.assets.has(url)) {
 			overrides.push(`${mod.assetsDir}${url}`);
 		}
@@ -74,27 +74,27 @@ function applyModUrlProtocol(fullUrl: string): string | null {
 	}
 
 	try {
-		let uri = fullUrl.slice(MOD_PROTOCOL_PREFIX.length);
+		const uri = fullUrl.slice(MOD_PROTOCOL_PREFIX.length);
 		if (uri.length === 0) {
 			throw new Error('the URI is empty');
 		}
 
-		let modIdSeparatorIndex = uri.indexOf('/');
+		const modIdSeparatorIndex = uri.indexOf('/');
 		if (modIdSeparatorIndex < 0) {
 			throw new Error("'/' after the mod ID is missing");
 		}
 
-		let modId = uri.slice(0, modIdSeparatorIndex);
+		const modId = uri.slice(0, modIdSeparatorIndex);
 		if (modId.length === 0) {
 			throw new Error('the mod ID is empty');
 		}
 
-		let filePath = uri.slice(modIdSeparatorIndex + 1);
+		const filePath = uri.slice(modIdSeparatorIndex + 1);
 		if (filePath.length === 0) {
 			throw new Error('the file path is empty');
 		}
 
-		let mod = modloader.loadedMods.get(modId);
+		const mod = modloader.loadedMods.get(modId);
 		if (mod == null) {
 			throw new Error(`mod '${modId}' not found`);
 		}

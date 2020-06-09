@@ -38,10 +38,10 @@ export class Mod implements ModPublic {
 			throw err;
 		}
 
-		let dependencies = new Map<ModId, ModDependency>();
+		const dependencies = new Map<ModId, ModDependency>();
 
 		if (manifest.dependencies != null) {
-			for (let depId of Object.keys(manifest.dependencies)) {
+			for (const depId of Object.keys(manifest.dependencies)) {
 				let dep = manifest.dependencies[depId];
 				if (typeof dep === 'string') {
 					dep = { version: dep };
@@ -84,11 +84,11 @@ export class Mod implements ModPublic {
 	}
 
 	public async initClass(): Promise<void> {
-		let script = this.manifest.main;
+		const script = this.manifest.main;
 		if (script == null) {
 			return;
 		}
-		let scriptFullPath = this.resolvePath(script);
+		const scriptFullPath = this.resolvePath(script);
 
 		// eslint-disable-next-line no-shadow
 		let module: { default: new (mod: Mod) => ModClass };
@@ -118,11 +118,11 @@ export class Mod implements ModPublic {
 			await this.classInstance[classMethodName]!(this);
 		}
 
-		let script = this.manifest[stage];
+		const script = this.manifest[stage];
 		if (script == null) {
 			return;
 		}
-		let scriptFullPath = this.resolvePath(script);
+		const scriptFullPath = this.resolvePath(script);
 
 		await import(`/${scriptFullPath}`);
 	}

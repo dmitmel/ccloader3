@@ -70,7 +70,7 @@ function jsonPathToString(path: JsonPath): string {
 	let str = '';
 
 	for (let i = 0; i < path.length; i++) {
-		let key = path[i];
+		const key = path[i];
 		if (typeof key === 'number') {
 			str += `[${key}]`;
 		} else if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(key)) {
@@ -182,10 +182,10 @@ export class ManifestValidator {
 			}
 		}
 
-		let actualType = getType(value);
+		const actualType = getType(value);
 		if (!expectedTypes.includes(actualType)) {
-			let valuePathStr = jsonPathToString(valuePath);
-			let expectedTypesStr = expectedTypes.join(' or ');
+			const valuePathStr = jsonPathToString(valuePath);
+			const expectedTypesStr = expectedTypes.join(' or ');
 			this.problems.push(
 				`expected type of '${valuePathStr}' to be '${expectedTypesStr}', got '${actualType}'`,
 			);
@@ -200,7 +200,7 @@ export class ManifestValidator {
 		value: LocalizedString | undefined,
 		optional = false,
 	): void {
-		let assertion = this.assertType(
+		const assertion = this.assertType(
 			valuePath,
 			value,
 			[Type.object, Type.string],
@@ -214,7 +214,7 @@ export class ManifestValidator {
 		if (assertion.type === Type.string) {
 			return;
 		}
-		for (let [key, value2] of Object.entries(value as Record<Locale, string>)) {
+		for (const [key, value2] of Object.entries(value as Record<Locale, string>)) {
 			this.assertType([...valuePath, key], value2, [Type.string]);
 		}
 	}
@@ -223,33 +223,33 @@ export class ManifestValidator {
 		valuePath: JsonPath,
 		value: LocalizedString[] | undefined,
 	): void {
-		let assertion = this.assertType(valuePath, value, [Type.array], true);
+		const assertion = this.assertType(valuePath, value, [Type.array], true);
 		if (assertion.status !== 'ok') {
 			return;
 		}
 		value = value!;
 
 		for (let index = 0; index < value.length; index++) {
-			let value2 = value[index];
+			const value2 = value[index];
 			this.assertLocalizedString([...valuePath, index], value2);
 		}
 	}
 
 	private assertPeople(valuePath: JsonPath, value: Person[] | undefined): void {
-		let assertion = this.assertType(valuePath, value, [Type.array], true);
+		const assertion = this.assertType(valuePath, value, [Type.array], true);
 		if (assertion.status !== 'ok') {
 			return;
 		}
 		value = value!;
 
 		for (let index = 0; index < value.length; index++) {
-			let value2 = value[index];
+			const value2 = value[index];
 			this.assertPerson([...valuePath, index], value2);
 		}
 	}
 
 	private assertPerson(valuePath: JsonPath, value: Person): void {
-		let assertion = this.assertType(valuePath, value, [
+		const assertion = this.assertType(valuePath, value, [
 			Type.object,
 			Type.string,
 		]);
@@ -272,19 +272,19 @@ export class ManifestValidator {
 		valuePath: JsonPath,
 		value: ModDependencies | undefined,
 	): void {
-		let assertion = this.assertType(valuePath, value, [Type.object], true);
+		const assertion = this.assertType(valuePath, value, [Type.object], true);
 		if (assertion.status !== 'ok') {
 			return;
 		}
 		value = value!;
 
-		for (let [key, value2] of Object.entries(value)) {
+		for (const [key, value2] of Object.entries(value)) {
 			this.assertDependency([...valuePath, key], value2);
 		}
 	}
 
 	private assertDependency(valuePath: JsonPath, value: ModDependency): void {
-		let assertion = this.assertType(valuePath, value, [
+		const assertion = this.assertType(valuePath, value, [
 			Type.object,
 			Type.string,
 		]);
@@ -310,14 +310,14 @@ export class ManifestValidator {
 		valuePath: JsonPath,
 		value: FilePath[] | undefined,
 	): void {
-		let assertion = this.assertType(valuePath, value, [Type.array], true);
+		const assertion = this.assertType(valuePath, value, [Type.array], true);
 		if (assertion.status !== 'ok') {
 			return;
 		}
 		value = value!;
 
 		for (let index = 0; index < value.length; index++) {
-			let value2 = value[index];
+			const value2 = value[index];
 			this.assertType([...valuePath, index], value2, [Type.string]);
 		}
 	}

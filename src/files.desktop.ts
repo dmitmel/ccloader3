@@ -13,7 +13,7 @@ export async function findRecursively(dir: string): Promise<string[]> {
 		dir = dir.slice(0, -1);
 	}
 
-	let fileList: string[] = [];
+	const fileList: string[] = [];
 	await findRecursivelyInternal(dir, '', fileList);
 	return fileList;
 }
@@ -35,8 +35,8 @@ async function findRecursivelyInternal(
 
 	await Promise.all(
 		contents.map(async (name) => {
-			let fullPath = `${currentDir}/${name}`;
-			let stat = await fs.stat(fullPath);
+			const fullPath = `${currentDir}/${name}`;
+			const stat = await fs.stat(fullPath);
 			if (stat.isDirectory()) {
 				await findRecursivelyInternal(
 					fullPath,
@@ -70,14 +70,14 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
 		}
 	}
 
-	let modDirectories: string[] = [];
+	const modDirectories: string[] = [];
 
 	await Promise.all(
 		allContents.map(async (name) => {
-			let fullPath = `${dir}/${name}`;
+			const fullPath = `${dir}/${name}`;
 			// the `withFileTypes` option of `readdir` can't be used here because it
 			// doesn't dereference symbolic links similarly to `stat`
-			let stat = await fs.stat(fullPath);
+			const stat = await fs.stat(fullPath);
 			if (stat.isDirectory()) {
 				modDirectories.push(fullPath);
 			}

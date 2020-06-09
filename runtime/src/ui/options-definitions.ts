@@ -30,7 +30,7 @@ if ('OptionInfoBox' in sc) {
 	};
 }
 
-for (let modId of Array.from(modloader.installedMods.keys()).sort((id1, id2) =>
+for (const modId of Array.from(modloader.installedMods.keys()).sort((id1, id2) =>
 	id1.localeCompare(id2),
 )) {
 	if (modId === 'ccloader-runtime') {

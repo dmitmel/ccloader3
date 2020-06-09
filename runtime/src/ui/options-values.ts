@@ -1,7 +1,7 @@
 const DEFAULT_LOG_FLAGS = 0b011;
 
 function getLogFlagsBitset(): number {
-	let logFlagsStr = localStorage.getItem('logFlags');
+	const logFlagsStr = localStorage.getItem('logFlags');
 	let logFlags = logFlagsStr ? parseInt(logFlagsStr, 10) : DEFAULT_LOG_FLAGS;
 	if (Number.isNaN(logFlags)) {
 		logFlags = DEFAULT_LOG_FLAGS;
@@ -42,11 +42,11 @@ Object.defineProperties(sc.options.values, {
 	},
 });
 
-for (let modId of modloader.installedMods.keys()) {
+for (const modId of modloader.installedMods.keys()) {
 	if (modId === 'ccloader-runtime') {
 		continue;
 	}
-	let optionId = `modEnabled-${modId}`;
+	const optionId = `modEnabled-${modId}`;
 
 	Object.defineProperty(sc.options.values, optionId, {
 		get() {
