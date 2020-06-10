@@ -4,6 +4,7 @@ import {
   REQUIRED_SCRIPT_URLS,
   REQUIRED_STYLESHEET_URLS,
 } from './game.config.js';
+import { loadScript, loadStylesheet } from '../common/dist/resources.js';
 
 export async function buildNecessaryDOM(): Promise<void> {
   let base = document.createElement('base');
@@ -121,35 +122,5 @@ export async function waitForIgGameInitialization(): Promise<void> {
       resolve();
       return result;
     };
-  });
-}
-
-function loadStylesheet(url: string): Promise<void> {
-  return new Promise((resolve, reject) => {
-    let link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = url;
-    link.addEventListener('load', () => resolve());
-    link.addEventListener('error', () =>
-      reject(new Error(`Failed to load stylesheet '${url}'`)),
-    );
-    document.head.appendChild(link);
-  });
-}
-
-function loadScript(
-  url: string,
-  options: { type?: string | null; async?: boolean | null } = {},
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    let script = document.createElement('script');
-    script.src = url;
-    if (options.type != null) script.type = options.type;
-    if (options.async != null) script.async = options.async;
-    script.addEventListener('load', () => resolve());
-    script.addEventListener('error', () =>
-      reject(new Error(`Failed to load script '${url}'`)),
-    );
-    document.body.appendChild(script);
   });
 }

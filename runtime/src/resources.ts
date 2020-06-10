@@ -1,4 +1,5 @@
-export {};
+export * from '../../common/dist/resources.js';
+
 declare global {
   // eslint-disable-next-line no-var
   var IG_ROOT: string;

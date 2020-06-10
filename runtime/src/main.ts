@@ -3,6 +3,8 @@ import * as utils from '../../common/dist/utils.js';
 import { requireFixed } from '../../common/dist/require.js';
 import * as semver from '../../common/vendor-libs/semver.js';
 
+import * as resources from './resources.js';
+
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export default class CCLoaderRuntimeModClass {
   public constructor() {
@@ -12,6 +14,7 @@ export default class CCLoaderRuntimeModClass {
       utils,
       require: requireFixed,
       semver,
+      resources,
     });
   }
 }
