@@ -30,6 +30,9 @@ rules:
 
   node/no-unpublished-import: off
 
+  require-await: off
+  no-await-in-loop: off
+
 overrides:
   - files: '**/*.ts'
     extends: eslint-config-dmitmel/presets/typescript-addon
@@ -44,6 +47,7 @@ overrides:
       '@typescript-eslint/no-unsafe-call': off
       '@typescript-eslint/no-unsafe-member-access': off
       '@typescript-eslint/no-unsafe-return': off
+      '@typescript-eslint/require-await': off
 
   - files: '**/*.d.ts'
     rules:

@@ -1,14 +1,14 @@
 import { errorHasMessage } from '../common/dist/utils.js';
 import * as paths from '../common/dist/paths.js';
 
-export async function loadFile(url: string): Promise<string> {
+export async function loadFile(path: string): Promise<string> {
   try {
-    let res = await fetch(`/${url}`);
+    let res = await fetch(`/${path}`);
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     return await res.text();
   } catch (err) {
     if (errorHasMessage(err)) {
-      err.message = `Failed to load file '${url}': ${err.message}`;
+      err.message = `Failed to load file '${path}': ${err.message}`;
     }
     throw err;
   }

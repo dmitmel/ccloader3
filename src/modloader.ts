@@ -11,8 +11,9 @@ import { SemVer } from '../common/vendor-libs/semver.js';
 import { compare, errorHasMessage } from '../common/dist/utils.js';
 import * as paths from '../common/dist/paths.js';
 
+// ends with a slash
 const CCLOADER_DIR: string = paths.stripRoot(
-  paths.dirname(paths.dirname(new URL(import.meta.url).pathname)),
+  new URL('../', import.meta.url).pathname,
 );
 
 type ModsMap = Map<ModId, Mod>;
@@ -24,10 +25,10 @@ export async function boot(): Promise<void> {
 
   console.log(`${modloaderMetadata.name} ${modloaderMetadata.version}`);
 
-  let gameVersion = await loadGameVersion();
+  let gameVersion = await game.loadVersion();
   console.log(`crosscode ${gameVersion}`);
 
-  let runtimeModBaseDirectory = `${CCLOADER_DIR}/runtime`;
+  let runtimeModBaseDirectory = `${CCLOADER_DIR}runtime`;
   let runtimeMod: Mod | null;
   try {
     // the runtime mod is added to `installedMods` in `sortModsInLoadOrder`
@@ -105,18 +106,9 @@ async function loadModloaderMetadata(): Promise<{
   name: string;
   version: SemVer;
 }> {
-  let toolJsonText = await files.loadFile(`${CCLOADER_DIR}/tool.json`);
+  let toolJsonText = await files.loadFile(`${CCLOADER_DIR}tool.json`);
   let data = JSON.parse(toolJsonText) as { name: string; version: string };
   return { name: data.name, version: new SemVer(data.version) };
-}
-
-async function loadGameVersion(): Promise<SemVer> {
-  let changelogText = await files.loadFile('assets/data/changelog.json');
-  let { changelog } = JSON.parse(changelogText) as {
-    changelog: Array<{ version: string }>;
-  };
-  let latestVersion = changelog[0].version;
-  return new SemVer(latestVersion);
 }
 
 async function loadAllModMetadata(
@@ -314,7 +306,6 @@ function checkDependencyConstraint(
 async function initModClasses(mods: ReadonlyModsMap): Promise<void> {
   for (let mod of mods.values()) {
     try {
-      // eslint-disable-next-line no-await-in-loop
       await mod.initClass();
     } catch (err) {
       console.error(
@@ -331,7 +322,6 @@ async function executeStage(
 ): Promise<void> {
   for (let mod of mods.values()) {
     try {
-      // eslint-disable-next-line no-await-in-loop
       await mod.executeStage(stage);
     } catch (err) {
       console.error(

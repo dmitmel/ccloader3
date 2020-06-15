@@ -1,0 +1,3 @@
+*.tgz
+src/*
+!src/tests.json

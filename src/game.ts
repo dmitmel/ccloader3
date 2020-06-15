@@ -5,6 +5,17 @@ import {
   REQUIRED_STYLESHEET_URLS,
 } from './game.config.js';
 import { loadScript, loadStylesheet } from '../common/dist/resources.js';
+import { SemVer } from '../common/vendor-libs/semver.js';
+import * as files from './files.js';
+
+export async function loadVersion(): Promise<SemVer> {
+  let changelogText = await files.loadFile('assets/data/changelog.json');
+  let { changelog } = JSON.parse(changelogText) as {
+    changelog: Array<{ version: string }>;
+  };
+  let latestVersion = changelog[0].version;
+  return new SemVer(latestVersion);
+}
 
 export async function buildNecessaryDOM(): Promise<void> {
   let base = document.createElement('base');
