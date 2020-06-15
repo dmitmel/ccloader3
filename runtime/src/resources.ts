@@ -1,28 +1,71 @@
 import * as patchsteps from '../../common/vendor-libs/patchsteps.js';
 import PatchStepsDebugState from './patch-steps-debug-state.js';
 import { Mod } from '../../src/public/mod';
+import * as impactModuleHooks from './impact-module-hooks.js';
 
 export * from '../../common/dist/resources.js';
 
-// TODO ig.getCacheSuffix()
-
-// this path is always absolute
 const GAME_ASSETS_URL = new URL(window.IG_ROOT, document.baseURI);
 
 const MOD_PROTOCOL = 'mod:';
 const MOD_PROTOCOL_PREFIX = `${MOD_PROTOCOL}//`;
 
-const ImageOriginal = window.Image;
-// eslint-disable-next-line no-shadow
-window.Image = class Image extends ImageOriginal {
-  public get src(): string {
-    return super.src;
+impactModuleHooks.add('impact.base.image', () => {
+  ig.Image.inject({
+    loadInternal(path) {
+      loadImagePatched(path).then(
+        (img) => {
+          this.data = img;
+          this.onload();
+        },
+        (_err) => {
+          this.onerror();
+        },
+      );
+    },
+
+    reload() {
+      throw new Error('unsupported');
+    },
+  });
+});
+
+export async function loadImagePatched(
+  path: string,
+  options?: { returnCanvas?: 'always' | 'if-patched' | 'never' | null },
+): Promise<HTMLImageElement | HTMLCanvasElement> {
+  options = options ?? {};
+
+  let { resolvedURL, requestedAsset } = resolveURLInternal(path);
+
+  let img: HTMLImageElement | HTMLCanvasElement = await loadImage(resolvedURL);
+
+  if (options.returnCanvas === 'always') {
+    let canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    let ctx = canvas.getContext('2d')!;
+    ctx.drawImage(img, 0, 0);
+    img = canvas;
   }
 
-  public set src(url: string) {
-    super.src = transformUrl(url);
+  // do patching...
+
+  if (options.returnCanvas === 'never' && img instanceof HTMLCanvasElement) {
+    img = await loadImage(img.toDataURL('image/png'));
   }
-};
+
+  return img;
+}
+
+export function loadImage(url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    let img = new Image();
+    img.src = url;
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error(`Failed to load image '${url}'`));
+  });
+}
 
 type XHROpenArgs = [
   string, // method
@@ -35,7 +78,7 @@ type XHROpenArgs = [
 const xhrOpenOriginal = XMLHttpRequest.prototype.open;
 XMLHttpRequest.prototype.open = function (...args: XHROpenArgs) {
   let url = args[1];
-  args[1] = transformUrl(url);
+  args[1] = resolveURL(url);
   return (xhrOpenOriginal as (...args: XHROpenArgs) => void).apply(this, args);
 };
 
@@ -77,31 +120,16 @@ $.ajaxSetup({
 // TODO: options object
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function loadJSONPatched(path: string): Promise<any> {
-  {
-    let modResourcePath = applyModUrlProtocol(path);
-    if (modResourcePath != null) return loadJSON(modResourcePath);
-  }
+  let { resolvedURL, requestedAsset } = resolveURLInternal(path);
 
-  let requestedPath = ccmod3.paths.resolve(GAME_ASSETS_URL.pathname, path);
+  let data = await loadJSON(resolvedURL);
 
-  if (!requestedPath.startsWith(GAME_ASSETS_URL.pathname)) {
-    return loadJSON(requestedPath);
-  }
-
-  let requestedAssetPath = requestedPath.slice(GAME_ASSETS_URL.pathname.length);
-  let resolvedPath = requestedPath;
-
-  {
-    let overridePath = applyAssetOverrides(requestedAssetPath);
-    if (overridePath != null) resolvedPath = overridePath;
-  }
-
-  let data = await loadJSON(resolvedPath);
-
-  let patches = resolveAssetPathsInAllMods(`${requestedAssetPath}.patch`);
-  for (let patch of patches) {
-    let patchData = await loadJSON(patch.path);
-    await patchJSON(data, patchData, patch.path, patch.mod.baseDirectory);
+  if (requestedAsset != null) {
+    let patches = resolveAssetPathsInAllMods(`${requestedAsset}.patch`);
+    for (let patch of patches) {
+      let patchData = await loadJSON(`/${patch.path}`);
+      await patchJSON(data, patchData, patch.path, patch.mod.baseDirectory);
+    }
   }
 
   return data;
@@ -119,30 +147,58 @@ function patchJSON(
     data,
     patchData,
     (fromGame: string | boolean, url: string): Promise<void> =>
-      fromGame ? loadJSONPatched(url) : loadJSON(`${patchModBaseDir}${url}`),
+      fromGame ? loadJSONPatched(url) : loadJSON(`/${patchModBaseDir}${url}`),
     debugState,
   );
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function loadJSON(path: string): Promise<any> {
-  let url = ccmod3.paths.join('/', path);
+export async function loadJSON(url: string): Promise<any> {
   let res = await fetch(url);
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
   return await res.json();
 }
 
-export function transformUrl(url: string): string {
-  return applyModUrlProtocol(url) ?? applyAssetOverrides(url) ?? url;
+export function resolveURL(url: string): string {
+  return resolveURLInternal(url).resolvedURL;
 }
 
-function applyAssetOverrides(url: string): string | null {
-  let overrides = resolveAssetPathsInAllMods(url);
+interface ResolveURLResult {
+  resolvedURL: string;
+  requestedAsset: string | null;
+}
+// TODO: ig.root, ig.getFilePath(), ig.getCacheSuffix()
+function resolveURLInternal(url: string): ResolveURLResult {
+  let result: ResolveURLResult = {
+    resolvedURL: url,
+    requestedAsset: null,
+  };
+
+  let modResourcePath = applyModURLProtocol(url);
+  if (modResourcePath != null) {
+    result.resolvedURL = `/${modResourcePath}`;
+    return result;
+  }
+
+  let normalizedPath = ccmod3.paths.resolve(GAME_ASSETS_URL.pathname, url);
+  result.resolvedURL = normalizedPath;
+
+  if (!normalizedPath.startsWith(GAME_ASSETS_URL.pathname)) return result;
+  result.requestedAsset = normalizedPath.slice(GAME_ASSETS_URL.pathname.length);
+
+  let overridePath = applyAssetOverrides(result.requestedAsset);
+  if (overridePath != null) result.resolvedURL = `/${overridePath}`;
+
+  return result;
+}
+
+function applyAssetOverrides(path: string): string | null {
+  let overrides = resolveAssetPathsInAllMods(path);
   if (overrides.length === 0) return null;
 
   if (overrides.length > 1) {
     console.warn(
-      `Conflict between overrides for '${url}' found in mods '${overrides
+      `Conflict between overrides for '${path}' found in mods '${overrides
         .map(({ mod }) => mod.manifest.id)
         .join("', '")}' found. Using the override from mod '${
         overrides[0].mod.manifest.id
@@ -150,7 +206,7 @@ function applyAssetOverrides(url: string): string | null {
     );
   }
 
-  return `/${overrides[0].path}`;
+  return overrides[0].path;
 }
 
 function resolveAssetPathsInAllMods(
@@ -165,11 +221,11 @@ function resolveAssetPathsInAllMods(
   return results;
 }
 
-function applyModUrlProtocol(fullUrl: string): string | null {
-  if (!fullUrl.startsWith(MOD_PROTOCOL_PREFIX)) return null;
+function applyModURLProtocol(fullURI: string): string | null {
+  if (!fullURI.startsWith(MOD_PROTOCOL_PREFIX)) return null;
 
   try {
-    let uri = fullUrl.slice(MOD_PROTOCOL_PREFIX.length);
+    let uri = fullURI.slice(MOD_PROTOCOL_PREFIX.length);
     if (uri.length === 0) throw new Error('the URI is empty');
 
     let modIdSeparatorIndex = uri.indexOf('/');
@@ -186,10 +242,10 @@ function applyModUrlProtocol(fullUrl: string): string | null {
     let mod = modloader.loadedMods.get(modId);
     if (mod == null) throw new Error(`mod '${modId}' not found`);
 
-    return `/${mod.resolvePath(filePath)}`;
+    return mod.resolvePath(filePath);
   } catch (err) {
     if (ccmod3.utils.errorHasMessage(err)) {
-      err.message = `Invalid 'mod://' URL '${fullUrl}': ${err.message}`;
+      err.message = `Invalid 'mod://' URL '${fullURI}': ${err.message}`;
     }
     throw err;
   }

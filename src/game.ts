@@ -72,11 +72,14 @@ declare global {
   function startCrossCode(): void;
 }
 
-export async function loadMainScript(): Promise<() => void> {
+export async function loadMainScript(
+  onImpactInit: () => void,
+): Promise<() => void> {
   let domReadyCallback: () => void = null!;
-  callOnIgInitialization(() => {
+  callOnImpactInit(() => {
     domReadyCallback = window.ig._DOMReady;
     window.ig._DOMReady = () => {};
+    onImpactInit();
   });
 
   // async is turned off so that the main script blocks the UI thread while it
@@ -88,7 +91,7 @@ export async function loadMainScript(): Promise<() => void> {
   return domReadyCallback;
 }
 
-function callOnIgInitialization(callback: () => void): void {
+function callOnImpactInit(callback: () => void): void {
   Object.defineProperty(window, 'ig', {
     configurable: true,
     enumerable: true,

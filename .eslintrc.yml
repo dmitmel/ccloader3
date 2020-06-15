@@ -32,6 +32,7 @@ rules:
 
   require-await: off
   no-await-in-loop: off
+  handle-callback-err: off
 
 overrides:
   - files: '**/*.ts'

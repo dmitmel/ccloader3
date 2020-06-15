@@ -91,7 +91,9 @@ export async function boot(): Promise<void> {
   await initModClasses(loadedMods);
 
   await executeStage(loadedMods, 'preload');
-  let domReadyCallback = await game.loadMainScript();
+  let domReadyCallback = await game.loadMainScript(() =>
+    (runtimeMod!.classInstance! as { onImpactInit(): void }).onImpactInit(),
+  );
   await executeStage(loadedMods, 'postload');
   domReadyCallback();
 
