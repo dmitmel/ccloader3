@@ -1,7 +1,8 @@
 import * as patchsteps from '../../common/vendor-libs/patchsteps.js';
+import { Mod } from '../../src/public/mod';
 
 export default class DebugState extends patchsteps.DebugState {
-  public constructor(private currentModBaseDir: string) {
+  public constructor(private currentMod: Mod) {
     super();
   }
 
@@ -11,10 +12,10 @@ export default class DebugState extends patchsteps.DebugState {
     const newFile = { ...file };
     switch (protocol) {
       case 'mod':
-        newFile.path = `${this.currentModBaseDir}${path}`;
+        newFile.path = this.currentMod.resolvePath(path);
         break;
       case 'game':
-        newFile.path = `assets/${path}`;
+        newFile.path = ccmod3.paths.join('assets', path);
         break;
     }
     super.printFileInfo(newFile);

@@ -128,7 +128,7 @@ export async function loadJSONPatched(path: string): Promise<any> {
     let patches = resolveAssetPathsInAllMods(`${requestedAsset}.patch`);
     for (let patch of patches) {
       let patchData = await loadJSON(`/${patch.path}`);
-      await patchJSON(data, patchData, patch.path, patch.mod.baseDirectory);
+      await patchJSON(data, patchData, patch.path, patch.mod);
     }
   }
 
@@ -139,24 +139,34 @@ function patchJSON(
   data: unknown,
   patchData: patchsteps.Patch,
   patchPath: string,
-  patchModBaseDir: string,
+  patchMod: Mod,
 ): Promise<void> {
-  let debugState = new PatchStepsDebugState(patchModBaseDir);
+  let debugState = new PatchStepsDebugState(patchMod);
   debugState.addFile([true, patchPath]);
   return patchsteps.patch(
     data,
     patchData,
     (fromGame: string | boolean, url: string): Promise<void> =>
-      fromGame ? loadJSONPatched(url) : loadJSON(`/${patchModBaseDir}${url}`),
+      fromGame
+        ? loadJSONPatched(url)
+        : loadJSON(`/${patchMod.resolvePath(url)}`),
     debugState,
   );
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function loadJSON(url: string): Promise<any> {
-  let res = await fetch(url);
-  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-  return await res.json();
+  let res: Response;
+  try {
+    res = await fetch(url);
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return await res.json();
+  } catch (err) {
+    if (ccmod3.utils.errorHasMessage(err)) {
+      err.message = `Failed to load JSON file '${url}': ${err.message}`;
+    }
+    throw err;
+  }
 }
 
 export function resolveURL(url: string): string {
