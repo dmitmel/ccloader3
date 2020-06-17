@@ -6,6 +6,7 @@ import * as semver from '../../common/vendor-libs/semver.js';
 import * as impactInitHooks from './impact-init-hooks.js';
 import * as impactModuleHooks from './impact-module-hooks.js';
 import * as resources from './resources.js';
+import './resources-injections.js';
 
 export default class CCLoaderRuntimeModClass {
   public constructor() {

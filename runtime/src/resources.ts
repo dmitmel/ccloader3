@@ -1,127 +1,16 @@
 import * as patchsteps from '../../common/vendor-libs/patchsteps.js';
 import PatchStepsDebugState from './patch-steps-debug-state.js';
 import { Mod } from '../../src/public/mod';
-import * as impactModuleHooks from './impact-module-hooks.js';
+import { GAME_ASSETS_URL, MOD_PROTOCOL_PREFIX } from './resources.constants.js';
 
 export * from '../../common/dist/resources.js';
-
-const GAME_ASSETS_URL = new URL(window.IG_ROOT, document.baseURI);
-
-const MOD_PROTOCOL = 'mod:';
-const MOD_PROTOCOL_PREFIX = `${MOD_PROTOCOL}//`;
-
-impactModuleHooks.add('impact.base.image', () => {
-  ig.Image.inject({
-    loadInternal(path) {
-      loadImagePatched(path).then(
-        (img) => {
-          this.data = img;
-          this.onload();
-        },
-        (_err) => {
-          this.onerror();
-        },
-      );
-    },
-
-    reload() {
-      throw new Error('unsupported');
-    },
-  });
-});
-
-export async function loadImagePatched(
-  path: string,
-  options?: { returnCanvas?: 'always' | 'if-patched' | 'never' | null },
-): Promise<HTMLImageElement | HTMLCanvasElement> {
-  options = options ?? {};
-
-  let { resolvedURL, requestedAsset } = resolveURLInternal(path);
-
-  let img: HTMLImageElement | HTMLCanvasElement = await loadImage(resolvedURL);
-
-  if (options.returnCanvas === 'always') {
-    let canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
-    let ctx = canvas.getContext('2d')!;
-    ctx.drawImage(img, 0, 0);
-    img = canvas;
-  }
-
-  // do patching...
-
-  if (options.returnCanvas === 'never' && img instanceof HTMLCanvasElement) {
-    img = await loadImage(img.toDataURL('image/png'));
-  }
-
-  return img;
-}
-
-export function loadImage(url: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    let img = new Image();
-    img.src = url;
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`Failed to load image '${url}'`));
-  });
-}
-
-type XHROpenArgs = [
-  string, // method
-  string, // url
-  boolean?, // async
-  (string | null)?, // username
-  (string | null)?, // password
-];
-
-const xhrOpenOriginal = XMLHttpRequest.prototype.open;
-XMLHttpRequest.prototype.open = function (...args: XHROpenArgs) {
-  let url = args[1];
-  args[1] = resolveURL(url);
-  return (xhrOpenOriginal as (...args: XHROpenArgs) => void).apply(this, args);
-};
-
-$.ajaxSetup({
-  beforeSend(_jqXhr: JQueryXHR, settings: JQueryAjaxSettings): boolean {
-    if (settings.dataType !== 'json' || settings.type !== 'GET') return true;
-
-    let { url } = settings;
-    if (typeof url !== 'string') return true;
-
-    if (!url.startsWith(MOD_PROTOCOL)) {
-      let parsedUrl = new URL(url, GAME_ASSETS_URL).href;
-      if (!parsedUrl.startsWith(GAME_ASSETS_URL.href)) return true;
-    }
-
-    // TODO: ig.Extension#checkFileList
-    let { context, success, error, complete } = settings;
-    delete settings.success;
-    delete settings.error;
-    delete settings.complete;
-    loadJSONPatched(url)
-      .then(
-        (data) => {
-          if (success != null) success.call(context, data, 'hijacked', null!);
-        },
-        (err) => {
-          // errors aren't really handled by the game though
-          if (error != null) error.call(context, null!, 'hijacked', err);
-        },
-      )
-      .finally(() => {
-        if (complete != null) complete.call(context, null!, 'hijacked');
-      });
-
-    return false;
-  },
-});
 
 // TODO: options object
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function loadJSONPatched(path: string): Promise<any> {
   let { resolvedURL, requestedAsset } = resolveURLInternal(path);
 
+  // TODO: download data and patches in parallel
   let data = await loadJSON(resolvedURL);
 
   if (requestedAsset != null) {
@@ -167,6 +56,43 @@ export async function loadJSON(url: string): Promise<any> {
     }
     throw err;
   }
+}
+
+export async function loadImagePatched(
+  path: string,
+  options?: { returnCanvas?: 'always' | 'if-patched' | 'never' | null },
+): Promise<HTMLImageElement | HTMLCanvasElement> {
+  options = options ?? {};
+
+  let { resolvedURL } = resolveURLInternal(path);
+
+  let img: HTMLImageElement | HTMLCanvasElement = await loadImage(resolvedURL);
+
+  if (options.returnCanvas === 'always') {
+    let canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    let ctx = canvas.getContext('2d')!;
+    ctx.drawImage(img, 0, 0);
+    img = canvas;
+  }
+
+  // do patching...
+
+  if (options.returnCanvas === 'never' && img instanceof HTMLCanvasElement) {
+    img = await loadImage(img.toDataURL('image/png'));
+  }
+
+  return img;
+}
+
+export function loadImage(url: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    let img = new Image();
+    img.src = url;
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error(`Failed to load image '${url}'`));
+  });
 }
 
 export function resolveURL(url: string): string {
@@ -255,7 +181,7 @@ function applyModURLProtocol(fullURI: string): string | null {
     return mod.resolvePath(filePath);
   } catch (err) {
     if (ccmod3.utils.errorHasMessage(err)) {
-      err.message = `Invalid 'mod://' URL '${fullURI}': ${err.message}`;
+      err.message = `Invalid '${MOD_PROTOCOL_PREFIX}' URL '${fullURI}': ${err.message}`;
     }
     throw err;
   }
