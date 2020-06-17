@@ -21,6 +21,7 @@ declare global {
     const name: string;
     const version: SemVer;
     const gameVersion: SemVer;
+    const gameVersionHotfix: number;
     const installedMods: ReadonlyMap<ModId, Mod>;
     const loadedMods: ReadonlyMap<ModId, Mod>;
   }

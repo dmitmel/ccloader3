@@ -7,14 +7,30 @@ import {
 import { loadScript, loadStylesheet } from '../common/dist/resources.js';
 import { SemVer } from '../common/vendor-libs/semver.js';
 import * as files from './files.js';
+import { ChangelogFile } from './game-types';
 
-export async function loadVersion(): Promise<SemVer> {
+export async function loadVersion(): Promise<{
+  version: SemVer;
+  hotfix: number;
+}> {
   let changelogText = await files.loadFile('assets/data/changelog.json');
-  let { changelog } = JSON.parse(changelogText) as {
-    changelog: Array<{ version: string }>;
-  };
-  let latestVersion = changelog[0].version;
-  return new SemVer(latestVersion);
+  let { changelog } = JSON.parse(changelogText) as ChangelogFile;
+  let latestChangelog = changelog[0];
+
+  let version = new SemVer(latestChangelog.version);
+
+  let hotfix = 0;
+  let changes = [];
+  if (latestChangelog.changes != null) changes.push(...latestChangelog.changes);
+  if (latestChangelog.fixes != null) changes.push(...latestChangelog.fixes);
+  for (let change of changes) {
+    let match = /^\W*HOTFIX\((\d+)\)/i.exec(change);
+    if (match != null && match.length === 2) {
+      hotfix = Math.max(hotfix, parseInt(match[1], 10));
+    }
+  }
+
+  return { version, hotfix };
 }
 
 export async function buildNecessaryDOM(): Promise<void> {
@@ -55,21 +71,6 @@ export async function buildNecessaryDOM(): Promise<void> {
       loadScript(url, { async: false }),
     ),
   ]);
-}
-
-declare global {
-  namespace ig {
-    function _DOMReady(): void;
-
-    interface System {
-      setGameNow(this: this, gameClass: unknown): void;
-    }
-
-    // eslint-disable-next-line no-var
-    var system: System;
-  }
-
-  function startCrossCode(): void;
 }
 
 export async function loadMainScript(
