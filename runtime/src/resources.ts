@@ -103,29 +103,38 @@ interface ResolveURLResult {
   resolvedURL: string;
   requestedAsset: string | null;
 }
-// TODO: ig.root, ig.getFilePath(), ig.getCacheSuffix()
+// TODO: ig.root, ig.getFilePath()
 function resolveURLInternal(url: string): ResolveURLResult {
   let result: ResolveURLResult = {
     resolvedURL: url,
     requestedAsset: null,
   };
 
+  function finalizeResult(): ResolveURLResult {
+    if (typeof ig !== 'undefined') result.resolvedURL += ig.getCacheSuffix();
+    result.resolvedURL = encodeURI(result.resolvedURL);
+    return result;
+  }
+
   let modResourcePath = applyModURLProtocol(url);
   if (modResourcePath != null) {
     result.resolvedURL = `/${modResourcePath}`;
-    return result;
+    return finalizeResult();
   }
 
   let normalizedPath = ccmod3.paths.resolve(GAME_ASSETS_URL.pathname, url);
   result.resolvedURL = normalizedPath;
 
-  if (!normalizedPath.startsWith(GAME_ASSETS_URL.pathname)) return result;
+  if (!normalizedPath.startsWith(GAME_ASSETS_URL.pathname)) {
+    return finalizeResult();
+  }
+
   result.requestedAsset = normalizedPath.slice(GAME_ASSETS_URL.pathname.length);
 
   let overridePath = applyAssetOverrides(result.requestedAsset);
   if (overridePath != null) result.resolvedURL = `/${overridePath}`;
 
-  return result;
+  return finalizeResult();
 }
 
 function applyAssetOverrides(path: string): string | null {

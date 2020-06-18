@@ -1,48 +1,61 @@
 import { GAME_ASSETS_URL, MOD_PROTOCOL_PREFIX } from './resources.constants.js';
+import * as impactInitHooks from './impact-init-hooks.js';
 import * as impactModuleHooks from './impact-module-hooks.js';
 
-$.ajaxSetup({
-  beforeSend(_jqXhr: JQueryXHR, settings: JQueryAjaxSettings): boolean {
-    if (settings.dataType !== 'json' || settings.type !== 'GET') return true;
+impactInitHooks.add(() => {
+  $.ajaxSetup({
+    beforeSend(_jqXhr: JQueryXHR, settings: JQueryAjaxSettings): boolean {
+      if (settings.dataType !== 'json' || settings.type !== 'GET') return true;
 
-    let { url } = settings;
-    if (typeof url !== 'string') return true;
+      let { url } = settings;
+      if (typeof url !== 'string') return true;
 
-    if (!url.startsWith(MOD_PROTOCOL_PREFIX)) {
-      let parsedUrl = new URL(url, document.baseURI).href;
-      if (!parsedUrl.startsWith(GAME_ASSETS_URL.href)) return true;
-    }
+      if (!url.startsWith(MOD_PROTOCOL_PREFIX)) {
+        let parsedUrl = new URL(url, document.baseURI).href;
+        if (!parsedUrl.startsWith(GAME_ASSETS_URL.href)) return true;
+      }
 
-    let { context, success, error, complete } = settings;
-    delete settings.success;
-    delete settings.error;
-    delete settings.complete;
-    ccmod3.resources
-      .loadJSONPatched(url)
-      .then(
-        (data) => {
-          if (success != null) success.call(context, data, 'hijacked', null!);
-        },
-        (err) => {
-          // errors aren't really handled by the game though
-          if (error != null) error.call(context, null!, 'hijacked', err);
-        },
-      )
-      .finally(() => {
-        if (complete != null) complete.call(context, null!, 'hijacked');
-      });
+      let cacheSuffix = ig.getCacheSuffix();
+      if (cacheSuffix.length > 0 && url.endsWith(cacheSuffix)) {
+        url = url.slice(0, -cacheSuffix.length);
+      }
 
-    return false;
-  },
+      let { context, success, error, complete } = settings;
+      delete settings.success;
+      delete settings.error;
+      delete settings.complete;
+      ccmod3.resources
+        .loadJSONPatched(url)
+        .then(
+          (data) => {
+            if (success != null) success.call(context, data, 'hijacked', null!);
+          },
+          (err) => {
+            // errors aren't really handled by the game though
+            if (error != null) error.call(context, null!, 'hijacked', err);
+          },
+        )
+        .finally(() => {
+          if (complete != null) complete.call(context, null!, 'hijacked');
+        });
+
+      return false;
+    },
+  });
 });
 
 impactModuleHooks.add('impact.base.image', () => {
   ig.Image.inject({
     loadInternal(path) {
+      // Some image paths include trailing whitespace which the devs didn't
+      // notice because JS automatically trims whitespace (note: encoded
+      // whitespace, i.e. `%20`-like entities, are left untouched) in URLs. I'm
+      // assuming that there are no such JSON paths because JQuery automatically
+      // encodes URIs before requesting and there are no instances of leading
+      // whitespace because `ig.root` is not empty in the development version.
+      path = path.trimRight();
       ccmod3.resources
-        .loadImagePatched(
-          ig.getFilePath(`${ig.root}${path}${ig.getCacheSuffix()}`),
-        )
+        .loadImagePatched(ig.getFilePath(`${ig.root}${path}`))
         .then(
           (img) => {
             this.data = img;
@@ -82,9 +95,8 @@ impactModuleHooks.add('impact.base.sound', () => {
       pathWithoutExt = pathWithoutExt.slice(0, lastDotIndex);
     }
 
-    let cacheSuffix = ig.getCacheSuffix();
     let resolvedURL = ig.getFilePath(
-      `${ig.root}${pathWithoutExt}.${ig.soundManager.format.ext}${cacheSuffix}`,
+      `${ig.root}${pathWithoutExt}.${ig.soundManager.format.ext}`,
     );
     resolvedURL = ccmod3.resources.resolveURL(resolvedURL);
 
