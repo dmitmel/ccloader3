@@ -2,8 +2,55 @@ import * as patchsteps from '../../common/vendor-libs/patchsteps.js';
 import PatchStepsDebugState from './patch-steps-debug-state.js';
 import { Mod } from '../../src/public/mod';
 import { GAME_ASSETS_URL, MOD_PROTOCOL_PREFIX } from './resources.constants.js';
+import { mapGetOrInsert } from '../../common/dist/utils.js';
 
 export * from '../../common/dist/resources.js';
+
+export const assetOverridesTable = new Map<string, string>();
+
+// temporary, will be removed with the introduction of the scriptable resource
+// pipeline, thus not exported
+const patchstepsPatchesTable = new Map<
+  string,
+  Array<{ mod: Mod; path: string }>
+>();
+
+{
+  let assetOverridesFromMods = new Map<string, Mod[]>();
+
+  for (let mod of modloader.loadedMods.values()) {
+    for (let asset of mod.assets) {
+      if (asset.endsWith('.json.patch')) {
+        let patchedAssetName = asset.slice(0, -6);
+        let modsWithThisPatch = mapGetOrInsert(
+          patchstepsPatchesTable,
+          patchedAssetName,
+          [],
+        );
+        modsWithThisPatch.push({ mod, path: `${mod.assetsDirectory}${asset}` });
+        continue;
+      }
+
+      let modsWithThisAsset = mapGetOrInsert(assetOverridesFromMods, asset, []);
+      modsWithThisAsset.push(mod);
+    }
+  }
+
+  for (let [asset, modsWithThisAsset] of assetOverridesFromMods) {
+    if (modsWithThisAsset.length > 1) {
+      console.warn(
+        `Conflict between overrides for '${asset}' found in mods '${modsWithThisAsset
+          .map((mod) => mod.manifest.id)
+          .join("', '")}'. Using the override from mod '${
+          modsWithThisAsset[0].manifest.id
+        }'`,
+      );
+    }
+
+    let overridePath = `${modsWithThisAsset[0].assetsDirectory}${asset}`;
+    assetOverridesTable.set(asset, overridePath);
+  }
+}
 
 // TODO: options object
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -14,8 +61,7 @@ export async function loadJSONPatched(path: string): Promise<any> {
   let data = await loadJSON(resolvedURL);
 
   if (requestedAsset != null) {
-    let patches = resolveAssetPathsInAllMods(`${requestedAsset}.patch`);
-    for (let patch of patches) {
+    for (let patch of patchstepsPatchesTable.get(requestedAsset) ?? []) {
       let patchData = await loadJSON(`/${patch.path}`);
       await patchJSON(data, patchData, patch.path, patch.mod);
     }
@@ -131,41 +177,12 @@ function resolveURLInternal(url: string): ResolveURLResult {
 
   result.requestedAsset = normalizedPath.slice(GAME_ASSETS_URL.pathname.length);
 
-  let overridePath = applyAssetOverrides(result.requestedAsset);
+  let overridePath = assetOverridesTable.get(result.requestedAsset);
   if (overridePath != null) {
     result.resolvedURL = `/${overridePath}`;
   }
 
   return finalizeResult();
-}
-
-function applyAssetOverrides(path: string): string | null {
-  let overrides = resolveAssetPathsInAllMods(path);
-  if (overrides.length === 0) return null;
-
-  if (overrides.length > 1) {
-    console.warn(
-      `Conflict between overrides for '${path}' found in mods '${overrides
-        .map(({ mod }) => mod.manifest.id)
-        .join("', '")}' found. Using the override from mod '${
-        overrides[0].mod.manifest.id
-      }'`,
-    );
-  }
-
-  return overrides[0].path;
-}
-
-function resolveAssetPathsInAllMods(
-  path: string,
-): Array<{ mod: Mod; path: string }> {
-  let results: Array<{ mod: Mod; path: string }> = [];
-  for (let mod of modloader.loadedMods.values()) {
-    if (mod.assets.has(path)) {
-      results.push({ mod, path: `${mod.assetsDir}${path}` });
-    }
-  }
-  return results;
 }
 
 function applyModURLProtocol(fullURI: string): string | null {

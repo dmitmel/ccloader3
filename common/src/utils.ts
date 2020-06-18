@@ -38,3 +38,16 @@ export function errorHasCode(error: any): error is { code: string } {
 export function hasKey(obj: unknown, key: PropertyKey): boolean {
   return Object.prototype.hasOwnProperty.call(obj, key);
 }
+
+export function mapGetOrInsert<K, V>(
+  map: Map<K, V>,
+  key: K,
+  defaultValue: V,
+): V {
+  if (map.has(key)) {
+    return map.get(key)!;
+  } else {
+    map.set(key, defaultValue);
+    return defaultValue;
+  }
+}

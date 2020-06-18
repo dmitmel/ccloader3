@@ -1,16 +1,12 @@
 // based on https://github.com/CCDirectLink/DevModLoader/blob/7dd3c4ebee4b516b201205d0bb1c24913335b9f1/js/game/ig-interceptor.js
 
 import * as impactInitHooks from './impact-init-hooks.js';
+import { mapGetOrInsert } from '../../common/dist/utils.js';
 
 export const registeredHooks = new Map<string, Array<() => void>>();
 
 export function add(moduleName: string, callback: () => void): void {
-  let list = registeredHooks.get(moduleName);
-  if (list == null) {
-    list = [];
-    registeredHooks.set(moduleName, list);
-  }
-  list.push(callback);
+  mapGetOrInsert(registeredHooks, moduleName, []).push(callback);
 }
 
 impactInitHooks.add(() => {

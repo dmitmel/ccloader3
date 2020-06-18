@@ -20,7 +20,7 @@ export type ModLoadingStage = 'preload' | 'postload' | 'prestart' | 'poststart';
 export class Mod {
   public readonly baseDirectory: string;
   public readonly manifest: Manifest;
-  public readonly assetsDir: string;
+  public readonly assetsDirectory: string;
   public readonly assets: ReadonlySet<string>;
   public readonly legacyMode: boolean;
   public readonly version: SemVer;

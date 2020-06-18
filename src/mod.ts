@@ -18,7 +18,7 @@ import * as files from './files.js';
 export class Mod implements ModPublic {
   public readonly version: SemVer;
   public readonly dependencies: ReadonlyMap<ModId, ModDependency>;
-  public readonly assetsDir: string;
+  public readonly assetsDirectory: string;
   public assets: Set<string> = new Set();
   public shouldBeLoaded = true;
   public classInstance: ModClass | null = null;
@@ -64,7 +64,7 @@ export class Mod implements ModPublic {
 
     this.dependencies = dependencies;
 
-    this.assetsDir = this.resolvePath(
+    this.assetsDirectory = this.resolvePath(
       `${this.manifest.assetsDir ?? 'assets'}/`,
     );
   }
@@ -76,7 +76,7 @@ export class Mod implements ModPublic {
         paths.stripRoot(paths.join('/', path)),
       );
     } else if (PLATFORM_TYPE === PlatformType.Desktop) {
-      assets = await files.findRecursively(this.assetsDir);
+      assets = await files.findRecursively(this.assetsDirectory);
     }
     this.assets = new Set(assets);
   }
