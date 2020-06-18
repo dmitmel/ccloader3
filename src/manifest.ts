@@ -97,7 +97,7 @@ export class ManifestValidator {
 
       this.assertPeople(['authors'], data.authors);
 
-      this.assertDependencies(['dependencies'], data.dependencies);
+      this.assertDependencies(['dependencies'], data.dependencies, false);
 
       this.assertAssets(['assets'], data.assets);
       this.assertType(['assetsDir'], data.assetsDir, [Type.string], true);
@@ -132,9 +132,13 @@ export class ManifestValidator {
       this.assertType(['homepage'], data.homepage, [Type.string], true);
 
       if (data.ccmodDependencies !== undefined) {
-        this.assertDependencies(['ccmodDependencies'], data.ccmodDependencies);
+        this.assertDependencies(
+          ['ccmodDependencies'],
+          data.ccmodDependencies,
+          true,
+        );
       } else {
-        this.assertDependencies(['dependencies'], data.dependencies);
+        this.assertDependencies(['dependencies'], data.dependencies, true);
       }
 
       this.assertAssets(['assets'], data.assets);
@@ -243,13 +247,16 @@ export class ManifestValidator {
   private assertDependencies(
     valuePath: JsonPath,
     value: ModDependencies | undefined,
+    legacy: boolean,
   ): void {
     let assertion = this.assertType(valuePath, value, [Type.object], true);
     if (assertion.status !== 'ok') return;
     value = value!;
 
     for (let [key, value2] of Object.entries(value)) {
-      this.assertDependency([...valuePath, key], value2);
+      let valuePath2 = [...valuePath, key];
+      if (legacy) this.assertType(valuePath2, value2, [Type.string]);
+      else this.assertDependency(valuePath2, value2);
     }
   }
 
@@ -293,21 +300,19 @@ export function convertFromLegacy(data: ManifestLegacy): Manifest {
     version: data.version,
     license: data.license,
 
-    title: {
-      en_US:
-        data.ccmodHumanName !== undefined ? data.ccmodHumanName : data.name,
-    },
-    description:
-      data.description !== undefined ? { en_US: data.description } : undefined,
-    homepage:
-      data.homepage !== undefined ? { en_US: data.homepage } : undefined,
+    title: data.ccmodHumanName,
+    description: data.description,
+    homepage: data.homepage,
 
     dependencies:
       data.ccmodDependencies !== undefined
         ? data.ccmodDependencies
         : data.dependencies,
 
-    assets: data.assets,
+    assets: data.assets?.map((path) => {
+      if (path.startsWith('assets/')) path = path.slice(7);
+      return path;
+    }),
 
     main: data.plugin,
     preload: data.preload,
