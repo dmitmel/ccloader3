@@ -17,6 +17,7 @@ rules:
         - status
         - event
         - hasOwnProperty
+        - parent
 
   global-require: off
 
