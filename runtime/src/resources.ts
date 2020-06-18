@@ -3,17 +3,14 @@ import PatchStepsDebugState from './patch-steps-debug-state.js';
 import { Mod } from '../../src/public/mod';
 import { GAME_ASSETS_URL, MOD_PROTOCOL_PREFIX } from './resources.constants.js';
 import { mapGetOrInsert } from '../../common/dist/utils.js';
+import PatchList, { MaybePromise } from './patch-list.js';
 
 export * from '../../common/dist/resources.js';
 
-export const assetOverridesTable = new Map<string, string>();
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const jsonPatches = new PatchList<(data: any) => MaybePromise<void>>();
 
-// temporary, will be removed with the introduction of the scriptable resource
-// pipeline, thus not exported
-const patchstepsPatchesTable = new Map<
-  string,
-  Array<{ mod: Mod; path: string }>
->();
+export const assetOverridesTable = new Map<string, string>();
 
 {
   let assetOverridesFromMods = new Map<string, Mod[]>();
@@ -21,13 +18,8 @@ const patchstepsPatchesTable = new Map<
   for (let mod of modloader.loadedMods.values()) {
     for (let asset of mod.assets) {
       if (asset.endsWith('.json.patch')) {
-        let patchedAssetName = asset.slice(0, -6);
-        let modsWithThisPatch = mapGetOrInsert(
-          patchstepsPatchesTable,
-          patchedAssetName,
-          [],
-        );
-        modsWithThisPatch.push({ mod, path: `${mod.assetsDirectory}${asset}` });
+        let patchedAsset = asset.slice(0, -6);
+        registerPatchstepsPatch(mod, asset, patchedAsset);
         continue;
       }
 
@@ -52,6 +44,29 @@ const patchstepsPatchesTable = new Map<
   }
 }
 
+function registerPatchstepsPatch(
+  mod: Mod,
+  patchFileRelativePath: string,
+  patchedAssetPath: string,
+): void {
+  jsonPatches.add(patchedAssetPath, async (data: unknown) => {
+    let patchData = await loadJSON(
+      `/${mod.assetsDirectory}${patchFileRelativePath}`,
+    );
+
+    let debugState = new PatchStepsDebugState(mod);
+    debugState.addFile([/* fromGame */ false, patchFileRelativePath]);
+
+    await patchsteps.patch(
+      data,
+      patchData,
+      (fromGame: string | boolean, url: string): Promise<void> =>
+        fromGame ? loadJSONPatched(url) : loadJSON(`/${mod.resolvePath(url)}`),
+      debugState,
+    );
+  });
+}
+
 // TODO: options object
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function loadJSONPatched(path: string): Promise<any> {
@@ -61,32 +76,12 @@ export async function loadJSONPatched(path: string): Promise<any> {
   let data = await loadJSON(resolvedURL);
 
   if (requestedAsset != null) {
-    for (let patch of patchstepsPatchesTable.get(requestedAsset) ?? []) {
-      let patchData = await loadJSON(`/${patch.path}`);
-      await patchJSON(data, patchData, patch.path, patch.mod);
+    for (let patcher of jsonPatches.forPath(requestedAsset)) {
+      await patcher(data);
     }
   }
 
   return data;
-}
-
-function patchJSON(
-  data: unknown,
-  patchData: patchsteps.Patch,
-  patchPath: string,
-  patchMod: Mod,
-): Promise<void> {
-  let debugState = new PatchStepsDebugState(patchMod);
-  debugState.addFile([true, patchPath]);
-  return patchsteps.patch(
-    data,
-    patchData,
-    (fromGame: string | boolean, url: string): Promise<void> =>
-      fromGame
-        ? loadJSONPatched(url)
-        : loadJSON(`/${patchMod.resolvePath(url)}`),
-    debugState,
-  );
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

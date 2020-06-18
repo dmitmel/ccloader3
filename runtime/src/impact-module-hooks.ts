@@ -1,12 +1,12 @@
 // based on https://github.com/CCDirectLink/DevModLoader/blob/7dd3c4ebee4b516b201205d0bb1c24913335b9f1/js/game/ig-interceptor.js
 
 import * as impactInitHooks from './impact-init-hooks.js';
-import { mapGetOrInsert } from '../../common/dist/utils.js';
+import PatchList from './patch-list.js';
 
-export const registeredHooks = new Map<string, Array<() => void>>();
+export const patchList = new PatchList<() => void>();
 
 export function add(moduleName: string, callback: () => void): void {
-  mapGetOrInsert(registeredHooks, moduleName, []).push(callback);
+  patchList.add(moduleName, callback);
 }
 
 impactInitHooks.add(() => {
@@ -16,9 +16,7 @@ impactInitHooks.add(() => {
     if (name == null) return originalDefines.call(this, body);
     return originalDefines.call(this, function () {
       body();
-      let callbacks = registeredHooks.get(name!);
-      if (callbacks == null) return;
-      for (let cb of callbacks) cb();
+      for (let cb of patchList.forPath(name!)) cb();
     });
   };
 });
