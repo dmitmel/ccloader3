@@ -132,7 +132,9 @@ function resolveURLInternal(url: string): ResolveURLResult {
   result.requestedAsset = normalizedPath.slice(GAME_ASSETS_URL.pathname.length);
 
   let overridePath = applyAssetOverrides(result.requestedAsset);
-  if (overridePath != null) result.resolvedURL = `/${overridePath}`;
+  if (overridePath != null) {
+    result.resolvedURL = `/${overridePath}`;
+  }
 
   return finalizeResult();
 }
@@ -171,7 +173,9 @@ function applyModURLProtocol(fullURI: string): string | null {
 
   try {
     let uri = fullURI.slice(MOD_PROTOCOL_PREFIX.length);
-    if (uri.length === 0) throw new Error('the URI is empty');
+    if (uri.length === 0) {
+      throw new Error('the URI is empty');
+    }
 
     let modIdSeparatorIndex = uri.indexOf('/');
     if (modIdSeparatorIndex < 0) {
@@ -179,13 +183,19 @@ function applyModURLProtocol(fullURI: string): string | null {
     }
 
     let modId = uri.slice(0, modIdSeparatorIndex);
-    if (modId.length === 0) throw new Error('the mod ID is empty');
+    if (modId.length === 0) {
+      throw new Error('the mod ID is empty');
+    }
 
     let filePath = uri.slice(modIdSeparatorIndex + 1);
-    if (filePath.length === 0) throw new Error('the file path is empty');
+    if (filePath.length === 0) {
+      throw new Error('the file path is empty');
+    }
 
     let mod = modloader.loadedMods.get(modId);
-    if (mod == null) throw new Error(`mod '${modId}' not found`);
+    if (mod == null) {
+      throw new Error(`mod '${modId}' not found`);
+    }
 
     return mod.resolvePath(filePath);
   } catch (err) {

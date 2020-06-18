@@ -309,10 +309,9 @@ export function convertFromLegacy(data: ManifestLegacy): Manifest {
         ? data.ccmodDependencies
         : data.dependencies,
 
-    assets: data.assets?.map((path) => {
-      if (path.startsWith('assets/')) path = path.slice(7);
-      return path;
-    }),
+    assets: data.assets?.map((path) =>
+      path.startsWith('assets/') ? path.slice(7) : path,
+    ),
 
     main: data.plugin,
     preload: data.preload,

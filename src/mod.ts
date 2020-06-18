@@ -107,7 +107,9 @@ export class Mod implements ModPublic {
 
   public async executeStage(stage: ModLoadingStage): Promise<void> {
     let classMethodName: keyof ModClass = stage;
-    if (this.legacyMode && stage === 'poststart') classMethodName = 'main';
+    if (this.legacyMode && stage === 'poststart') {
+      classMethodName = 'main';
+    }
     if (this.classInstance != null && classMethodName in this.classInstance) {
       await this.classInstance[classMethodName]!(this);
     }

@@ -5,14 +5,18 @@ import * as impactModuleHooks from './impact-module-hooks.js';
 impactInitHooks.add(() => {
   $.ajaxSetup({
     beforeSend(_jqXhr: JQueryXHR, settings: JQueryAjaxSettings): boolean {
-      if (settings.dataType !== 'json' || settings.type !== 'GET') return true;
+      if (settings.dataType !== 'json' || settings.type !== 'GET') {
+        return true;
+      }
 
       let { url } = settings;
       if (typeof url !== 'string') return true;
 
       if (!url.startsWith(MOD_PROTOCOL_PREFIX)) {
         let parsedUrl = new URL(url, document.baseURI).href;
-        if (!parsedUrl.startsWith(GAME_ASSETS_URL.href)) return true;
+        if (!parsedUrl.startsWith(GAME_ASSETS_URL.href)) {
+          return true;
+        }
       }
 
       let cacheSuffix = ig.getCacheSuffix();
@@ -28,15 +32,21 @@ impactInitHooks.add(() => {
         .loadJSONPatched(url)
         .then(
           (data) => {
-            if (success != null) success.call(context, data, 'hijacked', null!);
+            if (success != null) {
+              success.call(context, data, 'hijacked', null!);
+            }
           },
           (err) => {
             // errors aren't really handled by the game though
-            if (error != null) error.call(context, null!, 'hijacked', err);
+            if (error != null) {
+              error.call(context, null!, 'hijacked', err);
+            }
           },
         )
         .finally(() => {
-          if (complete != null) complete.call(context, null!, 'hijacked');
+          if (complete != null) {
+            complete.call(context, null!, 'hijacked');
+          }
         });
 
       return false;
