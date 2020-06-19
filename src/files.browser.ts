@@ -15,7 +15,17 @@ export async function loadText(path: string): Promise<string> {
 }
 
 export async function exists(path: string): Promise<boolean> {
-  throw new Error('unsupported');
+  try {
+    let res = await fetch(`/${path}`);
+    if (res.status === 404) return false;
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return true;
+  } catch (err) {
+    if (errorHasMessage(err)) {
+      err.message = `HEAD request to '${path}' failed: ${err.message}`;
+    }
+    throw err;
+  }
 }
 
 export function findRecursively(_dir: string): Promise<string[]> {

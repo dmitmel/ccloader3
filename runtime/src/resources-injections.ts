@@ -18,12 +18,40 @@ impactInitHooks.add(() => {
         if (!parsedUrl.startsWith(GAME_ASSETS_URL.href)) {
           return true;
         }
+
+        // This is the only request to a local PHP script in the entire game,
+        // that is, a script located inside the assets directory. However, it is
+        // not patched not only because its a PHP script. See, `ig.ExtensionList`
+        // has a bug: it calls this PHP script which, of course, doesn't work in
+        // the production version, when the game is running in the browser (in
+        // nw.js it just uses `fs.readdir`). The function which triggers the
+        // network request (`ig.ExtensionList#onExtensionListLoaded`) assigns
+        // the same handler for both successes and errors. On success nothing
+        // extraordinary would have happened: the handler would simply receive a
+        // JSON response containing the list of extensions and move on. However:
+        // the first argument of an error handler for `$.ajax` is the `JQueryXHR`
+        // instance (unlike for success where it is the received data), but the
+        // game doesn't crash under normal conditions as it uses a plain old
+        // "for i" loop to iterate the received list: `list.length` returns
+        // `undefined` when the `jqXHR` instance is received, so nothing is
+        // iterated and nothing crashes. In our case though I have to ignore
+        // this specific request and just let JQuery handle it because of the
+        // returned `null`s in the request hijacking code below.
+        if (
+          parsedUrl.startsWith(
+            `${GAME_ASSETS_URL.href}page/api/get-extension-list.php`,
+          )
+        ) {
+          return true;
+        }
       }
 
       let cacheSuffix = ig.getCacheSuffix();
       if (cacheSuffix.length > 0 && url.endsWith(cacheSuffix)) {
         url = url.slice(0, -cacheSuffix.length);
       }
+
+      // TODO: log errors here
 
       let { context, success, error, complete } = settings;
       delete settings.success;
@@ -34,11 +62,21 @@ impactInitHooks.add(() => {
         .then(
           (data) => {
             if (success != null) {
+              // About returning `null` instead of the instance of `JQueryXHR`:
+              // it should be obvious that while I technically can pass the
+              // `JQueryXHR` object received by the overall `beforeSend` function,
+              // it will be invalid because it has been hijacked and aborted.
+              // `null` is returned instead here and for other handlers because
+              // neither mods nor the game rely on any arguments besides the
+              // received JSON data, and this should discourage future uses of
+              // `$.ajax` for fetching assets from mods.
               success.call(context, data, 'hijacked', null!);
             }
           },
           (err) => {
-            // errors aren't really handled by the game though
+            // errors aren't really handled by the game though, so let's log it
+            // here as well
+            console.error(err);
             if (error != null) {
               error.call(context, null!, 'hijacked', err);
             }
@@ -70,7 +108,9 @@ impactModuleHooks.add('impact.base.image', () => {
           this.data = img;
           this.onload();
         },
-        (_err) => {
+        (err) => {
+          // errors aren't displayed by `ig.Image`
+          console.error(err);
           this.onerror();
         },
       );
