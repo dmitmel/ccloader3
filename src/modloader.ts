@@ -115,7 +115,7 @@ async function loadModloaderMetadata(): Promise<{
   name: string;
   version: SemVer;
 }> {
-  let toolJsonText = await files.loadText(`${CCLOADER_DIR}tool.json`);
+  let toolJsonText = await files.loadText(`${CCLOADER_DIR}tool.config.json`);
   let data = JSON.parse(toolJsonText) as { name: string; version: string };
   return { name: data.name, version: new SemVer(data.version) };
 }
