@@ -2,8 +2,9 @@ import * as patchsteps from '../../common/vendor-libs/patchsteps.js';
 import PatchStepsDebugState from './patch-steps-debug-state.js';
 import { Mod } from '../../src/public/mod';
 import { GAME_ASSETS_URL, MOD_PROTOCOL_PREFIX } from './resources.constants.js';
-import { mapGetOrInsert } from '../../common/dist/utils.js';
+import { errorHasMessage, mapGetOrInsert } from '../../common/dist/utils.js';
 import PatchList, { MaybePromise } from './patch-list.js';
+import * as paths from '../../common/dist/paths.js';
 
 export * from '../../common/dist/resources.js';
 
@@ -92,7 +93,7 @@ export async function loadJSON(url: string): Promise<any> {
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     return await res.json();
   } catch (err) {
-    if (ccmod3.utils.errorHasMessage(err)) {
+    if (errorHasMessage(err)) {
       err.message = `Failed to load JSON file '${url}': ${err.message}`;
     }
     throw err;
@@ -163,7 +164,7 @@ function resolveURLInternal(url: string): ResolveURLResult {
     return finalizeResult();
   }
 
-  let normalizedPath = ccmod3.paths.resolve(GAME_ASSETS_URL.pathname, url);
+  let normalizedPath = paths.resolve(GAME_ASSETS_URL.pathname, url);
   result.resolvedURL = normalizedPath;
 
   if (!normalizedPath.startsWith(GAME_ASSETS_URL.pathname)) {
@@ -211,7 +212,7 @@ function applyModURLProtocol(fullURI: string): string | null {
 
     return mod.resolvePath(filePath);
   } catch (err) {
-    if (ccmod3.utils.errorHasMessage(err)) {
+    if (errorHasMessage(err)) {
       err.message = `Invalid '${MOD_PROTOCOL_PREFIX}' URL '${fullURI}': ${err.message}`;
     }
     throw err;

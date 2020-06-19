@@ -1,6 +1,7 @@
 import { GAME_ASSETS_URL, MOD_PROTOCOL_PREFIX } from './resources.constants.js';
 import * as impactInitHooks from './impact-init-hooks.js';
 import * as impactModuleHooks from './impact-module-hooks.js';
+import * as resources from './resources.js';
 
 impactInitHooks.add(() => {
   $.ajaxSetup({
@@ -28,7 +29,7 @@ impactInitHooks.add(() => {
       delete settings.success;
       delete settings.error;
       delete settings.complete;
-      ccmod3.resources
+      resources
         .loadJSONPatched(url)
         .then(
           (data) => {
@@ -64,17 +65,15 @@ impactModuleHooks.add('impact.base.image', () => {
       // encodes URIs before requesting and there are no instances of leading
       // whitespace because `ig.root` is not empty in the development version.
       path = path.trimRight();
-      ccmod3.resources
-        .loadImagePatched(ig.getFilePath(`${ig.root}${path}`))
-        .then(
-          (img) => {
-            this.data = img;
-            this.onload();
-          },
-          (_err) => {
-            this.onerror();
-          },
-        );
+      resources.loadImagePatched(ig.getFilePath(`${ig.root}${path}`)).then(
+        (img) => {
+          this.data = img;
+          this.onload();
+        },
+        (_err) => {
+          this.onerror();
+        },
+      );
     },
 
     // the default implementation appends a query with the current date in
@@ -108,7 +107,7 @@ impactModuleHooks.add('impact.base.sound', () => {
     let resolvedURL = ig.getFilePath(
       `${ig.root}${pathWithoutExt}.${ig.soundManager.format.ext}`,
     );
-    resolvedURL = ccmod3.resources.resolveURL(resolvedURL);
+    resolvedURL = resources.resolveURL(resolvedURL);
 
     let originalGetFilePath = ig.getFilePath;
     try {

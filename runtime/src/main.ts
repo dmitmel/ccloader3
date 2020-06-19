@@ -8,7 +8,7 @@ import * as impactModuleHooks from './impact-module-hooks.js';
 import * as resources from './resources.js';
 import './resources-injections.js';
 
-export default class CCLoaderRuntimeModClass {
+export default class CCLoaderRuntimeMod {
   public constructor() {
     if (window.ccmod3 == null) window.ccmod3 = {} as typeof ccmod3;
     Object.assign(ccmod3, {
