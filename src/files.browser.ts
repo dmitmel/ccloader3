@@ -1,7 +1,7 @@
 import { errorHasMessage } from '../common/dist/utils.js';
 import * as paths from '../common/dist/paths.js';
 
-export async function loadFile(path: string): Promise<string> {
+export async function loadText(path: string): Promise<string> {
   try {
     let res = await fetch(`/${path}`);
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
@@ -14,6 +14,10 @@ export async function loadFile(path: string): Promise<string> {
   }
 }
 
+export async function exists(path: string): Promise<boolean> {
+  throw new Error('unsupported');
+}
+
 export function findRecursively(_dir: string): Promise<string[]> {
   throw new Error('unsupported');
 }
@@ -22,7 +26,7 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
   if (dir.endsWith('/')) dir = dir.slice(0, -1);
 
   let indexPath = `${dir}/index.json`;
-  let indexJsonText = await loadFile(indexPath);
+  let indexJsonText = await loadText(indexPath);
   let index: string[];
 
   try {

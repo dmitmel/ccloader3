@@ -1,19 +1,14 @@
-import {
-  IMPACT_CONFIGURATION,
-  MAIN_SCRIPT_URL,
-  REQUIRED_SCRIPT_URLS,
-  REQUIRED_STYLESHEET_URLS,
-} from './game.config.js';
 import { loadScript, loadStylesheet } from '../common/dist/resources.js';
 import { SemVer } from '../common/vendor-libs/semver.js';
 import * as files from './files.js';
 import { ChangelogFile } from './game-types';
+import { Config } from './config.js';
 
 export async function loadVersion(): Promise<{
   version: SemVer;
   hotfix: number;
 }> {
-  let changelogText = await files.loadFile('assets/data/changelog.json');
+  let changelogText = await files.loadText('assets/data/changelog.json');
   let { changelog } = JSON.parse(changelogText) as ChangelogFile;
   let latestChangelog = changelog[0];
 
@@ -33,7 +28,7 @@ export async function loadVersion(): Promise<{
   return { version, hotfix };
 }
 
-export async function buildNecessaryDOM(): Promise<void> {
+export async function buildNecessaryDOM(config: Config): Promise<void> {
   let base = document.createElement('base');
   base.href = `${location.origin}/assets/`;
   document.head.appendChild(base);
@@ -61,11 +56,13 @@ export async function buildNecessaryDOM(): Promise<void> {
   document.body.appendChild(div);
   document.body.style.overflow = 'hidden';
 
-  Object.assign(window, IMPACT_CONFIGURATION);
+  Object.assign(window, config.impactConfig);
+
+  await config.onGameDOMCreated();
 
   await Promise.all([
-    ...REQUIRED_STYLESHEET_URLS.map((url) => loadStylesheet(url)),
-    ...REQUIRED_SCRIPT_URLS.map((url) =>
+    ...config.stylesheetURLs.map((url) => loadStylesheet(url)),
+    ...config.scriptURLs.map((url) =>
       // async is turned off so that these scripts are loaded in the order of
       // addition
       loadScript(url, { async: false }),
@@ -74,18 +71,19 @@ export async function buildNecessaryDOM(): Promise<void> {
 }
 
 export async function loadMainScript(
-  onImpactInit: () => void,
+  config: Config,
+  eventReceiver: { onImpactInit(): void },
 ): Promise<() => void> {
   let domReadyCallback: () => void = null!;
   callOnImpactInit(() => {
     domReadyCallback = window.ig._DOMReady;
     window.ig._DOMReady = () => {};
-    onImpactInit();
+    eventReceiver.onImpactInit();
   });
 
   // async is turned off so that the main script blocks the UI thread while it
   // is being executed
-  await loadScript(MAIN_SCRIPT_URL, { async: false });
+  await loadScript(config.gameScriptURL, { async: false });
 
   if (domReadyCallback == null) {
     throw new Error('domReadyCallback');

@@ -2,8 +2,12 @@ import * as patchsteps from '../../common/vendor-libs/patchsteps.js';
 import PatchStepsDebugState from './patch-steps-debug-state.js';
 import { Mod } from '../../src/public/mod';
 import { GAME_ASSETS_URL, MOD_PROTOCOL_PREFIX } from './resources.constants.js';
-import { errorHasMessage, mapGetOrInsert } from '../../common/dist/utils.js';
-import PatchList, { MaybePromise } from './patch-list.js';
+import {
+  MaybePromise,
+  errorHasMessage,
+  mapGetOrInsert,
+} from '../../common/dist/utils.js';
+import PatchList from './patch-list.js';
 import * as paths from '../../common/dist/paths.js';
 
 export * from '../../common/dist/resources.js';

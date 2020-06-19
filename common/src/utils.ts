@@ -1,3 +1,5 @@
+export type MaybePromise<T> = T | Promise<T>;
+
 export enum PlatformType {
   Desktop = 'Desktop',
   Browser = 'Browser',

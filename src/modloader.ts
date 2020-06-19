@@ -1,4 +1,5 @@
 import * as files from './files.js';
+import { load as loadConfig } from './config.js';
 import { Manifest, ManifestLegacy, ModId } from './public/manifest';
 import {
   ManifestValidator,
@@ -22,8 +23,9 @@ type ReadonlyVirtualPackagesMap = ReadonlyMap<ModId, SemVer>;
 
 export async function boot(): Promise<void> {
   let modloaderMetadata = await loadModloaderMetadata();
-
   console.log(`${modloaderMetadata.name} ${modloaderMetadata.version}`);
+
+  let config = await loadConfig();
 
   let {
     version: gameVersion,
@@ -90,13 +92,14 @@ export async function boot(): Promise<void> {
     loadedMods,
   };
 
-  await game.buildNecessaryDOM();
+  await game.buildNecessaryDOM(config);
 
   await initModClasses(loadedMods);
 
   await executeStage(loadedMods, 'preload');
-  let domReadyCallback = await game.loadMainScript(() =>
-    (runtimeMod!.classInstance! as { onImpactInit(): void }).onImpactInit(),
+  let domReadyCallback = await game.loadMainScript(
+    config,
+    runtimeMod.classInstance! as import('../runtime/src/main').default,
   );
   await executeStage(loadedMods, 'postload');
   domReadyCallback();
@@ -112,7 +115,7 @@ async function loadModloaderMetadata(): Promise<{
   name: string;
   version: SemVer;
 }> {
-  let toolJsonText = await files.loadFile(`${CCLOADER_DIR}tool.json`);
+  let toolJsonText = await files.loadText(`${CCLOADER_DIR}tool.json`);
   let data = JSON.parse(toolJsonText) as { name: string; version: string };
   return { name: data.name, version: new SemVer(data.version) };
 }
@@ -157,12 +160,12 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
 
   try {
     manifestFile = `${baseDirectory}/ccmod.json`;
-    manifestText = await files.loadFile(manifestFile);
+    manifestText = await files.loadText(manifestFile);
   } catch (_e1) {
     try {
       legacyMode = true;
       manifestFile = `${baseDirectory}/package.json`;
-      manifestText = await files.loadFile(manifestFile);
+      manifestText = await files.loadText(manifestFile);
     } catch (_e2) {
       return null;
     }

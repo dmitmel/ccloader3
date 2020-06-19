@@ -92,7 +92,7 @@ export class Mod implements ModPublic {
       module = await import(`/${scriptFullPath}`);
     } catch (err) {
       if (errorHasMessage(err)) {
-        err.message = `Error when importing '${scriptFullPath}': ${err.message}`;
+        err.message = `Error while importing '${scriptFullPath}': ${err.message}`;
       }
       throw err;
     }

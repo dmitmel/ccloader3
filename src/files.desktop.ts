@@ -4,8 +4,18 @@ const { promises: fs } = (typeof require === 'function'
   ? require('fs')
   : {}) as typeof import('fs');
 
-export async function loadFile(path: string): Promise<string> {
+export async function loadText(path: string): Promise<string> {
   return fs.readFile(path, 'utf8');
+}
+
+export async function exists(path: string): Promise<boolean> {
+  try {
+    await fs.access(path);
+  } catch (err) {
+    if (errorHasCode(err) && err.code === 'ENOENT') return false;
+    throw err;
+  }
+  return true;
 }
 
 export async function findRecursively(dir: string): Promise<string[]> {

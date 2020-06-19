@@ -1,7 +1,5 @@
 import { mapGetOrInsert } from '../../common/dist/utils.js';
 
-export type MaybePromise<T> = T | Promise<T>;
-
 export default class PatchList<P> {
   public map = new Map<string, P[]>();
 
