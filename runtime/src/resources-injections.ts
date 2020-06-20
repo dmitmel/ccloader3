@@ -37,11 +37,7 @@ impactInitHooks.add(() => {
         // iterated and nothing crashes. In our case though I have to ignore
         // this specific request and just let JQuery handle it because of the
         // returned `null`s in the request hijacking code below.
-        if (
-          parsedUrl.startsWith(
-            `${GAME_ASSETS_URL.href}page/api/get-extension-list.php`,
-          )
-        ) {
+        if (parsedUrl.startsWith(`${GAME_ASSETS_URL.href}page/api/get-extension-list.php`)) {
           return true;
         }
       }
@@ -144,9 +140,7 @@ impactModuleHooks.add('impact.base.sound', () => {
       pathWithoutExt = pathWithoutExt.slice(0, lastDotIndex);
     }
 
-    let resolvedURL = ig.getFilePath(
-      `${ig.root}${pathWithoutExt}.${ig.soundManager.format.ext}`,
-    );
+    let resolvedURL = ig.getFilePath(`${ig.root}${pathWithoutExt}.${ig.soundManager.format.ext}`);
     resolvedURL = resources.resolveURL(resolvedURL);
 
     let originalGetFilePath = ig.getFilePath;

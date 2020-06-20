@@ -83,11 +83,7 @@ export namespace PatchStep {
 export function photomerge<A = unknown, B = unknown>(a: A, b: B): A & B;
 export function photocopy<O = unknown>(o: O): O;
 
-export function diff(
-  a: unknown,
-  b: unknown,
-  settings: Partial<DiffSettings>,
-): PatchStep[] | null;
+export function diff(a: unknown, b: unknown, settings: Partial<DiffSettings>): PatchStep[] | null;
 
 export interface DiffSettings {
   arrayTrulyDifferentThreshold: number;
@@ -104,16 +100,9 @@ export interface DiffSettings {
   optimize: boolean;
 }
 
-export type DiffCore = (
-  a: unknown,
-  b: unknown,
-  settings: DiffSettings,
-) => PatchStep[] | null;
+export type DiffCore = (a: unknown, b: unknown, settings: DiffSettings) => PatchStep[] | null;
 
-export function diffApplyComment(
-  step: PatchStep,
-  settings: DiffSettings,
-): PatchStep;
+export function diffApplyComment(step: PatchStep, settings: DiffSettings): PatchStep;
 
 export function diffEnterLevel(
   a: unknown,
@@ -122,9 +111,7 @@ export function diffEnterLevel(
   settings: DiffSettings,
 ): PatchStep[] | null;
 
-export type ParsedPath =
-  | null
-  | [/* fromGame */ boolean | string, /* url */ string];
+export type ParsedPath = null | [/* fromGame */ boolean | string, /* url */ string];
 
 export interface FileInfo {
   path: string;
@@ -172,10 +159,7 @@ export class DebugState {
 
 export const appliers: Record<string, Applier>;
 
-export type Applier = (
-  this: StackEntry.Step,
-  state: ApplierState,
-) => Promise<void>;
+export type Applier = (this: StackEntry.Step, state: ApplierState) => Promise<void>;
 
 export interface ApplierState {
   currentValue: unknown;

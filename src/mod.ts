@@ -1,18 +1,9 @@
 import { SemVer, Range as SemVerRange } from '../common/vendor-libs/semver.js';
 import { Manifest, ModId } from './public/manifest';
 // TODO: consider using `import * as cls` here
-import {
-  ModClass,
-  ModDependency,
-  ModLoadingStage,
-  Mod as ModPublic,
-} from './public/mod';
+import { ModClass, ModDependency, ModLoadingStage, Mod as ModPublic } from './public/mod';
 import * as paths from '../common/dist/paths.js';
-import {
-  PLATFORM_TYPE,
-  PlatformType,
-  errorHasMessage,
-} from '../common/dist/utils.js';
+import { PLATFORM_TYPE, PlatformType, errorHasMessage } from '../common/dist/utils.js';
 import * as files from './files.js';
 
 export class Mod implements ModPublic {
@@ -64,17 +55,13 @@ export class Mod implements ModPublic {
 
     this.dependencies = dependencies;
 
-    this.assetsDirectory = this.resolvePath(
-      `${this.manifest.assetsDir ?? 'assets'}/`,
-    );
+    this.assetsDirectory = this.resolvePath(`${this.manifest.assetsDir ?? 'assets'}/`);
   }
 
   public async findAllAssets(): Promise<void> {
     let assets: string[] = [];
     if (this.manifest.assets != null) {
-      assets = this.manifest.assets.map((path) =>
-        paths.stripRoot(paths.join('/', path)),
-      );
+      assets = this.manifest.assets.map((path) => paths.stripRoot(paths.join('/', path)));
     } else if (PLATFORM_TYPE === PlatformType.Desktop) {
       assets = await files.findRecursively(this.assetsDirectory);
     }

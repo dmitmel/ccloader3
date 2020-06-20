@@ -1,10 +1,7 @@
 import * as files from './files.js';
 import { load as loadConfig } from './config.js';
 import { Manifest, ManifestLegacy, ModId } from './public/manifest';
-import {
-  ManifestValidator,
-  convertFromLegacy as convertManifestFromLegacy,
-} from './manifest.js';
+import { ManifestValidator, convertFromLegacy as convertManifestFromLegacy } from './manifest.js';
 import { ModDependency, ModLoadingStage } from './public/mod';
 import { Mod } from './mod.js';
 import * as game from './game.js';
@@ -14,9 +11,7 @@ import * as paths from '../common/dist/paths.js';
 import * as deobfUtils from './deobf.js';
 
 // ends with a slash
-const CCLOADER_DIR: string = paths.stripRoot(
-  new URL('../', import.meta.url).pathname,
-);
+const CCLOADER_DIR: string = paths.stripRoot(new URL('../', import.meta.url).pathname);
 
 type ModsMap = Map<ModId, Mod>;
 type ReadonlyModsMap = ReadonlyMap<ModId, Mod>;
@@ -28,10 +23,7 @@ export async function boot(): Promise<void> {
 
   let config = await loadConfig();
 
-  let {
-    version: gameVersion,
-    hotfix: gameVersionHotfix,
-  } = await game.loadVersion();
+  let { version: gameVersion, hotfix: gameVersionHotfix } = await game.loadVersion();
   console.log(`crosscode ${gameVersion}-${gameVersionHotfix}`);
 
   await deobfUtils.load(gameVersion, gameVersionHotfix);
@@ -61,9 +53,7 @@ export async function boot(): Promise<void> {
   virtualPackages.set('ccloader', modloaderMetadata.version);
   verifyModDependencies(installedMods, virtualPackages);
   if (!runtimeMod.shouldBeLoaded) {
-    throw new Error(
-      'Could not load the runtime mod, game initialization is impossible!',
-    );
+    throw new Error('Could not load the runtime mod, game initialization is impossible!');
   }
 
   let loadedMods = new Map<ModId, Mod>();
@@ -204,18 +194,15 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
   return new Mod(`${baseDirectory}/`, manifestData, legacyMode);
 }
 
-function sortModsInLoadOrder(
-  runtimeMod: Mod,
-  installedMods: ReadonlyModsMap,
-): ModsMap {
+function sortModsInLoadOrder(runtimeMod: Mod, installedMods: ReadonlyModsMap): ModsMap {
   // note that maps preserve insertion order as defined in the ECMAScript spec
   let sortedMods = new Map<ModId, Mod>();
 
   sortedMods.set(runtimeMod.manifest.id, runtimeMod);
 
-  let unsortedModsList: Mod[] = Array.from(
-    installedMods.values(),
-  ).sort((mod1, mod2) => compare(mod1.manifest.id, mod2.manifest.id));
+  let unsortedModsList: Mod[] = Array.from(installedMods.values()).sort((mod1, mod2) =>
+    compare(mod1.manifest.id, mod2.manifest.id),
+  );
 
   while (unsortedModsList.length > 0) {
     // dependency cycles can be detected by checking if we removed any
@@ -224,9 +211,7 @@ function sortModsInLoadOrder(
 
     for (let i = 0; i < unsortedModsList.length; ) {
       let mod = unsortedModsList[i];
-      if (
-        !modHasUnsortedInstalledDependencies(mod, sortedMods, installedMods)
-      ) {
+      if (!modHasUnsortedInstalledDependencies(mod, sortedMods, installedMods)) {
         unsortedModsList.splice(i, 1);
         sortedMods.set(mod.manifest.id, mod);
         dependencyCyclesExist = false;
@@ -265,12 +250,7 @@ function verifyModDependencies(
 ): void {
   for (let mod of installedMods.values()) {
     for (let [depId, dep] of mod.dependencies) {
-      let problem = checkDependencyConstraint(
-        depId,
-        dep,
-        installedMods,
-        virtualPackages,
-      );
+      let problem = checkDependencyConstraint(depId, dep, installedMods, virtualPackages);
       if (problem != null) {
         mod.shouldBeLoaded = false;
         console.error(`Could not load mod '${mod.manifest.id}': ${problem}`);
@@ -320,26 +300,17 @@ async function initModClasses(mods: ReadonlyModsMap): Promise<void> {
     try {
       await mod.initClass();
     } catch (err) {
-      console.error(
-        `Failed to initialize class of mod '${mod.manifest.id}':`,
-        err,
-      );
+      console.error(`Failed to initialize class of mod '${mod.manifest.id}':`, err);
     }
   }
 }
 
-async function executeStage(
-  mods: ReadonlyModsMap,
-  stage: ModLoadingStage,
-): Promise<void> {
+async function executeStage(mods: ReadonlyModsMap, stage: ModLoadingStage): Promise<void> {
   for (let mod of mods.values()) {
     try {
       await mod.executeStage(stage);
     } catch (err) {
-      console.error(
-        `Failed to execute ${stage} of mod '${mod.manifest.id}':`,
-        err,
-      );
+      console.error(`Failed to execute ${stage} of mod '${mod.manifest.id}':`, err);
     }
   }
 }

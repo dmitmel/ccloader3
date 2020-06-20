@@ -2,11 +2,7 @@ import * as patchsteps from '../../common/vendor-libs/patchsteps.js';
 import PatchStepsDebugState from './patch-steps-debug-state.js';
 import { Mod } from '../../src/public/mod';
 import { GAME_ASSETS_URL, MOD_PROTOCOL_PREFIX } from './resources.constants.js';
-import {
-  MaybePromise,
-  errorHasMessage,
-  mapGetOrInsert,
-} from '../../common/dist/utils.js';
+import { MaybePromise, errorHasMessage, mapGetOrInsert } from '../../common/dist/utils.js';
 import PatchList from './patch-list.js';
 import * as paths from '../../common/dist/paths.js';
 
@@ -38,9 +34,7 @@ export const assetOverridesTable = new Map<string, string>();
       console.warn(
         `Conflict between overrides for '${asset}' found in mods '${modsWithThisAsset
           .map((mod) => mod.manifest.id)
-          .join("', '")}'. Using the override from mod '${
-          modsWithThisAsset[0].manifest.id
-        }'`,
+          .join("', '")}'. Using the override from mod '${modsWithThisAsset[0].manifest.id}'`,
       );
     }
 
@@ -55,9 +49,7 @@ function registerPatchstepsPatch(
   patchedAssetPath: string,
 ): void {
   jsonPatches.add(patchedAssetPath, async (data: unknown) => {
-    let patchData = await loadJSON(
-      `/${mod.assetsDirectory}${patchFileRelativePath}`,
-    );
+    let patchData = await loadJSON(`/${mod.assetsDirectory}${patchFileRelativePath}`);
 
     let debugState = new PatchStepsDebugState(mod);
     debugState.addFile([/* fromGame */ false, patchFileRelativePath]);

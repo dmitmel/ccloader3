@@ -121,22 +121,13 @@ export class ManifestValidator {
       this.assertType(['name'], data.name, [Type.string]);
       this.assertType(['version'], data.version, [Type.string]);
 
-      this.assertType(
-        ['ccmodHumanName'],
-        data.ccmodHumanName,
-        [Type.string],
-        true,
-      );
+      this.assertType(['ccmodHumanName'], data.ccmodHumanName, [Type.string], true);
       this.assertType(['description'], data.description, [Type.string], true);
       this.assertType(['license'], data.license, [Type.string], true);
       this.assertType(['homepage'], data.homepage, [Type.string], true);
 
       if (data.ccmodDependencies !== undefined) {
-        this.assertDependencies(
-          ['ccmodDependencies'],
-          data.ccmodDependencies,
-          true,
-        );
+        this.assertDependencies(['ccmodDependencies'], data.ccmodDependencies, true);
       } else {
         this.assertDependencies(['dependencies'], data.dependencies, true);
       }
@@ -188,12 +179,7 @@ export class ManifestValidator {
     value: LocalizedString | undefined,
     optional = false,
   ): void {
-    let assertion = this.assertType(
-      valuePath,
-      value,
-      [Type.object, Type.string],
-      optional,
-    );
+    let assertion = this.assertType(valuePath, value, [Type.object, Type.string], optional);
     if (assertion.status !== 'ok') return;
     value = value as LocalizedString;
 
@@ -203,10 +189,7 @@ export class ManifestValidator {
     }
   }
 
-  private assertKeywords(
-    valuePath: JsonPath,
-    value: LocalizedString[] | undefined,
-  ): void {
+  private assertKeywords(valuePath: JsonPath, value: LocalizedString[] | undefined): void {
     let assertion = this.assertType(valuePath, value, [Type.array], true);
     if (assertion.status !== 'ok') return;
     value = value!;
@@ -229,10 +212,7 @@ export class ManifestValidator {
   }
 
   private assertPerson(valuePath: JsonPath, value: Person): void {
-    let assertion = this.assertType(valuePath, value, [
-      Type.object,
-      Type.string,
-    ]);
+    let assertion = this.assertType(valuePath, value, [Type.object, Type.string]);
     if (assertion.status !== 'ok') return;
 
     if (assertion.type === Type.string) return;
@@ -261,28 +241,17 @@ export class ManifestValidator {
   }
 
   private assertDependency(valuePath: JsonPath, value: ModDependency): void {
-    let assertion = this.assertType(valuePath, value, [
-      Type.object,
-      Type.string,
-    ]);
+    let assertion = this.assertType(valuePath, value, [Type.object, Type.string]);
     if (assertion.status !== 'ok') return;
 
     if (assertion.type === Type.string) return;
     value = value as ModDependencyDetails;
 
     this.assertType([...valuePath, 'version'], value.version, [Type.string]);
-    this.assertType(
-      [...valuePath, 'optional'],
-      value.optional,
-      [Type.boolean],
-      true,
-    );
+    this.assertType([...valuePath, 'optional'], value.optional, [Type.boolean], true);
   }
 
-  private assertAssets(
-    valuePath: JsonPath,
-    value: FilePath[] | undefined,
-  ): void {
+  private assertAssets(valuePath: JsonPath, value: FilePath[] | undefined): void {
     let assertion = this.assertType(valuePath, value, [Type.array], true);
     if (assertion.status !== 'ok') return;
     value = value!;
@@ -304,14 +273,9 @@ export function convertFromLegacy(data: ManifestLegacy): Manifest {
     description: data.description,
     homepage: data.homepage,
 
-    dependencies:
-      data.ccmodDependencies !== undefined
-        ? data.ccmodDependencies
-        : data.dependencies,
+    dependencies: data.ccmodDependencies !== undefined ? data.ccmodDependencies : data.dependencies,
 
-    assets: data.assets?.map((path) =>
-      path.startsWith('assets/') ? path.slice(7) : path,
-    ),
+    assets: data.assets?.map((path) => (path.startsWith('assets/') ? path.slice(7) : path)),
 
     main: data.plugin,
     preload: data.preload,

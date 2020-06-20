@@ -44,11 +44,7 @@ async function findRecursivelyInternal(
       let fullPath = `${currentDir}/${name}`;
       let stat = await fs.stat(fullPath);
       if (stat.isDirectory()) {
-        await findRecursivelyInternal(
-          fullPath,
-          `${relativePrefix}${name}/`,
-          fileList,
-        );
+        await findRecursivelyInternal(fullPath, `${relativePrefix}${name}/`, fileList);
       } else {
         fileList.push(`${relativePrefix}${name}`);
       }
@@ -65,9 +61,7 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
     allContents = await fs.readdir(dir);
   } catch (err) {
     if (errorHasCode(err) && err.code === 'ENOENT') {
-      console.warn(
-        `Directory '${dir}' not found, did you forget to create it?`,
-      );
+      console.warn(`Directory '${dir}' not found, did you forget to create it?`);
       allContents = [];
     } else {
       throw err;

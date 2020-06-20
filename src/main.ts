@@ -2,9 +2,9 @@ import * as modloader from './modloader.js';
 import { showDevTools, wait } from '../common/dist/utils.js';
 
 (async () => {
-  let onloadPromise = new Promise((resolve) =>
-    window.addEventListener('load', () => resolve()),
-  );
+  let onloadPromise = new Promise((resolve) => {
+    window.addEventListener('load', () => resolve());
+  });
 
   if (typeof process !== 'undefined') {
     let { env } = process;

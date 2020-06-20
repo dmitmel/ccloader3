@@ -10,8 +10,7 @@ export function loadStylesheet(
     if (options.type != null) link.type = options.type;
 
     link.onload = () => resolve();
-    link.onerror = () =>
-      reject(new Error(`Failed to load stylesheet '${url}'`));
+    link.onerror = () => reject(new Error(`Failed to load stylesheet '${url}'`));
     document.head.appendChild(link);
   });
 }

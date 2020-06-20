@@ -2,20 +2,13 @@ import * as files from './files.js';
 import { SemVer } from '../common/vendor-libs/semver.js';
 import * as paths from '../common/dist/paths.js';
 
-const TABLES_DIR: string = paths.stripRoot(
-  new URL('../deobf-tables/', import.meta.url).pathname,
-);
+const TABLES_DIR: string = paths.stripRoot(new URL('../deobf-tables/', import.meta.url).pathname);
 
 export let table = {} as Table;
 
-export async function load(
-  gameVersion: SemVer,
-  gameVersionHotfix: number,
-): Promise<void> {
+export async function load(gameVersion: SemVer, gameVersionHotfix: number): Promise<void> {
   let tableName =
-    gameVersion.compare('1.1.0') < 0
-      ? `${gameVersion}-${gameVersionHotfix}`
-      : 'final';
+    gameVersion.compare('1.1.0') < 0 ? `${gameVersion}-${gameVersionHotfix}` : 'final';
   let tablePath = `${TABLES_DIR}${tableName}.txt`;
 
   table = {} as Table;

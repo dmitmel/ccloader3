@@ -10,9 +10,7 @@ export interface Config {
   onGameDOMCreated: () => MaybePromise<void>;
 }
 
-const CONFIG_SCRIPT_PATH = paths.stripRoot(
-  new URL('../user-config.js', import.meta.url).pathname,
-);
+const CONFIG_SCRIPT_PATH = paths.stripRoot(new URL('../user-config.js', import.meta.url).pathname);
 
 interface ConfigModule {
   default: (config: Config) => MaybePromise<void>;

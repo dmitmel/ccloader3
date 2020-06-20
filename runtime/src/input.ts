@@ -80,9 +80,7 @@ ig.module('ccloader-runtime.stdlib.input')
           }
 
           let action = optionId.slice(5);
-          let { key1, key2 } = sc.options.values[
-            optionId
-          ] as sc.OptionDefinition.CONTROLS['init'];
+          let { key1, key2 } = sc.options.values[optionId] as sc.OptionDefinition.CONTROLS['init'];
           if (key1 != null) {
             ig.input.bind(key1, action);
             sc.fontsystem.changeKeyCodeIcon(action, key1);
@@ -96,9 +94,7 @@ ig.module('ccloader-runtime.stdlib.input')
       },
 
       changeBinding(optionId, key, isAlternative, unbind) {
-        let optionValue = sc.options.values[
-          optionId
-        ] as sc.OptionDefinition.CONTROLS['init'];
+        let optionValue = sc.options.values[optionId] as sc.OptionDefinition.CONTROLS['init'];
         sc.options.hasChanged = true;
 
         // this assignment accessed `KEY_OPTION_MAP` to get the option value
@@ -134,9 +130,7 @@ ig.module('ccloader-runtime.stdlib.input')
           } else {
             // this error message isn't present in the original code, I got this
             // idea from 20kdc's implementation
-            console.error(
-              'input-api: unable to find the conflicting key binding. report ASAP!',
-            );
+            console.error('input-api: unable to find the conflicting key binding. report ASAP!');
           }
 
           ig.input.bind(oldKey, conflictingAction);

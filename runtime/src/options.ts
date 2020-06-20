@@ -19,8 +19,7 @@ ig.module('ccloader-runtime.stdlib.options.gui')
         if (this.option.type === 'CHECKBOX' && this.option.checkboxRightAlign) {
           let checkbox = this.typeGui as sc.OPTION_GUIS_DEFS.CHECKBOX;
           checkbox.button.hook.align.x = ig.GUI_ALIGN.X_RIGHT;
-          let additionalWidth =
-            checkbox.hook.size.x - checkbox.button.hook.size.x;
+          let additionalWidth = checkbox.hook.size.x - checkbox.button.hook.size.x;
           const lineHook = this.hook.children[1];
           const slopeHook = this.hook.children[2];
           lineHook.size.x += additionalWidth;

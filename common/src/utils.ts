@@ -41,11 +41,7 @@ export function hasKey(obj: unknown, key: PropertyKey): boolean {
   return Object.prototype.hasOwnProperty.call(obj, key);
 }
 
-export function mapGetOrInsert<K, V>(
-  map: Map<K, V>,
-  key: K,
-  defaultValue: V,
-): V {
+export function mapGetOrInsert<K, V>(map: Map<K, V>, key: K, defaultValue: V): V {
   if (map.has(key)) {
     return map.get(key)!;
   } else {
