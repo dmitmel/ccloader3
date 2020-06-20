@@ -3,9 +3,11 @@
 import * as impactInitHooks from './impact-init-hooks.js';
 import PatchList from './patch-list.js';
 
-export const patchList = new PatchList<() => void>();
+export type ImpactModuleHook = (moduleName: string) => void;
 
-export function add(moduleName: string, callback: () => void): void {
+export const patchList = new PatchList<ImpactModuleHook>();
+
+export function add(moduleName: string | RegExp, callback: ImpactModuleHook): void {
   patchList.add(moduleName, callback);
 }
 
@@ -14,9 +16,10 @@ impactInitHooks.add(() => {
   ig[deobf.defines] = function (body) {
     let { name }: ig.Module = ig[deobf._current]!;
     if (name == null) return originalDefines.call(this, body);
+
     return originalDefines.call(this, function () {
       body();
-      for (let cb of patchList.forPath(name!)) cb();
+      for (let callback of patchList.forPath(name!)) callback(name!);
     });
   };
 });

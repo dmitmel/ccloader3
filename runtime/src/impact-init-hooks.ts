@@ -1,5 +1,7 @@
-export const callbacks: Array<() => void> = [];
+export type ImpactInitHook = () => void;
 
-export function add(callback: () => void): void {
+export const callbacks: ImpactInitHook[] = [];
+
+export function add(callback: ImpactInitHook): void {
   callbacks.push(callback);
 }
