@@ -1,9 +1,8 @@
 import { getLocalizedString, getModTitle } from './utils.js';
 
-ccmod3.resources.jsonPatches.add('data/lang/sc/gui.en_US.json', (data) => {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let { labels } = data as any;
-
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ccmod3.resources.jsonPatches.add('data/lang/sc/gui.en_US.json', (data: any) => {
+  let { labels } = data;
   let langOptions = labels.options;
 
   langOptions.headers.logLevel = 'Log levels';

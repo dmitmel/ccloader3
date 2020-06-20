@@ -8,7 +8,10 @@ import * as paths from '../../common/dist/paths.js';
 
 export * from '../../common/dist/resources.js';
 
-export type JSONPatcher = (data: unknown, context: JSONPatcherContext) => MaybePromise<void>;
+export type JSONPatcher = (
+  data: unknown,
+  context: JSONPatcherContext,
+) => MaybePromise<unknown | void>;
 export interface JSONPatcherContext {
   resolvedURL: string;
   requestedAsset: string;
@@ -53,7 +56,7 @@ function registerPatchstepsPatch(
   patchFileRelativePath: string,
   patchedAssetPath: string,
 ): void {
-  jsonPatches.add(patchedAssetPath, async (data: unknown) => {
+  jsonPatches.add(patchedAssetPath, async (data) => {
     let patchData = (await loadJSON(
       `/${mod.assetsDirectory}${patchFileRelativePath}`,
     )) as patchsteps.PatchStep[];
@@ -68,6 +71,8 @@ function registerPatchstepsPatch(
         fromGame ? loadJSONPatched(url) : loadJSON(`/${mod.resolvePath(url)}`),
       debugState,
     );
+
+    return data;
   });
 }
 
@@ -85,9 +90,18 @@ export async function loadJSONPatched(
   let data = await loadJSON(resolvedURL);
 
   if (requestedAsset != null) {
-    let context: JSONPatcherContext = { resolvedURL, requestedAsset, options };
-    for (let patcher of jsonPatches.forPath(requestedAsset)) {
-      await patcher(data, context);
+    try {
+      let context: JSONPatcherContext = { resolvedURL, requestedAsset, options };
+      for (let patcher of jsonPatches.forPath(requestedAsset)) {
+        let newData = await patcher(data, context);
+        // eslint-disable-next-line no-undefined
+        if (newData !== undefined) data = newData;
+      }
+    } catch (err) {
+      if (errorHasMessage(err)) {
+        err.message = `Failed to patch JSON file '${path}': ${err.message}`;
+      }
+      throw err;
     }
   }
 

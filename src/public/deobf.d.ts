@@ -4,6 +4,8 @@ export interface Table extends Record<string, string> {
   GUI_ALIGN: 'GUI_ALIGN';
   ICON_START: 'ICON_START';
   Image: 'Image';
+  LANG_DETAILS: 'LANG_DETAILS';
+  Lang: 'Lang';
   MultiFont: 'MultiFont';
   OPTIONS_DEFINITION: 'OPTIONS_DEFINITION';
   OPTION_CATEGORY: 'OPTION_CATEGORY';
@@ -21,6 +23,7 @@ export interface Table extends Record<string, string> {
   _rearrangeTabs: '_rearrangeTabs';
   addChildGui: 'addChildGui';
   cat: 'cat';
+  currentLang: 'currentLang';
   defines: 'defines';
   ext: 'ext';
   fontsystem: 'fontsystem';
@@ -33,6 +36,7 @@ export interface Table extends Record<string, string> {
   iconSets: 'iconSets';
   init: 'init';
   inject: 'inject';
+  langFileList: 'langFileList';
   loadInternal: 'loadInternal';
   loadWebAudio: 'loadWebAudio';
   module: 'module';
@@ -50,6 +54,7 @@ export interface Table extends Record<string, string> {
   tabArray: 'tabArray';
   tabs: 'tabs';
   tinyFont: 'tinyFont';
+  toPath: 'toPath';
   typeGui: 'typeGui';
   values: 'values';
   versionGui: 'versionGui';

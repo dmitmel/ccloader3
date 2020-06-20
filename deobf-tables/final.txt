@@ -3,6 +3,8 @@ GENERAL:GENERAL
 GUI_ALIGN:GUI_ALIGN
 ICON_START:ICON_START
 Image:Image
+LANG_DETAILS:LANG_DETAILS
+Lang:Lang
 MultiFont:MultiFont
 OPTIONS_DEFINITION:OPTIONS_DEFINITION
 OPTION_CATEGORY:OPTION_CATEGORY
@@ -20,6 +22,7 @@ _current:_current
 _rearrangeTabs:_rearrangeTabs
 addChildGui:addChildGui
 cat:cat
+currentLang:currentLang
 defines:defines
 ext:ext
 fontsystem:fontsystem
@@ -32,6 +35,7 @@ hook:hook
 iconSets:iconSets
 init:init
 inject:inject
+langFileList:langFileList
 loadInternal:loadInternal
 loadWebAudio:loadWebAudio
 module:module
@@ -49,6 +53,7 @@ system:system
 tabArray:tabArray
 tabs:tabs
 tinyFont:tinyFont
+toPath:toPath
 typeGui:typeGui
 values:values
 versionGui:versionGui

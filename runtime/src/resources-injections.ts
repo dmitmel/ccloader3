@@ -47,8 +47,6 @@ impactInitHooks.add(() => {
         url = url.slice(0, -cacheSuffix.length);
       }
 
-      // TODO: log errors here
-
       let { context, success, error, complete } = settings;
       delete settings.success;
       delete settings.error;

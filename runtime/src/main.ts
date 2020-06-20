@@ -7,6 +7,7 @@ import * as impactInitHooks from './impact-init-hooks.js';
 import * as impactModuleHooks from './impact-module-hooks.js';
 import * as resources from './resources.js';
 import './resources-injections.js';
+import './lang-file-patcher.js';
 
 export default class CCLoaderRuntimeMod {
   public constructor() {
