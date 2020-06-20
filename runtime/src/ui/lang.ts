@@ -24,13 +24,15 @@ langOptions['mods-description'] = {
     'In this menu you can \\c[3]enable or disable installed mods\\c[0]. Mod descriptions are shown below. \\c[1]The game needs to be restarted\\c[0] if you change any options here!',
 };
 
+const OPTION_INFO_BOX_SUPPORTED = deobf.OptionInfoBox in sc;
+
 for (let mod of modloader.installedMods.values()) {
   let { id, description } = mod.manifest;
   if (id === 'ccloader-runtime') continue;
 
   let name = getModTitle(mod) || ' ';
   description = getLocalizedString(description) || ' ';
-  if (!('OptionInfoBox' in sc)) {
+  if (!OPTION_INFO_BOX_SUPPORTED) {
     description = `${description} \\c[1]Needs a restart!`;
   }
 

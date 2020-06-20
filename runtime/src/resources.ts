@@ -149,7 +149,7 @@ function resolveURLInternal(url: string): ResolveURLResult {
   };
 
   function finalizeResult(): ResolveURLResult {
-    if (typeof ig !== 'undefined') result.resolvedURL += ig.getCacheSuffix();
+    if (typeof ig !== 'undefined') result.resolvedURL += ig[deobf.getCacheSuffix]();
     result.resolvedURL = encodeURI(result.resolvedURL);
     return result;
   }

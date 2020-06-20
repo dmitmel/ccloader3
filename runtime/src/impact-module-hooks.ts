@@ -10,9 +10,9 @@ export function add(moduleName: string, callback: () => void): void {
 }
 
 impactInitHooks.add(() => {
-  let originalDefines = ig.defines;
-  ig.defines = function (body) {
-    let { name }: ig.Module = ig._current!;
+  let originalDefines = ig[deobf.defines];
+  ig[deobf.defines] = function (body) {
+    let { name }: ig.Module = ig[deobf._current]!;
     if (name == null) return originalDefines.call(this, body);
     return originalDefines.call(this, function () {
       body();

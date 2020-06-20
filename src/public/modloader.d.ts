@@ -1,6 +1,7 @@
 import { Mod } from './mod';
 import { ModId } from './manifest';
 import { SemVer } from '../../common/vendor-libs/semver';
+import * as deobf from './deobf';
 
 declare module 'semver' {
   interface SemVer {
@@ -25,4 +26,6 @@ declare global {
     const installedMods: ReadonlyMap<ModId, Mod>;
     const loadedMods: ReadonlyMap<ModId, Mod>;
   }
+
+  var deobf: deobf.Table;
 }

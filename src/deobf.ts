@@ -1,6 +1,7 @@
+import * as paths from '../common/dist/paths.js';
 import * as files from './files.js';
 import { SemVer } from '../common/vendor-libs/semver.js';
-import * as paths from '../common/dist/paths.js';
+import { Table } from './public/deobf';
 
 const TABLES_DIR: string = paths.stripRoot(new URL('../deobf-tables/', import.meta.url).pathname);
 
@@ -24,10 +25,6 @@ export async function load(gameVersion: SemVer, gameVersionHotfix: number): Prom
     let obfIdentifier = line.slice(colonIndex + 1);
     table[deobfIdentifier] = obfIdentifier;
   }
-}
 
-export interface Table extends Record<string, string> {
-  _DOMReady: '_DOMReady';
-  system: 'system';
-  setGameNow: 'setGameNow';
+  window.deobf = table;
 }

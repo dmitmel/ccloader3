@@ -42,7 +42,7 @@ impactInitHooks.add(() => {
         }
       }
 
-      let cacheSuffix = ig.getCacheSuffix();
+      let cacheSuffix = ig[deobf.getCacheSuffix]();
       if (cacheSuffix.length > 0 && url.endsWith(cacheSuffix)) {
         url = url.slice(0, -cacheSuffix.length);
       }
@@ -90,8 +90,8 @@ impactInitHooks.add(() => {
 });
 
 impactModuleHooks.add('impact.base.image', () => {
-  ig.Image.inject({
-    loadInternal(path) {
+  ig[deobf.Image][deobf.inject]({
+    [deobf.loadInternal](path) {
       // Some image paths include trailing whitespace which the devs didn't
       // notice because JS automatically trims whitespace (note: encoded
       // whitespace, i.e. `%20`-like entities, are left untouched) in URLs. I'm
@@ -99,7 +99,7 @@ impactModuleHooks.add('impact.base.image', () => {
       // encodes URIs before requesting and there are no instances of leading
       // whitespace because `ig.root` is not empty in the development version.
       path = path.trimRight();
-      resources.loadImagePatched(ig.getFilePath(`${ig.root}${path}`)).then(
+      resources.loadImagePatched(ig[deobf.getFilePath](`${ig.root}${path}`)).then(
         (img) => {
           this.data = img;
           this.onload();
@@ -117,6 +117,7 @@ impactModuleHooks.add('impact.base.image', () => {
     // implemented for images before a more general reload system,
     // `ig.Loadable#reload` existed, so let's fix this by calling the default
     // implementation
+    // CRITICAL: this is not available in 1.0.2-2!!!
     debugReload: true,
     reload() {
       // I kinda gave up fixing the `ImpactClass` here
@@ -140,20 +141,22 @@ impactModuleHooks.add('impact.base.sound', () => {
       pathWithoutExt = pathWithoutExt.slice(0, lastDotIndex);
     }
 
-    let resolvedURL = ig.getFilePath(`${ig.root}${pathWithoutExt}.${ig.soundManager.format.ext}`);
+    let resolvedURL = ig[deobf.getFilePath](
+      `${ig.root}${pathWithoutExt}.${ig[deobf.soundManager][deobf.format][deobf.ext]}`,
+    );
     resolvedURL = resources.resolveURL(resolvedURL);
 
-    let originalGetFilePath = ig.getFilePath;
+    let originalGetFilePath = ig[deobf.getFilePath];
     try {
-      ig.getFilePath = (_path) => resolvedURL;
+      ig[deobf.getFilePath] = (_path) => resolvedURL;
       return this.parent(...args);
     } finally {
-      ig.getFilePath = originalGetFilePath;
+      ig[deobf.getFilePath] = originalGetFilePath;
     }
   }
 
-  ig.SoundManager.inject({
-    loadWebAudio: loadAudio,
+  ig[deobf.SoundManager][deobf.inject]({
+    [deobf.loadWebAudio]: loadAudio,
     load: loadAudio,
   });
 });

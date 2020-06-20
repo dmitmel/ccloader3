@@ -35,6 +35,8 @@ rules:
   no-await-in-loop: off
   handle-callback-err: off
 
+  no-unexpected-multiline: off
+
 overrides:
   - files: '**/*.ts'
     extends: eslint-config-dmitmel/presets/typescript-addon
