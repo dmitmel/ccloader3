@@ -1,0 +1,3 @@
+_DOMReady:_DOMReady
+system:system
+setGameNow:setGameNow

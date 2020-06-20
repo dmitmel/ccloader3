@@ -11,6 +11,7 @@ import * as game from './game.js';
 import { SemVer } from '../common/vendor-libs/semver.js';
 import { compare, errorHasMessage } from '../common/dist/utils.js';
 import * as paths from '../common/dist/paths.js';
+import * as deobfUtils from './deobf.js';
 
 // ends with a slash
 const CCLOADER_DIR: string = paths.stripRoot(
@@ -32,6 +33,8 @@ export async function boot(): Promise<void> {
     hotfix: gameVersionHotfix,
   } = await game.loadVersion();
   console.log(`crosscode ${gameVersion}-${gameVersionHotfix}`);
+
+  await deobfUtils.load(gameVersion, gameVersionHotfix);
 
   let runtimeModBaseDirectory = `${CCLOADER_DIR}runtime`;
   let runtimeMod: Mod | null;

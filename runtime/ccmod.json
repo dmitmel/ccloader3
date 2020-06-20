@@ -9,7 +9,7 @@
   "prestart": "dist/prestart.js",
   "poststart": "dist/poststart.js",
   "dependencies": {
-    "crosscode": "^1.1.0",
+    "crosscode": "^1.0.0",
     "ccloader": "^3.0.0-alpha"
   }
 }
