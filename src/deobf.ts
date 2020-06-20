@@ -7,9 +7,10 @@ const TABLES_DIR: string = paths.stripRoot(new URL('../deobf-tables/', import.me
 
 export let table = {} as Table;
 
-export async function load(gameVersion: SemVer, gameVersionHotfix: number): Promise<void> {
-  let tableName =
-    gameVersion.compare('1.1.0') < 0 ? `${gameVersion}-${gameVersionHotfix}` : 'final';
+export async function load(gameVersion: SemVer, gameVersionHotfix: number): Promise<boolean> {
+  let gameSourceIsObfuscated = gameVersion.compare('1.1.0') < 0;
+
+  let tableName = gameSourceIsObfuscated ? `${gameVersion}-${gameVersionHotfix}` : 'final';
   let tablePath = `${TABLES_DIR}${tableName}.txt`;
 
   table = {} as Table;
@@ -27,4 +28,6 @@ export async function load(gameVersion: SemVer, gameVersionHotfix: number): Prom
   }
 
   window.deobf = table;
+
+  return gameSourceIsObfuscated;
 }

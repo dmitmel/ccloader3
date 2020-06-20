@@ -26,7 +26,7 @@ export async function boot(): Promise<void> {
   let { version: gameVersion, hotfix: gameVersionHotfix } = await game.loadVersion();
   console.log(`crosscode ${gameVersion}-${gameVersionHotfix}`);
 
-  await deobf.load(gameVersion, gameVersionHotfix);
+  let gameSourceIsObfuscated = await deobf.load(gameVersion, gameVersionHotfix);
 
   let runtimeModBaseDirectory = `${CCLOADER_DIR}runtime`;
   let runtimeMod: Mod | null;
@@ -81,6 +81,7 @@ export async function boot(): Promise<void> {
     version: modloaderMetadata.version,
     gameVersion,
     gameVersionHotfix,
+    gameSourceIsObfuscated,
     installedMods,
     loadedMods,
   };

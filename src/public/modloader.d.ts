@@ -23,6 +23,7 @@ declare global {
     const version: SemVer;
     const gameVersion: SemVer;
     const gameVersionHotfix: number;
+    const gameSourceIsObfuscated: boolean;
     const installedMods: ReadonlyMap<ModId, Mod>;
     const loadedMods: ReadonlyMap<ModId, Mod>;
   }

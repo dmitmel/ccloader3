@@ -117,12 +117,18 @@ impactModuleHooks.add('impact.base.image', () => {
     // implemented for images before a more general reload system,
     // `ig.Loadable#reload` existed, so let's fix this by calling the default
     // implementation
-    // CRITICAL: this is not available in 1.0.2-2!!!
     debugReload: true,
     reload() {
-      // I kinda gave up fixing the `ImpactClass` here
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ig.Loadable.prototype.reload.call(this as any);
+      if (modloader.gameSourceIsObfuscated) {
+        // doubt that someone will ever need the semantics of the default
+        // `ig.Loadable#reload` implementation in obfuscated versions which have
+        // been abandoned by everyone except speedrunners
+        this.load();
+      } else {
+        // I kinda gave up fixing the `ImpactClass` here
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ig.Loadable.prototype.reload.call(this as any);
+      }
     },
   });
 });

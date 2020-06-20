@@ -1,4 +1,4 @@
-// import './input.js';
+import './input.js';
 import './options.js';
 
 import './ui/options-mods-tab.js';
