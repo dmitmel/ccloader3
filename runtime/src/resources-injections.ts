@@ -54,7 +54,7 @@ impactInitHooks.add(() => {
       delete settings.error;
       delete settings.complete;
       resources
-        .loadJSONPatched(url)
+        .loadJSONPatched(url, { callerThisValue: context })
         .then(
           (data) => {
             if (success != null) {

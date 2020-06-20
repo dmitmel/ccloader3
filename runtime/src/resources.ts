@@ -8,8 +8,13 @@ import * as paths from '../../common/dist/paths.js';
 
 export * from '../../common/dist/resources.js';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const jsonPatches = new PatchList<(data: any) => MaybePromise<void>>();
+export type JSONPatcher = (data: unknown, context: JSONPatcherContext) => MaybePromise<void>;
+export interface JSONPatcherContext {
+  resolvedURL: string;
+  requestedAsset: string;
+  options: LoadJSONPatchedOptions;
+}
+export const jsonPatches = new PatchList<JSONPatcher>();
 
 export const assetOverridesTable = new Map<string, string>();
 
@@ -49,7 +54,9 @@ function registerPatchstepsPatch(
   patchedAssetPath: string,
 ): void {
   jsonPatches.add(patchedAssetPath, async (data: unknown) => {
-    let patchData = await loadJSON(`/${mod.assetsDirectory}${patchFileRelativePath}`);
+    let patchData = (await loadJSON(
+      `/${mod.assetsDirectory}${patchFileRelativePath}`,
+    )) as patchsteps.PatchStep[];
 
     let debugState = new PatchStepsDebugState(mod);
     debugState.addFile([/* fromGame */ false, patchFileRelativePath]);
@@ -57,32 +64,37 @@ function registerPatchstepsPatch(
     await patchsteps.patch(
       data,
       patchData,
-      (fromGame: string | boolean, url: string): Promise<void> =>
+      (fromGame: string | boolean, url: string): Promise<unknown> =>
         fromGame ? loadJSONPatched(url) : loadJSON(`/${mod.resolvePath(url)}`),
       debugState,
     );
   });
 }
 
-// TODO: options object
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function loadJSONPatched(path: string): Promise<any> {
-  let { resolvedURL, requestedAsset } = resolveURLInternal(path);
+export interface LoadJSONPatchedOptions {
+  callerThisValue?: unknown;
+}
+export async function loadJSONPatched(
+  path: string,
+  options?: LoadJSONPatchedOptions | null,
+): Promise<unknown> {
+  options = options ?? {};
 
+  let { resolvedURL, requestedAsset } = resolveURLInternal(path);
   // TODO: download data and patches in parallel
   let data = await loadJSON(resolvedURL);
 
   if (requestedAsset != null) {
+    let context: JSONPatcherContext = { resolvedURL, requestedAsset, options };
     for (let patcher of jsonPatches.forPath(requestedAsset)) {
-      await patcher(data);
+      await patcher(data, context);
     }
   }
 
   return data;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export async function loadJSON(url: string): Promise<any> {
+export async function loadJSON(url: string): Promise<unknown> {
   let res: Response;
   try {
     res = await fetch(url);

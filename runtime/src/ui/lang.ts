@@ -1,7 +1,10 @@
 import { getLocalizedString, getModTitle } from './utils.js';
 
 ccmod3.resources.jsonPatches.add('data/lang/sc/gui.en_US.json', (data) => {
-  let langOptions = data.labels.options;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let { labels } = data as any;
+
+  let langOptions = labels.options;
 
   langOptions.headers.logLevel = 'Log levels';
   langOptions['logLevel-log'] = {
@@ -17,13 +20,18 @@ ccmod3.resources.jsonPatches.add('data/lang/sc/gui.en_US.json', (data) => {
     description: 'Enables error popups. \\c[1]Needs a restart!',
   };
 
-  data.labels.menu.option.mods = 'Mods';
-  langOptions['mods-description'] = {
-    description:
-      'In this menu you can \\c[3]enable or disable installed mods\\c[0]. Mod descriptions are shown below. \\c[1]The game needs to be restarted\\c[0] if you change any options here!',
-  };
+  labels.menu.option.mods = 'Mods';
 
   const INFO_BOX_IS_SUPPORTED = deobf.OptionInfoBox in sc;
+
+  if (INFO_BOX_IS_SUPPORTED) {
+    langOptions['mods-description'] = {
+      description:
+        'In this menu you can \\c[3]enable or disable installed mods\\c[0]. ' +
+        'Mod descriptions are shown below. \\c[1]The game needs to be ' +
+        'restarted\\c[0] if you change any options here!',
+    };
+  }
 
   for (let mod of modloader.installedMods.values()) {
     let { id, description } = mod.manifest;
