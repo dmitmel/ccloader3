@@ -1,3 +1,5 @@
+import { ModClass } from '../../src/public/mod';
+
 import * as paths from '../../common/dist/paths.js';
 import * as utils from '../../common/dist/utils.js';
 import { requireFixed } from '../../common/dist/require.js';
@@ -9,7 +11,7 @@ import * as resources from './resources.js';
 import './resources-injections.js';
 import './lang-file-patcher.js';
 
-export default class CCLoaderRuntimeMod {
+export default class CCLoaderRuntimeMod implements ModClass {
   public constructor() {
     if (window.ccmod3 == null) window.ccmod3 = {} as typeof ccmod3;
     Object.assign(ccmod3, {
@@ -25,5 +27,17 @@ export default class CCLoaderRuntimeMod {
 
   public onImpactInit(): void {
     for (let cb of impactInitHooks.callbacks) cb();
+  }
+
+  public async postload(): Promise<void> {
+    await import('./postload.js');
+  }
+
+  public async prestart(): Promise<void> {
+    await import('./prestart.js');
+  }
+
+  public async poststart(): Promise<void> {
+    await import('./poststart.js');
   }
 }

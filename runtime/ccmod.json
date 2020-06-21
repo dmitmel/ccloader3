@@ -4,9 +4,6 @@
   "version": "1.0.0-alpha",
   "description": "CCLoader's graphical user interface and standard library implementation",
   "main": "dist/main.js",
-  "postload": "dist/postload.js",
-  "prestart": "dist/prestart.js",
-  "poststart": "dist/poststart.js",
   "dependencies": {
     "crosscode": "^1.0.0",
     "ccloader": "^3.0.0-alpha"
