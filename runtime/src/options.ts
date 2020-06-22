@@ -1,3 +1,5 @@
+export {};
+
 ig[deobf.module]('ccloader-runtime.stdlib.options.gui')
   [deobf.requires]('game.feature.menu.gui.options.options-types')
   [deobf.defines](() => {

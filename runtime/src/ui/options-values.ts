@@ -1,3 +1,5 @@
+export {};
+
 const DEFAULT_LOG_FLAGS = 0b011;
 
 function getLogFlagsBitset(): number {

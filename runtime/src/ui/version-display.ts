@@ -1,3 +1,5 @@
+export {};
+
 ig[deobf.module]('ccloader-runtime.ui.version-display')
   [deobf.requires](
     'game.feature.gui.base.text',

@@ -50,11 +50,11 @@
 // necessary edits, very minor refactors and code deduplications I didn't change
 // anything significant.
 
-ig[deobf.module]('ccloader-runtime.stdlib.input')
-  [deobf.requires]('game.feature.model.options-model')
-  [deobf.defines](() => {
-    if (modloader.gameSourceIsObfuscated) return;
+export {};
 
+ig.module('ccloader-runtime.stdlib.input')
+  .requires('game.feature.model.options-model')
+  .defines(() => {
     // `sc.KEY_BLACK_LIST` contains keys which cannot be bound using graphical
     // interface (i.e. `sc.KeyBinderGui`). Really it contains functional keys
     // F1-F12 and the control key. The reason for blacklisting functional keys

@@ -1,3 +1,5 @@
+export {};
+
 ig[deobf.module]('ccloader-runtime.ui.options.mods-tab')
   [deobf.requires](
     'impact.base.font',
