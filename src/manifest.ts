@@ -119,7 +119,7 @@ export class ManifestValidator {
 
     if (this.assertType([], data, [Type.object]).status === 'ok') {
       this.assertType(['name'], data.name, [Type.string]);
-      this.assertType(['version'], data.version, [Type.string]);
+      this.assertType(['version'], data.version, [Type.string], true);
 
       this.assertType(['ccmodHumanName'], data.ccmodHumanName, [Type.string], true);
       this.assertType(['description'], data.description, [Type.string], true);
@@ -266,7 +266,7 @@ export class ManifestValidator {
 export function convertFromLegacy(data: ManifestLegacy): Manifest {
   return {
     id: data.name,
-    version: data.version,
+    version: data.version !== undefined ? data.version : '0.0.0',
     license: data.license,
 
     title: data.ccmodHumanName,

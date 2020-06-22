@@ -23,7 +23,7 @@ export interface Manifest {
 
 export interface ManifestLegacy {
   name: ModId;
-  version: SemVer;
+  version?: SemVer;
 
   ccmodHumanName?: string;
   description?: string;
