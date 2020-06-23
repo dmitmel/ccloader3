@@ -39,16 +39,15 @@ Object.defineProperties(sc.options[deobf.values], {
   },
 });
 
-for (let modId of modloader.installedMods.keys()) {
+for (let [modId, mod] of modloader.installedMods) {
   if (modId === 'ccloader-runtime') continue;
-  let optionId = `modEnabled-${modId}`;
 
-  Object.defineProperty(sc.options[deobf.values], optionId, {
+  Object.defineProperty(sc.options[deobf.values], `modEnabled-${modId}`, {
     get() {
-      return localStorage.getItem(optionId) === 'true';
+      return mod.isEnabled;
     },
     set(value) {
-      localStorage.setItem(optionId, String(Boolean(value)));
+      mod.isEnabled = value;
     },
   });
 }

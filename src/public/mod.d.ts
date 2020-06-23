@@ -27,6 +27,7 @@ export class Mod {
   public readonly dependencies: ReadonlyMap<ModId, ModDependency>;
   public readonly shouldBeLoaded: boolean;
   public readonly classInstance: ModClass | null;
+  public isEnabled: boolean;
 
   public resolvePath(path: string): string;
 }

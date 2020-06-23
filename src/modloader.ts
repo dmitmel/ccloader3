@@ -51,7 +51,13 @@ export async function boot(): Promise<void> {
   let virtualPackages = new Map<ModId, SemVer>();
   virtualPackages.set('crosscode', gameVersion);
   virtualPackages.set('ccloader', modloaderMetadata.version);
-  verifyModDependencies(installedMods, virtualPackages);
+  for (let mod of installedMods.values()) {
+    if (mod.isEnabled) {
+      verifyModDependencies(mod, installedMods, virtualPackages);
+    } else {
+      mod.shouldBeLoaded = false;
+    }
+  }
   if (!runtimeMod.shouldBeLoaded) {
     throw new Error('Could not load the runtime mod, game initialization is impossible!');
   }
@@ -241,18 +247,17 @@ function modHasUnsortedInstalledDependencies(
 }
 
 function verifyModDependencies(
+  mod: Mod,
   installedMods: ReadonlyModsMap,
   virtualPackages: ReadonlyVirtualPackagesMap,
 ): void {
-  for (let mod of installedMods.values()) {
-    for (let [depId, dep] of mod.dependencies) {
-      let problem = checkDependencyConstraint(depId, dep, installedMods, virtualPackages);
-      if (problem != null) {
-        mod.shouldBeLoaded = false;
-        console.error(`Could not load mod '${mod.manifest.id}': ${problem}`);
-        // not breaking out of the loop here, let's list potential problems with
-        // other dependencies as well
-      }
+  for (let [depId, dep] of mod.dependencies) {
+    let problem = checkDependencyConstraint(depId, dep, installedMods, virtualPackages);
+    if (problem != null) {
+      mod.shouldBeLoaded = false;
+      console.error(`Could not load mod '${mod.manifest.id}': ${problem}`);
+      // not breaking out of the loop here, let's list potential problems with
+      // other dependencies as well
     }
   }
 }
@@ -275,6 +280,10 @@ function checkDependencyConstraint(
     let depMod = installedMods.get(depId);
     if (depMod == null) {
       return depConstraint.optional ? null : `${depTitle} is not installed`;
+    }
+
+    if (!depMod.isEnabled) {
+      return depConstraint.optional ? null : `${depTitle} is disabled`;
     }
 
     if (!depMod.shouldBeLoaded) {

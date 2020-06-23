@@ -58,6 +58,14 @@ export class Mod implements ModPublic {
     this.assetsDirectory = this.resolvePath(`${this.manifest.assetsDir ?? 'assets'}/`);
   }
 
+  public get isEnabled(): boolean {
+    return localStorage.getItem(`modEnabled-${this.manifest.id}`) !== 'false';
+  }
+
+  public set isEnabled(value: boolean) {
+    localStorage.setItem(`modEnabled-${this.manifest.id}`, String(value));
+  }
+
   public async findAllAssets(): Promise<void> {
     let assets: string[] = [];
     if (this.manifest.assets != null) {
