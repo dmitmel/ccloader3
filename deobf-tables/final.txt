@@ -57,3 +57,28 @@ toPath:toPath
 typeGui:typeGui
 values:values
 versionGui:versionGui
+
+: CCPresetRevival
+TitleScreenButtonGui:TitleScreenButtonGui
+_createButton:_createButton
+activate:activate
+doStateTransition:doStateTransition
+presetMenu:presetMenu
+
+: 1hp
+COMBAT_PARAM_MSG:COMBAT_PARAM_MSG
+HP_CHANGED:HP_CHANGED
+MAP_ENTERED:MAP_ENTERED
+MAP_EVENT:MAP_EVENT
+Model:Model
+addObserver:addObserver
+baseParams:baseParams
+currentHp:currentHp
+damageFactor:damageFactor
+fallDmgFactor:fallDmgFactor
+game:game
+hp:hp
+modelChanged:modelChanged
+notifyObserver:notifyObserver
+params:params
+playerEntity:playerEntity
