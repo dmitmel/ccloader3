@@ -15,7 +15,7 @@ export async function load(gameVersion: SemVer, gameVersionHotfix: number): Prom
 
   table = {} as Table;
 
-  let lines = (await files.loadText(tablePath)).split('\n');
+  let lines = (await files.loadText(tablePath)).split(/\r?\n/);
   for (let i = 0, len = lines.length; i < len; i++) {
     let line = lines[i];
     let colonIndex = line.indexOf(':');
