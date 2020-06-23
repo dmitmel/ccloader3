@@ -45,7 +45,7 @@ export async function boot(): Promise<void> {
   }
 
   let installedMods = new Map<ModId, Mod>();
-  await loadAllModMetadata('assets/mods', installedMods);
+  for (let dir of config.modsDirectories) await loadAllModMetadata(dir, installedMods);
   installedMods = sortModsInLoadOrder(runtimeMod, installedMods);
 
   let virtualPackages = new Map<ModId, SemVer>();
@@ -114,12 +114,7 @@ async function loadModloaderMetadata(): Promise<{
   return { name: data.name, version: new SemVer(data.version) };
 }
 
-async function loadAllModMetadata(
-  modsDir: string,
-  // this map is passed as an argument for support of multiple mod directories
-  // in the future
-  installedMods: ModsMap,
-): Promise<void> {
+async function loadAllModMetadata(modsDir: string, installedMods: ModsMap): Promise<void> {
   await Promise.all(
     (await files.getModDirectoriesIn(modsDir)).map(async (fullPath) => {
       try {

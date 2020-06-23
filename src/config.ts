@@ -3,6 +3,7 @@ import { MaybePromise, errorHasMessage } from '../common/dist/utils.js';
 import * as files from './files.js';
 
 export interface Config {
+  modsDirectories: string[];
   stylesheetURLs: string[];
   scriptURLs: string[];
   gameScriptURL: string;
@@ -40,6 +41,8 @@ export async function load(): Promise<Config> {
 
 function createDefaultConfig(): Config {
   return {
+    modsDirectories: ['assets/mods'],
+
     // no stylesheets have been removed
     stylesheetURLs: [
       // See note about jQuery UI below
