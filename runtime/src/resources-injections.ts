@@ -13,6 +13,12 @@ impactInitHooks.add(() => {
       let { url } = settings;
       if (typeof url !== 'string') return true;
 
+      let newFile: any = resources.dynamicJSONFiles.forPath(url);
+      if (newFile) {
+        settings.success?.call(settings.context, [newFile], 'hacked', null!);
+        return false;
+      }
+
       if (!url.startsWith(MOD_PROTOCOL_PREFIX)) {
         let parsedUrl = new URL(url, document.baseURI).href;
         if (!parsedUrl.startsWith(GAME_ASSETS_URL.href)) {
