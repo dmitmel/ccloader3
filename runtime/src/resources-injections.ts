@@ -15,7 +15,7 @@ impactInitHooks.add(() => {
 
       let newFile: any = resources.dynamicJSONFiles.forPath(url);
       if (newFile) {
-        settings.success?.call(settings.context, [newFile], 'hacked', null!);
+        settings.success?.call(settings.context, newFile, 'hacked', null!);
         return false;
       }
 
