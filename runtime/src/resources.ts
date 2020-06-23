@@ -11,7 +11,7 @@ export * from '../../common/dist/resources.js';
 import DynamicJSONFiles from './dynamic-json-files.js';
 
 
-export const dynamicJSONFiles = new DynamicJSONFiles; // 
+export const dynamicJSONFiles = new DynamicJSONFiles;
 
 export type JSONPatcher = (
   data: unknown,
