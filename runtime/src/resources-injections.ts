@@ -13,12 +13,14 @@ impactInitHooks.add(() => {
       let { url } = settings;
       if (typeof url !== 'string') return true;
 
-      const hasDJSON = resources.dynamicJSONFiles.isApplicable(url);
-      if (hasDJSON) {
-        resources.dynamicJSONFiles.forPath(url).then((newFile) => {
-          settings.success?.call(settings.context, newFile, 'hacked', null!);
-        });
-        return false;
+      if (settings.context?.djson !== false) {
+        const hasDJSON = resources.dynamicJSONFiles.isApplicable(url);
+        if (hasDJSON) {
+          resources.dynamicJSONFiles.forPath(url).then((newFile) => {
+            settings.success?.call(settings.context, newFile, 'hacked', null!);
+          });
+          return false;
+        }
       }
 
       if (!url.startsWith(MOD_PROTOCOL_PREFIX)) {
