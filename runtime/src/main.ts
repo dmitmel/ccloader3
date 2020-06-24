@@ -10,6 +10,7 @@ import * as impactModuleHooks from './impact-module-hooks.js';
 import * as resources from './resources.js';
 import './resources-injections.js';
 import './lang-file-patcher.js';
+import './greenworks-fix.js';
 
 export default class CCLoaderRuntimeMod implements ModClass {
   public constructor() {
