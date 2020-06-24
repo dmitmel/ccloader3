@@ -13,9 +13,11 @@ impactInitHooks.add(() => {
       let { url } = settings;
       if (typeof url !== 'string') return true;
 
-      let newFile: unknown = resources.dynamicJSONFiles.forPath(url);
-      if (newFile) {
-        settings.success?.call(settings.context, newFile, 'hacked', null!);
+      const hasDJSON = resources.dynamicJSONFiles.isApplicable(url);
+      if (hasDJSON) {
+        resources.dynamicJSONFiles.forPath(url).then((newFile) => {
+          settings.success?.call(settings.context, newFile, 'hacked', null!);
+        });
         return false;
       }
 

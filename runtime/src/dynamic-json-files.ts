@@ -1,21 +1,26 @@
-
 type DynamicJsonFunction = () => unknown;
+type DynamicJsonFunctionAsync = () => Promise<unknown>;
 export default class DynamicJsonFiles {
-    public overrides = new Map<string, DynamicJsonFunction>();
+  private overrides = new Map<string, DynamicJsonFunction>();
 
-    public forPath(path: string): unknown | null {
-        if (this.overrides.has(path)) {
-            const generator = this.overrides.get(path);
+  public isApplicable(path: string): boolean {
+    return this.overrides.has(path);
+  }
 
-            if (generator) {
-                return generator();
-            }
-        }
-
-        return null;
+  public async forPath(path: string): Promise<unknown> {
+    const generator = this.overrides.get(path);
+    if (generator) {
+      return generator();
     }
 
-    public add(targetFile: string, fileGeneratorFunction: DynamicJsonFunction): void {
-        this.overrides.set(targetFile, fileGeneratorFunction);
-    }
+    return null;
+  }
+
+  public add(targetFile: string, fileGeneratorFunction: DynamicJsonFunction): void {
+    this.overrides.set(targetFile, () => Promise.resolve(fileGeneratorFunction()));
+  }
+
+  public addAsync(targetFile: string, fileGeneratorFunction: DynamicJsonFunctionAsync): void {
+    this.overrides.set(targetFile, fileGeneratorFunction);
+  }
 }
