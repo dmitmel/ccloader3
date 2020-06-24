@@ -22,7 +22,7 @@ impactInitHooks.add(() => {
             },
             (err) => {
               console.error(err);
-              settings.error?.call(context, null!, 'hacked', err);
+              settings.error?.call(settings.context, null!, 'hacked', err);
             },
           );
           return false;
