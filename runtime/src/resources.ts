@@ -1,22 +1,23 @@
+import { MOD_PROTOCOL_PREFIX } from './resources.private.js';
+import * as resourcesPlain from './resources-plain.js';
 import * as patchsteps from '../../common/vendor-libs/patchsteps.js';
 import PatchStepsDebugState from './patch-steps-debug-state.js';
 import { Mod } from '../../src/public/mod';
-import { GAME_ASSETS_URL, MOD_PROTOCOL_PREFIX } from './resources.constants.js';
 import { MaybePromise, errorHasMessage, mapGetOrInsert } from '../../common/dist/utils.js';
 import PatchList from './patch-list.js';
 import * as paths from '../../common/dist/paths.js';
-
-export * from '../../common/dist/resources.js';
 
 export type JSONPatcher = (
   data: unknown,
   context: JSONPatcherContext,
 ) => MaybePromise<unknown | void>;
+
 export interface JSONPatcherContext {
-  resolvedURL: string;
+  resolvedPath: string;
   requestedAsset: string;
-  options: LoadJSONPatchedOptions;
+  options: LoadJSONOptions;
 }
+
 export const jsonPatches = new PatchList<JSONPatcher>();
 
 export const assetOverridesTable = new Map<string, string>();
@@ -57,8 +58,8 @@ function registerPatchstepsPatch(
   patchedAssetPath: string,
 ): void {
   jsonPatches.add(patchedAssetPath, async (data) => {
-    let patchData = (await loadJSON(
-      `/${mod.assetsDirectory}${patchFileRelativePath}`,
+    let patchData = (await resourcesPlain.loadJSON(
+      wrapPathIntoURL(`${mod.assetsDirectory}${patchFileRelativePath}`).href,
     )) as patchsteps.PatchStep[];
 
     let debugState = new PatchStepsDebugState(mod);
@@ -68,7 +69,9 @@ function registerPatchstepsPatch(
       data,
       patchData,
       (fromGame: string | boolean, url: string): Promise<unknown> =>
-        fromGame ? loadJSONPatched(url) : loadJSON(`/${mod.resolvePath(url)}`),
+        fromGame
+          ? loadJSON(url)
+          : resourcesPlain.loadJSON(wrapPathIntoURL(mod.resolvePath(url)).href),
       debugState,
     );
 
@@ -76,22 +79,20 @@ function registerPatchstepsPatch(
   });
 }
 
-export interface LoadJSONPatchedOptions {
+export interface LoadJSONOptions {
   callerThisValue?: unknown;
 }
-export async function loadJSONPatched(
-  path: string,
-  options?: LoadJSONPatchedOptions | null,
-): Promise<unknown> {
+
+export async function loadJSON(path: string, options?: LoadJSONOptions | null): Promise<unknown> {
   options = options ?? {};
 
-  let { resolvedURL, requestedAsset } = resolveURLInternal(path);
+  let { resolvedPath, requestedAsset } = resolvePathAdvanced(path);
   // TODO: download data and patches in parallel
-  let data = await loadJSON(resolvedURL);
+  let data = await resourcesPlain.loadJSON(wrapPathIntoURL(resolvedPath).href);
 
   if (requestedAsset != null) {
     try {
-      let context: JSONPatcherContext = { resolvedURL, requestedAsset, options };
+      let context: JSONPatcherContext = { resolvedPath, requestedAsset, options };
       for (let patcher of jsonPatches.forPath(requestedAsset)) {
         let newData = await patcher(data, context);
         // eslint-disable-next-line no-undefined
@@ -108,29 +109,21 @@ export async function loadJSONPatched(
   return data;
 }
 
-export async function loadJSON(url: string): Promise<unknown> {
-  let res: Response;
-  try {
-    res = await fetch(url);
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    return await res.json();
-  } catch (err) {
-    if (errorHasMessage(err)) {
-      err.message = `Failed to load JSON file '${url}': ${err.message}`;
-    }
-    throw err;
-  }
+export interface LoadImageOptions {
+  returnCanvas?: 'always' | 'if-patched' | 'never' | null;
 }
 
-export async function loadImagePatched(
+export async function loadImage(
   path: string,
-  options?: { returnCanvas?: 'always' | 'if-patched' | 'never' | null },
+  options?: LoadImageOptions,
 ): Promise<HTMLImageElement | HTMLCanvasElement> {
   options = options ?? {};
 
-  let { resolvedURL } = resolveURLInternal(path);
+  let { resolvedPath } = resolvePathAdvanced(path);
 
-  let img: HTMLImageElement | HTMLCanvasElement = await loadImage(resolvedURL);
+  let img: HTMLImageElement | HTMLCanvasElement = await resourcesPlain.loadImage(
+    wrapPathIntoURL(resolvedPath).href,
+  );
 
   if (options.returnCanvas === 'always') {
     let canvas = document.createElement('canvas');
@@ -144,63 +137,90 @@ export async function loadImagePatched(
   // do patching...
 
   if (options.returnCanvas === 'never' && img instanceof HTMLCanvasElement) {
-    img = await loadImage(img.toDataURL('image/png'));
+    img = await resourcesPlain.loadImage(img.toDataURL('image/png'));
   }
 
   return img;
 }
 
-export function loadImage(url: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    let img = new Image();
-    img.src = url;
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error(`Failed to load image '${url}'`));
-  });
+export function resolvePath(uri: string, options?: ResolvePathOptions | null): string {
+  return resolvePathAdvanced(uri, options).resolvedPath;
 }
 
-export function resolveURL(url: string): string {
-  return resolveURLInternal(url).resolvedURL;
+export function resolvePathToURL(path: string, options?: ResolvePathOptions | null): string {
+  return wrapPathIntoURL(resolvePath(path, options)).href;
 }
 
-interface ResolveURLResult {
-  resolvedURL: string;
+export interface ResolvePathOptions {
+  allowAssetOverrides?: boolean | null;
+}
+
+export interface ResolvePathAdvancedResult {
+  resolvedPath: string;
   requestedAsset: string | null;
 }
-// TODO: ig.root, ig.getFilePath()
-function resolveURLInternal(url: string): ResolveURLResult {
-  let result: ResolveURLResult = {
-    resolvedURL: url,
+
+export function resolvePathAdvanced(
+  uri: string,
+  options?: ResolvePathOptions | null,
+): ResolvePathAdvancedResult {
+  options = options ?? {};
+
+  let result: ResolvePathAdvancedResult = {
+    resolvedPath: null!,
     requestedAsset: null,
   };
 
-  function finalizeResult(): ResolveURLResult {
-    if (typeof ig !== 'undefined') result.resolvedURL += ig[deobf.getCacheSuffix]();
-    result.resolvedURL = encodeURI(result.resolvedURL);
-    return result;
-  }
+  let gameAssetsPath = paths.stripRoot(getGameAssetsURL().pathname);
 
-  let modResourcePath = applyModURLProtocol(url);
+  let modResourcePath = applyModURLProtocol(uri);
   if (modResourcePath != null) {
-    result.resolvedURL = `/${modResourcePath}`;
-    return finalizeResult();
+    result.resolvedPath = modResourcePath;
+  } else {
+    let normalizedPath = paths.jailRelative(paths.join(gameAssetsPath, uri));
+    result.resolvedPath = normalizedPath;
+
+    if (normalizedPath.startsWith(gameAssetsPath)) {
+      result.requestedAsset = normalizedPath.slice(gameAssetsPath.length);
+
+      if (options.allowAssetOverrides ?? true) {
+        let overridePath = assetOverridesTable.get(result.requestedAsset);
+        if (overridePath != null) {
+          result.resolvedPath = overridePath;
+        }
+      }
+    }
   }
 
-  let normalizedPath = paths.resolve(GAME_ASSETS_URL.pathname, url);
-  result.resolvedURL = normalizedPath;
+  return result;
+}
 
-  if (!normalizedPath.startsWith(GAME_ASSETS_URL.pathname)) {
-    return finalizeResult();
+export function wrapPathIntoURL(path: string): URL {
+  let url = new URL(`/${encodeURI(path)}`, getGameAssetsURL());
+  url.href += getCacheSuffix();
+  return url;
+}
+
+export function getGameAssetsURL(): URL {
+  let str: string;
+  if (typeof ig !== 'undefined') {
+    str = ig.root;
+  } else if (window.IG_ROOT) {
+    str = window.IG_ROOT;
+  } else {
+    str = '';
   }
+  return new URL(str, document.baseURI);
+}
 
-  result.requestedAsset = normalizedPath.slice(GAME_ASSETS_URL.pathname.length);
-
-  let overridePath = assetOverridesTable.get(result.requestedAsset);
-  if (overridePath != null) {
-    result.resolvedURL = `/${overridePath}`;
+export function getCacheSuffix(): string {
+  if (typeof ig !== 'undefined') {
+    return ig[deobf.getCacheSuffix]();
+  } else if (window.IG_GAME_CACHE) {
+    return `?nocache=${window.IG_GAME_CACHE}`;
+  } else {
+    return '';
   }
-
-  return finalizeResult();
 }
 
 function applyModURLProtocol(fullURI: string): string | null {

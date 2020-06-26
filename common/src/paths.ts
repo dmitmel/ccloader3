@@ -120,12 +120,27 @@ export function normalize(path: string): string {
   return hasRoot ? `/${path}` : path;
 }
 
+// equivalent to stripRoot(join('/', path))
+export function jailRelative(path: string): string {
+  validateString(path, 'path');
+
+  if (path.length === 0) return '.';
+
+  let trailingSeparator = path.charCodeAt(path.length - 1) === CHAR_FORWARD_SLASH;
+
+  path = normalizeString(path, false);
+
+  if (path.length === 0) path = '.';
+  if (trailingSeparator) path += '/';
+  return path;
+}
+
 export function isAbsolute(path: string): boolean {
   validateString(path, 'path');
   return path.length > 0 && path.charCodeAt(0) === CHAR_FORWARD_SLASH;
 }
 
-// equivalent to path.relative('/', path)
+// equivalent to relative('/', path)
 export function stripRoot(path: string): string {
   validateString(path, 'path');
   if (path.length > 0 && path.charCodeAt(0) === CHAR_FORWARD_SLASH) {

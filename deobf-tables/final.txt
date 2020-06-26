@@ -25,6 +25,7 @@ cat:cat
 currentLang:currentLang
 defines:defines
 ext:ext
+fileForwarding:fileForwarding
 fontsystem:fontsystem
 format:format
 getCacheSuffix:getCacheSuffix

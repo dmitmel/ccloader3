@@ -35,6 +35,15 @@ export function errorHasCode(error: any): error is { code: string } {
   return typeof error.code === 'string';
 }
 
+export type PromiseResult<T> = { type: 'resolved'; value: T } | { type: 'rejected'; reason: any };
+
+export function wrapPromiseResult<T>(promise: Promise<T>): Promise<PromiseResult<T>> {
+  return promise.then(
+    (value) => ({ type: 'resolved', value }),
+    (reason) => ({ type: 'rejected', reason }),
+  );
+}
+
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 export function hasKey(obj: unknown, key: PropertyKey): boolean {

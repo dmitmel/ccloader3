@@ -69,7 +69,7 @@ export class Mod implements ModPublic {
   public async findAllAssets(): Promise<void> {
     let assets: string[] = [];
     if (this.manifest.assets != null) {
-      assets = this.manifest.assets.map((path) => paths.stripRoot(paths.join('/', path)));
+      assets = this.manifest.assets.map((path) => paths.jailRelative(path));
     } else if (PLATFORM_TYPE === PlatformType.Desktop) {
       assets = await files.findRecursively(this.assetsDirectory);
     }
@@ -117,6 +117,6 @@ export class Mod implements ModPublic {
   }
 
   public resolvePath(path: string): string {
-    return paths.join(this.baseDirectory, paths.join('/', path));
+    return paths.join(this.baseDirectory, paths.jailRelative(path));
   }
 }

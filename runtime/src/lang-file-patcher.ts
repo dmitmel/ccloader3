@@ -15,7 +15,7 @@ impactModuleHooks.add('game.config', () => {
         for (let feature of ig[deobf.langFileList]) {
           // eslint-disable-next-line no-loop-func
           resources.jsonPatches.add(getLangFilePath(feature, currentLang), async (data) => {
-            let englishData = await resources.loadJSONPatched(getLangFilePath(feature, 'en_US'));
+            let englishData = await resources.loadJSON(getLangFilePath(feature, 'en_US'));
             return ig.merge(/* original */ englishData, /* new */ data, /* noArrayMerge */ true);
           });
         }

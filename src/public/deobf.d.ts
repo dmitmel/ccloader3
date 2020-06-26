@@ -26,6 +26,7 @@ export interface Table extends Record<string, string> {
   currentLang: 'currentLang';
   defines: 'defines';
   ext: 'ext';
+  fileForwarding: 'fileForwarding';
   fontsystem: 'fontsystem';
   format: 'format';
   getCacheSuffix: 'getCacheSuffix';

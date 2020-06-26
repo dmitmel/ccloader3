@@ -1,7 +1,8 @@
-import { GAME_ASSETS_URL, MOD_PROTOCOL_PREFIX } from './resources.constants.js';
+import { MOD_PROTOCOL_PREFIX } from './resources.private.js';
 import * as impactInitHooks from './impact-init-hooks.js';
 import * as impactModuleHooks from './impact-module-hooks.js';
 import * as resources from './resources.js';
+import * as utils from '../../common/dist/utils.js';
 
 impactInitHooks.add(() => {
   $.ajaxSetup({
@@ -11,11 +12,15 @@ impactInitHooks.add(() => {
       }
 
       let { url } = settings;
-      if (typeof url !== 'string') return true;
+      if (typeof url !== 'string') {
+        return true;
+      }
 
       if (!url.startsWith(MOD_PROTOCOL_PREFIX)) {
-        let parsedUrl = new URL(url, document.baseURI).href;
-        if (!parsedUrl.startsWith(GAME_ASSETS_URL.href)) {
+        let gameAssetsURL = resources.getGameAssetsURL().href;
+
+        let parsedURL = new URL(url, document.baseURI).href;
+        if (!parsedURL.startsWith(gameAssetsURL)) {
           return true;
         }
 
@@ -37,12 +42,16 @@ impactInitHooks.add(() => {
         // iterated and nothing crashes. In our case though I have to ignore
         // this specific request and just let JQuery handle it because of the
         // returned `null`s in the request hijacking code below.
-        if (parsedUrl.startsWith(`${GAME_ASSETS_URL.href}page/api/get-extension-list.php`)) {
+        if (parsedURL.startsWith(`${gameAssetsURL}page/api/get-extension-list.php`)) {
           return true;
         }
       }
 
-      let cacheSuffix = ig[deobf.getCacheSuffix]();
+      if (ig.root.length > 0 && url.startsWith(ig.root)) {
+        url = url.slice(ig.root.length);
+      }
+
+      let cacheSuffix = resources.getCacheSuffix();
       if (cacheSuffix.length > 0 && url.endsWith(cacheSuffix)) {
         url = url.slice(0, -cacheSuffix.length);
       }
@@ -52,7 +61,7 @@ impactInitHooks.add(() => {
       delete settings.error;
       delete settings.complete;
       resources
-        .loadJSONPatched(url, { callerThisValue: context })
+        .loadJSON(url, { callerThisValue: context })
         .then(
           (data) => {
             if (success != null) {
@@ -97,7 +106,7 @@ impactModuleHooks.add('impact.base.image', () => {
       // encodes URIs before requesting and there are no instances of leading
       // whitespace because `ig.root` is not empty in the development version.
       path = path.trimRight();
-      resources.loadImagePatched(ig[deobf.getFilePath](`${ig.root}${path}`)).then(
+      resources.loadImage(applyImpactFileForwarding(path)).then(
         (img) => {
           this.data = img;
           this.onload();
@@ -139,16 +148,14 @@ impactModuleHooks.add('impact.base.sound', () => {
   >(this: This, ...args: Args): Ret {
     let path = args[0];
 
-    let pathWithoutExt = path;
-    let lastDotIndex = pathWithoutExt.lastIndexOf('.');
+    let resolvedPath = path;
+    let lastDotIndex = resolvedPath.lastIndexOf('.');
     if (lastDotIndex >= 0) {
-      pathWithoutExt = pathWithoutExt.slice(0, lastDotIndex);
+      resolvedPath = resolvedPath.slice(0, lastDotIndex);
     }
-
-    let resolvedURL = ig[deobf.getFilePath](
-      `${ig.root}${pathWithoutExt}.${ig[deobf.soundManager][deobf.format][deobf.ext]}`,
-    );
-    resolvedURL = resources.resolveURL(resolvedURL);
+    resolvedPath += `.${ig[deobf.soundManager][deobf.format][deobf.ext]}`;
+    resolvedPath = applyImpactFileForwarding(resolvedPath);
+    let resolvedURL = resources.resolvePathToURL(resolvedPath);
 
     let originalGetFilePath = ig[deobf.getFilePath];
     try {
@@ -164,3 +171,13 @@ impactModuleHooks.add('impact.base.sound', () => {
     load: loadAudio,
   });
 });
+
+function applyImpactFileForwarding(path: string): string {
+  let table = ig[deobf.fileForwarding];
+  let tableKey = `${ig.root}${path}`;
+  if (utils.hasKey(table, tableKey)) {
+    path = table[tableKey];
+    path = path.slice(ig.root.length);
+  }
+  return path;
+}
