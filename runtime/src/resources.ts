@@ -80,6 +80,10 @@ function registerPatchstepsPatch(
   });
 }
 
+export function loadText(url: string): Promise<string> {
+  return resourcesPlain.loadText(resolvePathToURL(url));
+}
+
 export interface LoadJSONOptions extends ResolvePathOptions {
   callerThisValue?: unknown;
 }
@@ -117,8 +121,6 @@ export interface LoadImageOptions extends ResolvePathOptions {
   callerThisValue?: unknown;
   returnCanvas?: 'always' | 'if-patched' | 'never' | null;
 }
-
-// TODO: loadText
 
 export async function loadImage(
   path: string,

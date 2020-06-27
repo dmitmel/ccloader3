@@ -2,15 +2,27 @@ import { errorHasMessage } from '../../common/dist/utils.js';
 
 export * from '../../common/dist/resources.js';
 
-export async function loadJSON<T = unknown>(url: string): Promise<T> {
+export async function loadText(url: string): Promise<string> {
   let res: Response;
   try {
     res = await fetch(url);
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    return await res.json();
+    return await res.text();
   } catch (err) {
     if (errorHasMessage(err)) {
-      err.message = `Failed to load JSON file '${url}': ${err.message}`;
+      err.message = `Failed to load text file '${url}': ${err.message}`;
+    }
+    throw err;
+  }
+}
+
+export async function loadJSON<T = unknown>(url: string): Promise<T> {
+  let text = await loadText(url);
+  try {
+    return JSON.parse(text);
+  } catch (err) {
+    if (errorHasMessage(err)) {
+      err.message = `Failed to parse JSON file '${url}': ${err.message}`;
     }
     throw err;
   }
