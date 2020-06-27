@@ -106,7 +106,8 @@ impactModuleHooks.add('impact.base.image', () => {
       // encodes URIs before requesting and there are no instances of leading
       // whitespace because `ig.root` is not empty in the development version.
       path = path.trimRight();
-      resources.loadImage(applyImpactFileForwarding(path)).then(
+      path = applyImpactFileForwarding(path);
+      resources.loadImage(path, { callerThisValue: this }).then(
         (img) => {
           this.data = img;
           this.onload();

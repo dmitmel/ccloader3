@@ -4,16 +4,18 @@ import * as patchsteps from '../../common/vendor-libs/patchsteps.js';
 import PatchStepsDebugState from './patch-steps-debug-state.js';
 import { Mod } from '../../src/public/mod';
 import { errorHasMessage, mapGetOrInsert } from '../../common/dist/utils.js';
-import { ResourcePatchList } from './patch-list.js';
+import { ResourcePatchList, ResourcePatcherWithDeps } from './patch-list.js';
 import * as paths from '../../common/dist/paths.js';
 
-export interface JSONPatcherContext {
-  resolvedPath: string;
-  requestedAsset: string;
+export const jsonPatches = new ResourcePatchList<unknown, JSONPatcherContext>();
+export interface JSONPatcherContext extends ResolvePathAdvancedResult {
   options: LoadJSONOptions;
 }
 
-export const jsonPatches = new ResourcePatchList<unknown, JSONPatcherContext>();
+export const imagePatches = new ResourcePatchList<HTMLCanvasElement, ImagePatcherContext>();
+export interface ImagePatcherContext extends ResolvePathAdvancedResult {
+  options: LoadImageOptions;
+}
 
 export const assetOverridesTable = new Map<string, string>();
 
@@ -76,9 +78,8 @@ function registerPatchstepsPatch(
   });
 }
 
-export interface LoadJSONOptions {
+export interface LoadJSONOptions extends ResolvePathOptions {
   callerThisValue?: unknown;
-  allowAssetOverrides?: boolean | null;
 }
 
 export async function loadJSON(path: string, options?: LoadJSONOptions | null): Promise<unknown> {
@@ -91,7 +92,11 @@ export async function loadJSON(path: string, options?: LoadJSONOptions | null): 
 
   if (requestedAsset != null) {
     try {
-      data = await runJSONPatches(data, { resolvedPath, requestedAsset, options });
+      let patchers = jsonPatches.forPath(requestedAsset);
+      if (patchers.length > 0) {
+        let ctx = { resolvedPath, requestedAsset, options };
+        data = await runResourcePatches(data, patchers, ctx);
+      }
     } catch (err) {
       if (errorHasMessage(err)) {
         err.message = `Failed to patch JSON file '${path}': ${err.message}`;
@@ -103,29 +108,8 @@ export async function loadJSON(path: string, options?: LoadJSONOptions | null): 
   return data;
 }
 
-async function runJSONPatches(data: unknown, context: JSONPatcherContext): Promise<unknown> {
-  let patchers = jsonPatches.forPath(context.requestedAsset);
-  if (patchers.length === 0) return data;
-
-  let allDependencies: unknown[] = await Promise.all(
-    patchers.map((patcher) =>
-      // eslint-disable-next-line no-undefined
-      patcher.dependencies != null ? patcher.dependencies(context) : undefined,
-    ),
-  );
-
-  for (let i = 0; i < patchers.length; i++) {
-    let patcher = patchers[i];
-    let deps = allDependencies[i];
-    let newData = await patcher.patcher(data, deps, context);
-    // eslint-disable-next-line no-undefined
-    if (newData !== undefined) data = newData;
-  }
-
-  return data;
-}
-
-export interface LoadImageOptions {
+export interface LoadImageOptions extends ResolvePathOptions {
+  callerThisValue?: unknown;
   returnCanvas?: 'always' | 'if-patched' | 'never' | null;
 }
 
@@ -137,28 +121,79 @@ export async function loadImage(
 ): Promise<HTMLImageElement | HTMLCanvasElement> {
   options = options ?? {};
 
-  let { resolvedPath } = resolvePathAdvanced(path);
-
-  let img: HTMLImageElement | HTMLCanvasElement = await resourcesPlain.loadImage(
+  let { resolvedPath, requestedAsset } = resolvePathAdvanced(path, {
+    allowAssetOverrides: options.allowAssetOverrides,
+  });
+  let data: HTMLImageElement | HTMLCanvasElement = await resourcesPlain.loadImage(
     wrapPathIntoURL(resolvedPath).href,
   );
 
-  if (options.returnCanvas === 'always') {
+  if (requestedAsset != null) {
+    try {
+      let patchers = imagePatches.forPath(requestedAsset);
+      if (patchers.length > 0) {
+        data = imageToCanvas(data);
+        let ctx = { resolvedPath, requestedAsset, options };
+        data = await runResourcePatches(data, patchers, ctx);
+      }
+    } catch (err) {
+      if (errorHasMessage(err)) {
+        err.message = `Failed to patch image file '${path}': ${err.message}`;
+      }
+      throw err;
+    }
+  }
+
+  switch (options.returnCanvas) {
+    case 'always':
+      if (!(data instanceof HTMLCanvasElement)) data = imageToCanvas(data);
+      break;
+    case 'never':
+      if (data instanceof HTMLCanvasElement) data = await canvasToImage(data);
+      break;
+    case 'if-patched':
+      break;
+  }
+
+  return data;
+
+  function imageToCanvas(image: HTMLImageElement): HTMLCanvasElement {
     let canvas = document.createElement('canvas');
-    canvas.width = img.width;
-    canvas.height = img.height;
+    canvas.width = image.width;
+    canvas.height = image.height;
     let ctx = canvas.getContext('2d')!;
-    ctx.drawImage(img, 0, 0);
-    img = canvas;
+    ctx.drawImage(image, 0, 0);
+    return canvas;
   }
 
-  // do patching...
+  function canvasToImage(canvas: HTMLCanvasElement): Promise<HTMLImageElement> {
+    return resourcesPlain.loadImage(canvas.toDataURL('image/png'));
+  }
+}
 
-  if (options.returnCanvas === 'never' && img instanceof HTMLCanvasElement) {
-    img = await resourcesPlain.loadImage(img.toDataURL('image/png'));
+async function runResourcePatches<Data, Context>(
+  data: Data,
+  patchers: Array<ResourcePatcherWithDeps<Data, unknown, Context>>,
+  context: Context,
+): Promise<Data> {
+  /* eslint-disable no-undefined */
+
+  let allDependencies: unknown[] = await Promise.all(
+    patchers.map((patcher) =>
+      patcher.dependencies != null ? patcher.dependencies(context) : undefined,
+    ),
+  );
+
+  for (let i = 0; i < patchers.length; i++) {
+    let patcher = patchers[i];
+    let deps = allDependencies[i];
+    let newData = await patcher.patcher(data, deps, context);
+    if (newData !== undefined) data = newData;
   }
 
-  return img;
+  return data;
+
+  /* eslint-enable no-undefined */
 }
 
 export function resolvePath(uri: string, options?: ResolvePathOptions | null): string {
