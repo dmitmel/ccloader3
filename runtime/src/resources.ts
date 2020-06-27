@@ -55,10 +55,12 @@ function registerPatchstepsPatch(
   patchedAssetPath: string,
 ): void {
   jsonPatches.add(patchedAssetPath, {
-    dependencies: () =>
-      resourcesPlain.loadJSON(
+    dependencies: () => {
+      return resourcesPlain.loadJSON<patchsteps.Patch>(
         wrapPathIntoURL(`${mod.assetsDirectory}${patchFileRelativePath}`).href,
-      ) as Promise<patchsteps.PatchStep[]>,
+      );
+    },
+
     patcher: async (data, patchData) => {
       let debugState = new PatchStepsDebugState(mod);
       debugState.addFile([/* fromGame */ false, patchFileRelativePath]);
@@ -82,7 +84,10 @@ export interface LoadJSONOptions extends ResolvePathOptions {
   callerThisValue?: unknown;
 }
 
-export async function loadJSON(path: string, options?: LoadJSONOptions | null): Promise<unknown> {
+export async function loadJSON<T = unknown>(
+  path: string,
+  options?: LoadJSONOptions | null,
+): Promise<T> {
   options = options ?? {};
 
   let { resolvedPath, requestedAsset } = resolvePathAdvanced(path, {
@@ -94,7 +99,7 @@ export async function loadJSON(path: string, options?: LoadJSONOptions | null): 
     try {
       let patchers = jsonPatches.forPath(requestedAsset);
       if (patchers.length > 0) {
-        let ctx = { resolvedPath, requestedAsset, options };
+        let ctx: JSONPatcherContext = { resolvedPath, requestedAsset, options };
         data = await runResourcePatches(data, patchers, ctx);
       }
     } catch (err) {
@@ -105,7 +110,7 @@ export async function loadJSON(path: string, options?: LoadJSONOptions | null): 
     }
   }
 
-  return data;
+  return data as T;
 }
 
 export interface LoadImageOptions extends ResolvePathOptions {
@@ -133,7 +138,7 @@ export async function loadImage(
       let patchers = imagePatches.forPath(requestedAsset);
       if (patchers.length > 0) {
         data = imageToCanvas(data);
-        let ctx = { resolvedPath, requestedAsset, options };
+        let ctx: ImagePatcherContext = { resolvedPath, requestedAsset, options };
         data = await runResourcePatches(data, patchers, ctx);
       }
     } catch (err) {

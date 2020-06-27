@@ -2,7 +2,7 @@ import { errorHasMessage } from '../../common/dist/utils.js';
 
 export * from '../../common/dist/resources.js';
 
-export async function loadJSON(url: string): Promise<unknown> {
+export async function loadJSON<T = unknown>(url: string): Promise<T> {
   let res: Response;
   try {
     res = await fetch(url);

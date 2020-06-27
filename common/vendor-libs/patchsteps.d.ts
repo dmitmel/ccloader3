@@ -80,7 +80,7 @@ export namespace PatchStep {
   }
 }
 
-export function photomerge<A = unknown, B = unknown>(a: A, b: B): A & B;
+export function photomerge<A = unknown, B = A>(a: A, b: B): A & B;
 export function photocopy<O = unknown>(o: O): O;
 
 export function diff(a: unknown, b: unknown, settings: Partial<DiffSettings>): PatchStep[] | null;
