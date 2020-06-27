@@ -1,4 +1,4 @@
-import { mapGetOrInsert } from '../../common/dist/utils.js';
+import { MaybePromise, mapGetOrInsert } from '../../common/dist/utils.js';
 
 export default class PatchList<P> {
   public patternPatchers: Array<[RegExp, P]> = [];
@@ -25,5 +25,28 @@ export default class PatchList<P> {
     } else {
       this.patternPatchers.push([path, patcher]);
     }
+  }
+}
+
+export type ResourcePatcherSimple<Data, Deps, Ctx> = (
+  data: Data,
+  dependencies: Deps,
+  context: Ctx,
+) => MaybePromise<Data | void>;
+
+export interface ResourcePatcherWithDeps<Data, Deps, Ctx> {
+  dependencies?: ((context: Ctx) => Promise<Deps>) | null;
+  patcher: ResourcePatcherSimple<Data, Deps, Ctx>;
+}
+
+export class ResourcePatchList<Data, Ctx> extends PatchList<
+  ResourcePatcherWithDeps<Data, unknown, Ctx>
+> {
+  public add<Deps = never>(
+    path: string | RegExp,
+    patcher: ResourcePatcherSimple<Data, Deps, Ctx> | ResourcePatcherWithDeps<Data, Deps, Ctx>,
+  ): void {
+    if (typeof patcher === 'function') patcher = { patcher };
+    super.add(path, patcher as ResourcePatcherWithDeps<Data, unknown, Ctx>);
   }
 }

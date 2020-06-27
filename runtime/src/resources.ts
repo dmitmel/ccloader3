@@ -3,14 +3,9 @@ import * as resourcesPlain from './resources-plain.js';
 import * as patchsteps from '../../common/vendor-libs/patchsteps.js';
 import PatchStepsDebugState from './patch-steps-debug-state.js';
 import { Mod } from '../../src/public/mod';
-import { MaybePromise, errorHasMessage, mapGetOrInsert } from '../../common/dist/utils.js';
-import PatchList from './patch-list.js';
+import { errorHasMessage, mapGetOrInsert } from '../../common/dist/utils.js';
+import { ResourcePatchList } from './patch-list.js';
 import * as paths from '../../common/dist/paths.js';
-
-export type JSONPatcher = (
-  data: unknown,
-  context: JSONPatcherContext,
-) => MaybePromise<unknown | void>;
 
 export interface JSONPatcherContext {
   resolvedPath: string;
@@ -18,7 +13,7 @@ export interface JSONPatcherContext {
   options: LoadJSONOptions;
 }
 
-export const jsonPatches = new PatchList<JSONPatcher>();
+export const jsonPatches = new ResourcePatchList<unknown, JSONPatcherContext>();
 
 export const assetOverridesTable = new Map<string, string>();
 
@@ -57,47 +52,46 @@ function registerPatchstepsPatch(
   patchFileRelativePath: string,
   patchedAssetPath: string,
 ): void {
-  jsonPatches.add(patchedAssetPath, async (data) => {
-    let patchData = (await resourcesPlain.loadJSON(
-      wrapPathIntoURL(`${mod.assetsDirectory}${patchFileRelativePath}`).href,
-    )) as patchsteps.PatchStep[];
+  jsonPatches.add(patchedAssetPath, {
+    dependencies: () =>
+      resourcesPlain.loadJSON(
+        wrapPathIntoURL(`${mod.assetsDirectory}${patchFileRelativePath}`).href,
+      ) as Promise<patchsteps.PatchStep[]>,
+    patcher: async (data, patchData) => {
+      let debugState = new PatchStepsDebugState(mod);
+      debugState.addFile([/* fromGame */ false, patchFileRelativePath]);
 
-    let debugState = new PatchStepsDebugState(mod);
-    debugState.addFile([/* fromGame */ false, patchFileRelativePath]);
+      await patchsteps.patch(
+        data,
+        patchData,
+        (fromGame: string | boolean, url: string): Promise<unknown> =>
+          fromGame
+            ? loadJSON(url)
+            : resourcesPlain.loadJSON(wrapPathIntoURL(mod.resolvePath(url)).href),
+        debugState,
+      );
 
-    await patchsteps.patch(
-      data,
-      patchData,
-      (fromGame: string | boolean, url: string): Promise<unknown> =>
-        fromGame
-          ? loadJSON(url)
-          : resourcesPlain.loadJSON(wrapPathIntoURL(mod.resolvePath(url)).href),
-      debugState,
-    );
-
-    return data;
+      return data;
+    },
   });
 }
 
 export interface LoadJSONOptions {
   callerThisValue?: unknown;
+  allowAssetOverrides?: boolean | null;
 }
 
 export async function loadJSON(path: string, options?: LoadJSONOptions | null): Promise<unknown> {
   options = options ?? {};
 
-  let { resolvedPath, requestedAsset } = resolvePathAdvanced(path);
-  // TODO: download data and patches in parallel
+  let { resolvedPath, requestedAsset } = resolvePathAdvanced(path, {
+    allowAssetOverrides: options.allowAssetOverrides,
+  });
   let data = await resourcesPlain.loadJSON(wrapPathIntoURL(resolvedPath).href);
 
   if (requestedAsset != null) {
     try {
-      let context: JSONPatcherContext = { resolvedPath, requestedAsset, options };
-      for (let patcher of jsonPatches.forPath(requestedAsset)) {
-        let newData = await patcher(data, context);
-        // eslint-disable-next-line no-undefined
-        if (newData !== undefined) data = newData;
-      }
+      data = await runJSONPatches(data, { resolvedPath, requestedAsset, options });
     } catch (err) {
       if (errorHasMessage(err)) {
         err.message = `Failed to patch JSON file '${path}': ${err.message}`;
@@ -109,13 +103,37 @@ export async function loadJSON(path: string, options?: LoadJSONOptions | null): 
   return data;
 }
 
+async function runJSONPatches(data: unknown, context: JSONPatcherContext): Promise<unknown> {
+  let patchers = jsonPatches.forPath(context.requestedAsset);
+  if (patchers.length === 0) return data;
+
+  let allDependencies: unknown[] = await Promise.all(
+    patchers.map((patcher) =>
+      // eslint-disable-next-line no-undefined
+      patcher.dependencies != null ? patcher.dependencies(context) : undefined,
+    ),
+  );
+
+  for (let i = 0; i < patchers.length; i++) {
+    let patcher = patchers[i];
+    let deps = allDependencies[i];
+    let newData = await patcher.patcher(data, deps, context);
+    // eslint-disable-next-line no-undefined
+    if (newData !== undefined) data = newData;
+  }
+
+  return data;
+}
+
 export interface LoadImageOptions {
   returnCanvas?: 'always' | 'if-patched' | 'never' | null;
 }
 
+// TODO: loadText
+
 export async function loadImage(
   path: string,
-  options?: LoadImageOptions,
+  options?: LoadImageOptions | null,
 ): Promise<HTMLImageElement | HTMLCanvasElement> {
   options = options ?? {};
 
