@@ -3,7 +3,7 @@
 import * as impactModuleHooks from './impact-module-hooks.js';
 import * as resources from './resources.js';
 
-if (typeof require !== 'undefined' && !modloader.gameSourceIsObfuscated) {
+if (typeof require !== 'undefined') {
   const pathsNative = require('path') as typeof import('path');
 
   const GAME_ASSETS_FS_PATH = pathsNative.join(

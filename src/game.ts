@@ -3,7 +3,6 @@ import { SemVer } from '../common/vendor-libs/semver.js';
 import * as files from './files.js';
 import { ChangelogFile } from './game-types';
 import { Config } from './config.js';
-import { table as deobf } from './deobf.js';
 
 export async function loadVersion(): Promise<{
   version: SemVer;
@@ -77,8 +76,8 @@ export async function loadMainScript(
 ): Promise<() => void> {
   let domReadyCallback: () => void = null!;
   callOnImpactInit(() => {
-    domReadyCallback = ig[deobf._DOMReady];
-    ig[deobf._DOMReady] = () => {};
+    domReadyCallback = ig._DOMReady;
+    ig._DOMReady = () => {};
     eventReceiver.onImpactInit();
   });
 
@@ -132,8 +131,8 @@ export async function getStartFunction(): Promise<() => void> {
 
 export async function waitForIgGameInitialization(): Promise<void> {
   return new Promise((resolve) => {
-    let realSetGameNow = ig[deobf.system][deobf.setGameNow];
-    ig[deobf.system][deobf.setGameNow] = function (...args) {
+    let realSetGameNow = ig.system.setGameNow;
+    ig.system.setGameNow = function (...args) {
       let result = realSetGameNow.apply(this, args);
       resolve();
       return result;

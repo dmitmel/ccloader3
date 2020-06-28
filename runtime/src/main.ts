@@ -33,9 +33,7 @@ export default class CCLoaderRuntimeMod implements ModClass {
   public async postload(): Promise<void> {
     await import('./options.js');
 
-    if (!modloader.gameSourceIsObfuscated) {
-      await import('./input.js');
-    }
+    await import('./input.js');
 
     await import('./ui/options-mods-tab.js');
     await import('./ui/options-definitions.js');

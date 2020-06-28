@@ -15,7 +15,6 @@ const MODLOADER_PACKAGE_FILES = [
 ];
 const MODLOADER_PACKAGE_DIRS = [
   'dist/',
-  'deobf-tables/',
   'common/dist/',
   'common/vendor-libs/',
   'runtime/dist/',

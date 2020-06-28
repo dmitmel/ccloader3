@@ -1,39 +1,39 @@
 export {};
 
-ig[deobf.module]('ccloader-runtime.ui.options.definitions')
-  [deobf.requires](
+ig.module('ccloader-runtime.ui.options.definitions')
+  .requires(
     'game.feature.model.options-model',
     'game.feature.menu.gui.options.options-types',
     'ccloader-runtime.ui.options.mods-tab',
   )
-  [deobf.defines](() => {
-    sc[deobf.OPTIONS_DEFINITION]['logLevel-log'] = {
+  .defines(() => {
+    sc.OPTIONS_DEFINITION['logLevel-log'] = {
       type: 'CHECKBOX',
-      [deobf.cat]: sc[deobf.OPTION_CATEGORY][deobf.GENERAL],
-      [deobf.init]: false,
-      [deobf.restart]: true,
-      [deobf.hasDivider]: true,
-      [deobf.header]: 'logLevel',
+      cat: sc.OPTION_CATEGORY.GENERAL,
+      init: false,
+      restart: true,
+      hasDivider: true,
+      header: 'logLevel',
     };
 
-    sc[deobf.OPTIONS_DEFINITION]['logLevel-warn'] = {
+    sc.OPTIONS_DEFINITION['logLevel-warn'] = {
       type: 'CHECKBOX',
-      [deobf.cat]: sc[deobf.OPTION_CATEGORY][deobf.GENERAL],
-      [deobf.init]: true,
-      [deobf.restart]: true,
+      cat: sc.OPTION_CATEGORY.GENERAL,
+      init: true,
+      restart: true,
     };
 
-    sc[deobf.OPTIONS_DEFINITION]['logLevel-error'] = {
+    sc.OPTIONS_DEFINITION['logLevel-error'] = {
       type: 'CHECKBOX',
-      [deobf.cat]: sc[deobf.OPTION_CATEGORY][deobf.GENERAL],
-      [deobf.init]: true,
-      [deobf.restart]: true,
+      cat: sc.OPTION_CATEGORY.GENERAL,
+      init: true,
+      restart: true,
     };
 
-    if (deobf.OptionInfoBox in sc) {
-      sc[deobf.OPTIONS_DEFINITION]['mods-description'] = {
+    if ('OptionInfoBox' in sc) {
+      sc.OPTIONS_DEFINITION['mods-description'] = {
         type: 'INFO',
-        [deobf.cat]: sc[deobf.OPTION_CATEGORY].MODS,
+        cat: sc.OPTION_CATEGORY.MODS,
         data: 'options.mods-description.description',
         marginBottom: 6,
       };
@@ -44,11 +44,11 @@ ig[deobf.module]('ccloader-runtime.ui.options.definitions')
     )) {
       if (modId === 'ccloader-runtime') continue;
 
-      sc[deobf.OPTIONS_DEFINITION][`modEnabled-${modId}`] = {
+      sc.OPTIONS_DEFINITION[`modEnabled-${modId}`] = {
         type: 'CHECKBOX',
-        [deobf.cat]: sc[deobf.OPTION_CATEGORY].MODS,
-        [deobf.init]: true,
-        [deobf.restart]: true,
+        cat: sc.OPTION_CATEGORY.MODS,
+        init: true,
+        restart: true,
         checkboxRightAlign: true,
       };
     }

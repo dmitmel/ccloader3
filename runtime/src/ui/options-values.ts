@@ -24,7 +24,7 @@ function setLogFlag(index: number, value: boolean): void {
   setLogFlagsBitset(bitset);
 }
 
-Object.defineProperties(sc.options[deobf.values], {
+Object.defineProperties(sc.options.values, {
   'logLevel-log': {
     get: () => getLogFlag(2),
     set: (value) => setLogFlag(2, value),
@@ -42,7 +42,7 @@ Object.defineProperties(sc.options[deobf.values], {
 for (let [modId, mod] of modloader.installedMods) {
   if (modId === 'ccloader-runtime') continue;
 
-  Object.defineProperty(sc.options[deobf.values], `modEnabled-${modId}`, {
+  Object.defineProperty(sc.options.values, `modEnabled-${modId}`, {
     get() {
       return mod.isEnabled;
     },

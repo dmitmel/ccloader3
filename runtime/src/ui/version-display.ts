@@ -1,40 +1,37 @@
 export {};
 
-ig[deobf.module]('ccloader-runtime.ui.version-display')
-  [deobf.requires](
+ig.module('ccloader-runtime.ui.version-display')
+  .requires(
     'game.feature.gui.base.text',
     'game.feature.gui.screen.title-screen',
     'game.feature.gui.screen.pause-screen',
   )
-  [deobf.defines](() => {
+  .defines(() => {
     function attachCCLoaderVersionText(versionGui: sc.TextGui): sc.TextGui {
-      const ccloaderVersionGui = new sc[deobf.TextGui](`CCLoader v${modloader.version}`, {
-        font: sc[deobf.fontsystem][deobf.tinyFont],
+      const ccloaderVersionGui = new sc.TextGui(`CCLoader v${modloader.version}`, {
+        font: sc.fontsystem.tinyFont,
       });
-      ccloaderVersionGui[deobf.setAlign](
-        versionGui[deobf.hook].align.x,
-        versionGui[deobf.hook].align.y,
-      );
-      ccloaderVersionGui[deobf.setPos](0, versionGui[deobf.hook].size.y);
-      versionGui[deobf.addChildGui](ccloaderVersionGui);
+      ccloaderVersionGui.setAlign(versionGui.hook.align.x, versionGui.hook.align.y);
+      ccloaderVersionGui.setPos(0, versionGui.hook.size.y);
+      versionGui.addChildGui(ccloaderVersionGui);
       return ccloaderVersionGui;
     }
 
-    sc[deobf.TitleScreenGui][deobf.inject]({
+    sc.TitleScreenGui.inject({
       ccloaderVersionGui: null,
 
-      [deobf.init](...args) {
+      init(...args) {
         this.parent(...args);
-        this.ccloaderVersionGui = attachCCLoaderVersionText(this[deobf.versionGui]);
+        this.ccloaderVersionGui = attachCCLoaderVersionText(this.versionGui);
       },
     });
 
-    sc[deobf.PauseScreenGui][deobf.inject]({
+    sc.PauseScreenGui.inject({
       ccloaderVersionGui: null,
 
-      [deobf.init](...args) {
+      init(...args) {
         this.parent(...args);
-        this.ccloaderVersionGui = attachCCLoaderVersionText(this[deobf.versionGui]);
+        this.ccloaderVersionGui = attachCCLoaderVersionText(this.versionGui);
       },
     });
   });

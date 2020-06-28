@@ -21,7 +21,7 @@ ccmod3.resources.jsonPatches.add('data/lang/sc/gui.en_US.json', (data: any) => {
 
   labels.menu.option.mods = 'Mods';
 
-  const INFO_BOX_IS_SUPPORTED = deobf.OptionInfoBox in sc;
+  const INFO_BOX_IS_SUPPORTED = 'OptionInfoBox' in sc;
 
   if (INFO_BOX_IS_SUPPORTED) {
     langOptions['mods-description'] = {

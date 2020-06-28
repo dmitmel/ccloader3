@@ -275,7 +275,7 @@ export function getGameAssetsURL(): URL {
 
 export function getCacheSuffix(): string {
   if (typeof ig !== 'undefined') {
-    return ig[deobf.getCacheSuffix]();
+    return ig.getCacheSuffix();
   } else if (window.IG_GAME_CACHE) {
     return `?nocache=${window.IG_GAME_CACHE}`;
   } else {

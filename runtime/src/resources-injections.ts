@@ -97,8 +97,8 @@ impactInitHooks.add(() => {
 });
 
 impactModuleHooks.add('impact.base.image', () => {
-  ig[deobf.Image][deobf.inject]({
-    [deobf.loadInternal](path) {
+  ig.Image.inject({
+    loadInternal(path) {
       // Some image paths include trailing whitespace which the devs didn't
       // notice because JS automatically trims whitespace (note: encoded
       // whitespace, i.e. `%20`-like entities, are left untouched) in URLs. I'm
@@ -127,15 +127,15 @@ impactModuleHooks.add('impact.base.image', () => {
     // implementation
     debugReload: true,
     reload() {
-      if (modloader.gameSourceIsObfuscated) {
-        // doubt that someone will ever need the semantics of the default
-        // `ig.Loadable#reload` implementation in obfuscated versions which have
-        // been abandoned by everyone except speedrunners
-        this.load();
-      } else {
+      if ('reload' in ig.Loadable.prototype) {
         // I kinda gave up fixing the `ImpactClass` here
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         ig.Loadable.prototype.reload.call(this as any);
+      } else {
+        // doubt that someone will ever need the semantics of the default
+        // `ig.Loadable#reload` implementation in pre-1.1.0 versions which have
+        // been abandoned by everyone except speedrunners
+        this.load();
       }
     },
   });
@@ -154,27 +154,27 @@ impactModuleHooks.add('impact.base.sound', () => {
     if (lastDotIndex >= 0) {
       resolvedPath = resolvedPath.slice(0, lastDotIndex);
     }
-    resolvedPath += `.${ig[deobf.soundManager][deobf.format][deobf.ext]}`;
+    resolvedPath += `.${ig.soundManager.format.ext}`;
     resolvedPath = applyImpactFileForwarding(resolvedPath);
     let resolvedURL = resources.resolvePathToURL(resolvedPath);
 
-    let originalGetFilePath = ig[deobf.getFilePath];
+    let originalGetFilePath = ig.getFilePath;
     try {
-      ig[deobf.getFilePath] = (_path) => resolvedURL;
+      ig.getFilePath = (_path) => resolvedURL;
       return this.parent(...args);
     } finally {
-      ig[deobf.getFilePath] = originalGetFilePath;
+      ig.getFilePath = originalGetFilePath;
     }
   }
 
-  ig[deobf.SoundManager][deobf.inject]({
-    [deobf.loadWebAudio]: loadAudio,
+  ig.SoundManager.inject({
+    loadWebAudio: loadAudio,
     load: loadAudio,
   });
 });
 
 function applyImpactFileForwarding(path: string): string {
-  let table = ig[deobf.fileForwarding];
+  let table = ig.fileForwarding;
   let tableKey = `${ig.root}${path}`;
   if (utils.hasKey(table, tableKey)) {
     path = table[tableKey];

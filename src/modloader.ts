@@ -8,7 +8,6 @@ import * as game from './game.js';
 import { SemVer } from '../common/vendor-libs/semver.js';
 import { compare, errorHasMessage } from '../common/dist/utils.js';
 import * as paths from '../common/dist/paths.js';
-import * as deobf from './deobf.js';
 
 // ends with a slash
 const CCLOADER_DIR: string = paths.stripRoot(new URL('../', import.meta.url).pathname);
@@ -25,8 +24,6 @@ export async function boot(): Promise<void> {
 
   let { version: gameVersion, hotfix: gameVersionHotfix } = await game.loadVersion();
   console.log(`crosscode ${gameVersion}-${gameVersionHotfix}`);
-
-  let gameSourceIsObfuscated = await deobf.load(gameVersion, gameVersionHotfix);
 
   let runtimeModBaseDirectory = `${CCLOADER_DIR}runtime`;
   let runtimeMod: Mod | null;
@@ -87,7 +84,6 @@ export async function boot(): Promise<void> {
     version: modloaderMetadata.version,
     gameVersion,
     gameVersionHotfix,
-    gameSourceIsObfuscated,
     installedMods,
     loadedMods,
   };
