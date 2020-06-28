@@ -30,6 +30,8 @@ rules:
         - dynamicImport
 
   node/no-unpublished-import: off
+  node/no-unpublished-require: off
+  node/shebang: off
 
   require-await: off
   no-await-in-loop: off
