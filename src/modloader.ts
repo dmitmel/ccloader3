@@ -30,7 +30,7 @@ export async function boot(): Promise<void> {
   try {
     // the runtime mod is added to `installedMods` in `sortModsInLoadOrder`
     runtimeMod = await loadModMetadata(runtimeModBaseDirectory);
-    if (runtimeMod == null) {
+    if (!(runtimeMod != null)) {
       throw new Error('Assertion failed: runtimeMod != null');
     }
   } catch (err) {
@@ -42,7 +42,10 @@ export async function boot(): Promise<void> {
   }
 
   let installedMods = new Map<ModId, Mod>();
-  for (let dir of config.modsDirectories) await loadAllModMetadata(dir, installedMods);
+  installedMods.set(runtimeMod.manifest.id, runtimeMod);
+  for (let dir of config.modsDirectories) {
+    await loadAllModMetadata(dir, installedMods);
+  }
   installedMods = sortModsInLoadOrder(runtimeMod, installedMods);
 
   let virtualPackages = new Map<ModId, SemVer>();
@@ -199,9 +202,11 @@ function sortModsInLoadOrder(runtimeMod: Mod, installedMods: ReadonlyModsMap): M
 
   sortedMods.set(runtimeMod.manifest.id, runtimeMod);
 
-  let unsortedModsList: Mod[] = Array.from(installedMods.values()).sort((mod1, mod2) =>
-    compare(mod1.manifest.id, mod2.manifest.id),
-  );
+  let unsortedModsList: Mod[] = [];
+  for (let mod of installedMods.values()) {
+    if (mod !== runtimeMod) unsortedModsList.push(mod);
+  }
+  unsortedModsList.sort((mod1, mod2) => compare(mod1.manifest.id, mod2.manifest.id));
 
   while (unsortedModsList.length > 0) {
     // dependency cycles can be detected by checking if we removed any
