@@ -10,7 +10,6 @@
     "eslint": "^7.1.0",
     "eslint-config-dmitmel": "dmitmel/eslint-config-dmitmel",
     "eslint-plugin-node": "^11.1.0",
-    "jszip": "^3.5.0",
     "prettier": "^2.0.5",
     "typescript": "^3.8.3",
     "ultimate-crosscode-typedefs": "dmitmel/ultimate-crosscode-typedefs"

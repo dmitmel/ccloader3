@@ -104,6 +104,7 @@ export async function boot(): Promise<void> {
   await executeStage(loadedMods, 'prestart');
   startGame();
   await game.waitForIgGameInitialization();
+  // TODO: delay further game initialization
   await executeStage(loadedMods, 'poststart');
 }
 

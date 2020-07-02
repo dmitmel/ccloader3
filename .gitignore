@@ -1,6 +1,6 @@
 node_modules/
 dist/
 *.tsbuildinfo
-user-config.js
-ccloader_*_quick-install.zip
-ccloader_*_package.zip
+
+ccloader_*_quick-install.*
+ccloader_*_package.*
