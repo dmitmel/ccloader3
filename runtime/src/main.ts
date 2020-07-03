@@ -37,11 +37,8 @@ export default class CCLoaderRuntimeMod implements ModClass {
 
     await import('./ui/options-mods-tab.js');
     await import('./ui/options-definitions.js');
+    await import('./ui/options-values.js');
     await import('./ui/version-display.js');
     await import('./ui/lang.js');
-  }
-
-  public async poststart(): Promise<void> {
-    await import('./ui/options-values.js');
   }
 }

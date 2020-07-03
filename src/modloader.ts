@@ -52,6 +52,7 @@ export async function boot(): Promise<void> {
   virtualPackages.set('crosscode', gameVersion);
   virtualPackages.set('ccloader', modloaderMetadata.version);
   for (let mod of installedMods.values()) {
+    mod.isEnabled = localStorage.getItem(`modEnabled-${mod.manifest.id}`) !== 'false';
     if (mod.isEnabled) {
       verifyModDependencies(mod, installedMods, virtualPackages);
     } else {

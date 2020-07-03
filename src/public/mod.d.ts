@@ -20,14 +20,12 @@ export type ModLoadingStage = 'preload' | 'postload' | 'prestart' | 'poststart';
 export class Mod {
   public readonly baseDirectory: string;
   public readonly manifest: Manifest;
+  public readonly version: SemVer;
+  public readonly dependencies: ReadonlyMap<ModId, ModDependency>;
   public readonly assetsDirectory: string;
   public readonly assets: ReadonlySet<string>;
   public readonly legacyMode: boolean;
-  public readonly version: SemVer;
-  public readonly dependencies: ReadonlyMap<ModId, ModDependency>;
-  public readonly shouldBeLoaded: boolean;
   public readonly classInstance: ModClass | null;
-  public isEnabled: boolean;
 
   public resolvePath(path: string): string;
 }

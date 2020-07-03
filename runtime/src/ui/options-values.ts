@@ -1,53 +1,34 @@
 export {};
 
-const DEFAULT_LOG_FLAGS = 0b011;
+ig.module('ccloader-runtime.ui.options.values')
+  .requires('game.feature.model.options-model')
+  .defines(() => {
+    sc.OptionModel.inject({
+      // TODO: maybe rewrite this as a game addon?
+      onStorageGlobalSave(globalsData, ...args) {
+        let result = this.parent(globalsData, ...args);
 
-function getLogFlagsBitset(): number {
-  let logFlagsStr = localStorage.getItem('logFlags');
-  let logFlags = logFlagsStr ? parseInt(logFlagsStr, 10) : DEFAULT_LOG_FLAGS;
-  if (Number.isNaN(logFlags)) logFlags = DEFAULT_LOG_FLAGS;
-  return logFlags;
-}
+        for (let key of Object.keys(localStorage)) {
+          if (key.startsWith('modEnabled-')) {
+            localStorage.removeItem(key);
+          }
+        }
 
-function setLogFlagsBitset(value: number): void {
-  localStorage.setItem('logFlags', String(value));
-}
+        let { options } = globalsData;
 
-function getLogFlag(index: number): boolean {
-  return Boolean((getLogFlagsBitset() >> index) & 1);
-}
+        let logFlags = 0;
+        logFlags |= Number(options['logLevel-log']) << 2;
+        logFlags |= Number(options['logLevel-warn']) << 1;
+        logFlags |= Number(options['logLevel-error']) << 0;
+        localStorage.setItem('logFlags', String(logFlags));
 
-function setLogFlag(index: number, value: boolean): void {
-  let bitset = getLogFlagsBitset();
-  if (value) bitset |= 1 << index;
-  else bitset &= ~(1 << index);
-  setLogFlagsBitset(bitset);
-}
+        for (let key of Object.keys(options)) {
+          if (key.startsWith('modEnabled-')) {
+            localStorage.setItem(key, String(options[key]));
+          }
+        }
 
-Object.defineProperties(sc.options.values, {
-  'logLevel-log': {
-    get: () => getLogFlag(2),
-    set: (value) => setLogFlag(2, value),
-  },
-  'logLevel-warn': {
-    get: () => getLogFlag(1),
-    set: (value) => setLogFlag(1, value),
-  },
-  'logLevel-error': {
-    get: () => getLogFlag(0),
-    set: (value) => setLogFlag(0, value),
-  },
-});
-
-for (let [modId, mod] of modloader.installedMods) {
-  if (modId === 'ccloader-runtime') continue;
-
-  Object.defineProperty(sc.options.values, `modEnabled-${modId}`, {
-    get() {
-      return mod.isEnabled;
-    },
-    set(value) {
-      mod.isEnabled = value;
-    },
+        return result;
+      },
+    });
   });
-}
