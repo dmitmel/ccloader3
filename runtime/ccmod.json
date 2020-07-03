@@ -3,7 +3,7 @@
   "title": "CCLoader Runtime",
   "version": "1.0.0-alpha",
   "description": "CCLoader's graphical user interface and standard library implementation",
-  "main": "dist/main.js",
+  "main": "dist/_main.js",
   "dependencies": {
     "crosscode": "^1.1.0 || 1.0.2",
     "ccloader": "^3.0.0-alpha"

@@ -50,8 +50,6 @@
 // necessary edits, very minor refactors and code deduplications I didn't change
 // anything significant.
 
-export {};
-
 ig.module('ccloader-runtime.stdlib.input')
   .requires('game.feature.model.options-model')
   .defines(() => {

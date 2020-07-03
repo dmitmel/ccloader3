@@ -1,5 +1,3 @@
-export {};
-
 ig.module('ccloader-runtime.ui.options.values')
   .requires('game.feature.model.options-model')
   .defines(() => {

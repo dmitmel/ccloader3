@@ -1,5 +1,3 @@
-export {};
-
 ig.module('ccloader-runtime.stdlib.font')
   .requires('impact.base.font', 'game.feature.font.font-system')
   .defines(() => {

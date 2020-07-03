@@ -99,7 +99,7 @@ export async function boot(): Promise<void> {
   await executeStage(loadedMods, 'preload');
   let domReadyCallback = await game.loadMainScript(
     config,
-    runtimeMod.classInstance! as import('../runtime/src/main').default,
+    runtimeMod.classInstance! as import('../runtime/src/_main').default,
   );
   await executeStage(loadedMods, 'postload');
   domReadyCallback();

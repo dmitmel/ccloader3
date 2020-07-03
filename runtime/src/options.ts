@@ -1,5 +1,3 @@
-export {};
-
 ig.module('ccloader-runtime.stdlib.options.gui')
   .requires('game.feature.menu.gui.options.options-types')
   .defines(() => {

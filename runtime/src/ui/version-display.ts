@@ -1,5 +1,3 @@
-export {};
-
 ig.module('ccloader-runtime.ui.version-display')
   .requires(
     'game.feature.gui.base.text',

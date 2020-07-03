@@ -1,5 +1,3 @@
-export {};
-
 ig.module('ccloader-runtime.ui.options.mods-tab')
   .requires(
     'impact.base.font',
