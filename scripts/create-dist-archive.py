@@ -9,6 +9,7 @@ import os
 from io import BytesIO
 import stat
 from shutil import copyfileobj
+import time
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -66,18 +67,18 @@ class TarGzArchiveAdapter:
         self._tarfile.__exit__(type, value, traceback)
 
     def add_file_entry(self, name, data):
-        info = TarInfo(name)
-        info.type = tarfile.REGTYPE
-        info.mode = DEFAULT_FILE_MODE
-        info.size = len(data)
-        self._tarfile.addfile(info, BytesIO(data))
+        self._add_entry(name, tarfile.REGTYPE, DEFAULT_FILE_MODE, len(data), BytesIO(data))
 
     def add_dir_entry(self, name):
+        self._add_entry(name, tarfile.DIRTYPE, DEFAULT_DIR_MODE, 0, None)
+
+    def _add_entry(self, name, type, mode, size, data):
         info = TarInfo(name)
-        info.type = tarfile.DIRTYPE
-        info.mode = DEFAULT_DIR_MODE
-        info.size = 0
-        self._tarfile.addfile(info)
+        info.type = type
+        info.mode = mode
+        info.size = size
+        info.mtime = time.time()
+        self._tarfile.addfile(info, data)
 
     def add_real_file(self, path, archived_path, recursive=True):
         self._tarfile.add(
@@ -91,11 +92,6 @@ class TarGzArchiveAdapter:
         info.uname = ""
         info.gid = 0
         info.gname = ""
-
-        # TODO: generate mtime for the generated files in the quick-install
-        # archive, then bring back mtimes for modloader files as well.
-        info.mtime = 0
-
         return info
 
 
@@ -115,17 +111,17 @@ class ZipArchiveAdapter:
         self._zipfile.__exit__(type, value, traceback)
 
     def add_file_entry(self, name, data):
-        self._zipfile_writestr(name, (stat.S_IFREG | DEFAULT_FILE_MODE) << 16, data)
+        self._add_entry(name, (stat.S_IFREG | DEFAULT_FILE_MODE) << 16, data)
 
     def add_dir_entry(self, name):
         if not name.endswith("/"):
             name += "/"
         external_attr = (stat.S_IFDIR | DEFAULT_DIR_MODE) << 16
         external_attr |= 0x10  # MS-DOS directory flag
-        self._zipfile_writestr(name, external_attr, b"")
+        self._add_entry(name, external_attr, b"")
 
-    def _zipfile_writestr(self, name, external_attr, data):
-        info = ZipInfo(name)
+    def _add_entry(self, name, external_attr, data):
+        info = ZipInfo(name, time.localtime(time.time())[:6])
         info.external_attr = external_attr
         self._set_zipinfo_compression(info)
         self._zipfile.writestr(info, data)
@@ -134,8 +130,6 @@ class ZipArchiveAdapter:
         info = ZipInfo.from_file(
             path, archived_path, strict_timestamps=self._zipfile._strict_timestamps
         )
-        # TODO: see comment about mtime
-        info.date_time = (1980, 1, 1, 0, 0, 0)
         self._set_zipinfo_compression(info)
 
         if info.is_dir():
