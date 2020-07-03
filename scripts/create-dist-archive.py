@@ -2,9 +2,13 @@
 
 import tarfile
 from tarfile import TarFile, TarInfo
+import zipfile
+from zipfile import ZipFile, ZipInfo
 import json
 import os
-import io
+from io import BytesIO
+import stat
+from shutil import copyfileobj
 
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -15,6 +19,13 @@ with open(os.path.join(PROJECT_DIR, "tool.config.json")) as f:
 MODLOADER_NAME = MODLOADER_METADATA["name"]
 MODLOADER_VERSION = MODLOADER_METADATA["version"]
 MODLOADER_DIR_NAME = MODLOADER_NAME
+
+# specific archive extensions are appended when the respective archives are packed
+ARCHIVE_NAME_QUICK_INSTALL = "{}_{}_quick-install".format(MODLOADER_NAME, MODLOADER_VERSION)
+ARCHIVE_NAME_PACKAGE = "{}_{}_package".format(MODLOADER_NAME, MODLOADER_VERSION)
+
+DEFAULT_FILE_MODE = 0o644
+DEFAULT_DIR_MODE = 0o755
 
 PACKAGE_JSON_DATA = {
     "name": "CrossCode",
@@ -39,28 +50,41 @@ PACKAGE_JSON_DATA = {
 }
 
 
-def add_file_to_tar(archive, name, data, size):
-    tarinfo = TarInfo(name)
-    tarinfo.type = tarfile.REGTYPE
-    tarinfo.mode = 0o644
-    tarinfo.size = size
-    archive.addfile(tarinfo, data)
+class TarGzArchiveAdapter:
+    @classmethod
+    def open_for_writing(cls, path):
+        return cls(TarFile.open(path, "w:gz"))
 
+    def __init__(self, tarfile):
+        self._tarfile = tarfile
 
-def add_text_file_to_tar(archive, name, data):
-    add_file_to_tar(archive, name, io.BytesIO(data.encode("utf8")), len(data))
+    def __enter__(self):
+        self._tarfile.__enter__()
+        return self
 
+    def __exit__(self, type, value, traceback):
+        self._tarfile.__exit__(type, value, traceback)
 
-def add_dir_to_tar(archive, name):
-    tarinfo = tarfile.TarInfo(name)
-    tarinfo.type = tarfile.DIRTYPE
-    tarinfo.mode = 0o755
-    tarinfo.size = 0
-    archive.addfile(tarinfo)
+    def add_file_entry(self, name, data):
+        info = TarInfo(name)
+        info.type = tarfile.REGTYPE
+        info.mode = DEFAULT_FILE_MODE
+        info.size = len(data)
+        self._tarfile.addfile(info, BytesIO(data))
 
+    def add_dir_entry(self, name):
+        info = TarInfo(name)
+        info.type = tarfile.DIRTYPE
+        info.mode = DEFAULT_DIR_MODE
+        info.size = 0
+        self._tarfile.addfile(info)
 
-def add_modloader_files_to_tar(archive, path_prefix):
-    def my_tarinfo_filter(info):
+    def add_real_file(self, path, archived_path, recursive=True):
+        self._tarfile.add(
+            path, arcname=archived_path, recursive=recursive, filter=self._reset_tarinfo,
+        )
+
+    def _reset_tarinfo(self, info):
         # remove user and group IDs as they are irrelevant for distribution and
         # may require subsequent `chown`ing on multi-tenant systems
         info.uid = 0
@@ -74,39 +98,94 @@ def add_modloader_files_to_tar(archive, path_prefix):
 
         return info
 
-    def add_real_file(path, recursive=True):
-        archive.add(
-            os.path.join(PROJECT_DIR, path),
-            arcname=path_prefix + path,
-            recursive=recursive,
-            filter=my_tarinfo_filter,
+
+class ZipArchiveAdapter:
+    @classmethod
+    def open_for_writing(cls, path):
+        return cls(ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED))
+
+    def __init__(self, zipfile):
+        self._zipfile = zipfile
+
+    def __enter__(self):
+        self._zipfile.__enter__()
+        return self
+
+    def __exit__(self, type, value, traceback):
+        self._zipfile.__exit__(type, value, traceback)
+
+    def add_file_entry(self, name, data):
+        self._zipfile_writestr(name, (stat.S_IFREG | DEFAULT_FILE_MODE) << 16, data)
+
+    def add_dir_entry(self, name):
+        if not name.endswith("/"):
+            name += "/"
+        external_attr = (stat.S_IFDIR | DEFAULT_DIR_MODE) << 16
+        external_attr |= 0x10  # MS-DOS directory flag
+        self._zipfile_writestr(name, external_attr, b"")
+
+    def _zipfile_writestr(self, name, external_attr, data):
+        info = ZipInfo(name)
+        info.external_attr = external_attr
+        self._set_zipinfo_compression(info)
+        self._zipfile.writestr(info, data)
+
+    def add_real_file(self, path, archived_path, recursive=True):
+        info = ZipInfo.from_file(
+            path, archived_path, strict_timestamps=self._zipfile._strict_timestamps
         )
+        # TODO: see comment about mtime
+        info.date_time = (1980, 1, 1, 0, 0, 0)
+        self._set_zipinfo_compression(info)
 
-    add_real_file("LICENSE")
-    add_real_file("main.html")
-    add_real_file("tool.config.json")
-    add_real_file("common/", recursive=False)
-    add_real_file("common/dist/")
-    add_real_file("common/vendor-libs/")
-    add_real_file("dist/")
-    add_real_file("runtime/", recursive=False)
-    add_real_file("runtime/ccmod.json")
-    add_real_file("runtime/dist/")
-    add_real_file("runtime/media/")
+        if info.is_dir():
+            self._zipfile.open(info, "w").close()
+            if recursive:
+                for f in sorted(os.listdir(path)):
+                    self.add_real_file(
+                        os.path.join(path, f), os.path.join(archived_path, f), recursive=recursive
+                    )
+        else:
+            with open(path, "rb") as src, self._zipfile.open(info, "w") as dest:
+                copyfileobj(src, dest, 1024 * 8)
+
+    def _set_zipinfo_compression(self, zipinfo):
+        zipinfo.compress_type = self._zipfile.compression
+        zipinfo._compresslevel = self._zipfile.compresslevel
 
 
-with TarFile.open(
-    "{}_{}_package.tar.gz".format(MODLOADER_NAME, MODLOADER_VERSION), "w:gz"
-) as tar:
-    add_modloader_files_to_tar(tar, "")
+for open_archive_fn in [
+    lambda name: TarGzArchiveAdapter.open_for_writing(name + ".tar.gz"),
+    lambda name: ZipArchiveAdapter.open_for_writing(name + ".zip"),
+]:
 
-with TarFile.open(
-    "{}_{}_quick-install.tar.gz".format(MODLOADER_NAME, MODLOADER_VERSION), "w:gz",
-) as tar:
-    add_text_file_to_tar(
-        tar, "package.json", json.dumps(PACKAGE_JSON_DATA, indent=2) + "\n"
-    )
-    add_dir_to_tar(tar, "assets/")
-    add_dir_to_tar(tar, "assets/mods/")
-    add_dir_to_tar(tar, MODLOADER_DIR_NAME)
-    add_modloader_files_to_tar(tar, MODLOADER_DIR_NAME + "/")
+    def add_modloader_files(archive, path_prefix):
+        def add(path, recursive=True):
+            archive.add_real_file(
+                os.path.join(PROJECT_DIR, path), path_prefix + path, recursive=recursive
+            )
+
+        add("LICENSE")
+        add("main.html")
+        add("tool.config.json")
+        add("common/", recursive=False)
+        add("common/dist/")
+        add("common/vendor-libs/")
+        add("dist/")
+        add("runtime/", recursive=False)
+        add("runtime/ccmod.json")
+        add("runtime/dist/")
+        add("runtime/media/")
+
+    with open_archive_fn(ARCHIVE_NAME_PACKAGE) as archive:
+        add_modloader_files(archive, "")
+
+    with open_archive_fn(ARCHIVE_NAME_QUICK_INSTALL) as archive:
+        archive.add_file_entry(
+            "package.json", (json.dumps(PACKAGE_JSON_DATA, indent=2) + "\n").encode("utf8"),
+        )
+        archive.add_dir_entry("assets/")
+        archive.add_dir_entry("assets/mods/")
+        archive.add_dir_entry(MODLOADER_DIR_NAME)
+
+        add_modloader_files(archive, MODLOADER_DIR_NAME + "/")
