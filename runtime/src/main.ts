@@ -31,8 +31,8 @@ export default class CCLoaderRuntimeMod implements ModClass {
   }
 
   public async postload(): Promise<void> {
+    await import('./font.js');
     await import('./options.js');
-
     await import('./input.js');
 
     await import('./ui/options-mods-tab.js');
