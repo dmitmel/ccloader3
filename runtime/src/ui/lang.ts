@@ -1,7 +1,8 @@
 import { getLocalizedString, getModTitle } from './utils.js';
+import * as resources from '../resources.js';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-ccmod3.resources.jsonPatches.add('data/lang/sc/gui.en_US.json', (data: any) => {
+resources.jsonPatches.add('data/lang/sc/gui.en_US.json', (data: any) => {
   let { labels } = data;
   let langOptions = labels.options;
 

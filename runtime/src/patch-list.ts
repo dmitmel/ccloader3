@@ -42,11 +42,11 @@ export interface ResourcePatcherWithDeps<Data, Deps, Ctx> {
 export class ResourcePatchList<Data, Ctx> extends PatchList<
   ResourcePatcherWithDeps<Data, unknown, Ctx>
 > {
-  public add<Deps = never>(
+  public add<Data2 extends Data = Data, Deps = never>(
     path: string | RegExp,
-    patcher: ResourcePatcherSimple<Data, Deps, Ctx> | ResourcePatcherWithDeps<Data, Deps, Ctx>,
+    patcher: ResourcePatcherSimple<Data2, Deps, Ctx> | ResourcePatcherWithDeps<Data2, Deps, Ctx>,
   ): void {
     if (typeof patcher === 'function') patcher = { patcher };
-    super.add(path, patcher as ResourcePatcherWithDeps<Data, unknown, Ctx>);
+    super.add(path, (patcher as unknown) as ResourcePatcherWithDeps<Data, unknown, Ctx>);
   }
 }
