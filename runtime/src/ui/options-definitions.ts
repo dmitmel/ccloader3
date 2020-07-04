@@ -40,7 +40,7 @@ ig.module('ccloader-runtime.ui.options.definitions')
     for (let modID of Array.from(modloader.installedMods.keys()).sort((id1, id2) =>
       id1.localeCompare(id2),
     )) {
-      if (modID === 'ccloader-runtime') continue;
+      if (modID === modloader._runtimeMod.manifest.id) continue;
 
       sc.OPTIONS_DEFINITION[`modEnabled-${modID}`] = {
         type: 'CHECKBOX',

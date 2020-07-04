@@ -34,8 +34,8 @@ resources.jsonPatches.add('data/lang/sc/gui.en_US.json', (data: any) => {
   }
 
   for (let mod of modloader.installedMods.values()) {
+    if (mod === modloader._runtimeMod) continue;
     let { id, description } = mod.manifest;
-    if (id === 'ccloader-runtime') continue;
 
     let name = getModTitle(mod) || ' ';
     description = getLocalizedString(description) || ' ';

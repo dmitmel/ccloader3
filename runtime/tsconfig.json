@@ -3,7 +3,7 @@
     "src",
     "../node_modules/ultimate-crosscode-typedefs/crosscode.d.ts",
     "../node_modules/ultimate-crosscode-typedefs/modloader.d.ts",
-    "../src/public"
+    "../src/modloader-specific-extensions.d.ts"
   ],
   "compilerOptions": {
     "composite": true,

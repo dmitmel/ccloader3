@@ -2,10 +2,9 @@
 
 let originalErrorCallback = window.GAME_ERROR_CALLBACK;
 if (originalErrorCallback != null) {
-  const RUNTIME_MOD_ID = 'ccloader-runtime';
-  const RUNTIME_MOD = modloader.loadedMods.get(RUNTIME_MOD_ID)!;
   const MODLOADER_VERSION = modloader.version.toString();
-  const RUNTIME_MOD_VERSION = RUNTIME_MOD.version.toString();
+  const RUNTIME_MOD_ID = modloader._runtimeMod.manifest.id;
+  const RUNTIME_MOD_VERSION = modloader._runtimeMod.version.toString();
 
   window.GAME_ERROR_CALLBACK = function (error, info, gameInfo, ...args) {
     info['CCLoader version'] = MODLOADER_VERSION;
