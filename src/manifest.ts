@@ -1,15 +1,13 @@
-import {
-  FilePath,
-  Locale,
-  LocalizedString,
-  Manifest,
-  ManifestLegacy,
-  ModDependencies,
-  ModDependency,
-  ModDependencyDetails,
-  Person,
-  PersonDetails,
-} from './public/manifest';
+type Manifest = modloader.Manifest;
+type ManifestLegacy = modloader.ManifestLegacy;
+type LocalizedString = modloader.Manifest.LocalizedString;
+type Person = modloader.Manifest.Person;
+type PersonDetails = modloader.Manifest.PersonDetails;
+type ModDependencies = modloader.Manifest.ModDependencies;
+type ModDependency = modloader.Manifest.ModDependency;
+type ModDependencyDetails = modloader.Manifest.ModDependencyDetails;
+type FilePath = modloader.Manifest.FilePath;
+type Locale = modloader.Manifest.Locale;
 
 enum Type {
   string = 'string',

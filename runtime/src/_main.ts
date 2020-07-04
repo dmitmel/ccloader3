@@ -1,5 +1,3 @@
-import { ModClass } from '../../src/public/mod';
-
 import * as paths from '../../common/dist/paths.js';
 import * as utils from '../../common/dist/utils.js';
 import { requireFixed } from '../../common/dist/require.js';
@@ -12,7 +10,7 @@ import './resources-injections.js';
 import './lang-file-patcher.js';
 import './greenworks-fix.js';
 
-export default class CCLoaderRuntimeMod implements ModClass {
+export default class CCLoaderRuntimeMod implements modloader.Mod.Class {
   public constructor() {
     if (window.ccmod == null) window.ccmod = {} as typeof ccmod;
     ccmod.paths = paths;

@@ -1,14 +1,17 @@
 import { SemVer, Range as SemVerRange } from '../common/vendor-libs/semver.js';
-import { Manifest, ModId } from './public/manifest';
-// TODO: consider using `import * as cls` here
-import { ModClass, ModDependency, ModLoadingStage, Mod as ModPublic } from './public/mod';
 import * as paths from '../common/dist/paths.js';
 import { PLATFORM_TYPE, PlatformType, errorHasMessage } from '../common/dist/utils.js';
 import * as files from './files.js';
 
-export class Mod implements ModPublic {
+type ModID = modloader.ModID;
+type ModDependency = modloader.Mod.Dependency;
+type ModClass = modloader.Mod.Class;
+type ModLoadingStage = modloader.Mod.LoadingStage;
+type Manifest = modloader.Manifest;
+
+export class Mod implements modloader.Mod {
   public readonly version: SemVer;
-  public readonly dependencies: ReadonlyMap<ModId, ModDependency>;
+  public readonly dependencies: ReadonlyMap<ModID, ModDependency>;
   public readonly assetsDirectory: string;
   public assets: Set<string> = new Set();
   public isEnabled = true;
@@ -29,7 +32,7 @@ export class Mod implements ModPublic {
       throw err;
     }
 
-    let dependencies = new Map<ModId, ModDependency>();
+    let dependencies = new Map<ModID, ModDependency>();
 
     if (manifest.dependencies != null) {
       for (let depId of Object.keys(manifest.dependencies)) {
@@ -74,7 +77,7 @@ export class Mod implements ModPublic {
     let scriptFullPath = this.resolvePath(script);
 
     // eslint-disable-next-line no-shadow
-    let module: { default: new (mod: Mod) => ModClass };
+    let module: { default: new (mod: modloader.Mod) => ModClass };
     try {
       module = await import(`/${scriptFullPath}`);
     } catch (err) {

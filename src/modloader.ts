@@ -1,14 +1,20 @@
 import * as files from './files.js';
 import { load as loadConfig } from './config.js';
-import { Manifest, ManifestLegacy, ModId } from './public/manifest';
 import { ManifestValidator, convertFromLegacy as convertManifestFromLegacy } from './manifest.js';
-import { ModLoadingStage } from './public/mod';
 import { Mod } from './mod.js';
 import * as game from './game.js';
 import { SemVer } from '../common/vendor-libs/semver.js';
 import { errorHasMessage } from '../common/dist/utils.js';
 import * as paths from '../common/dist/paths.js';
 import * as dependencyResolver from './dependency-resolver.js';
+
+type ModID = modloader.ModID;
+type Manifest = modloader.Manifest;
+type ManifestLegacy = modloader.ManifestLegacy;
+type ModLoadingStage = modloader.Mod.LoadingStage;
+
+type ModsMap = Map<ModID, Mod>;
+type ReadonlyModsMap = ReadonlyMap<ModID, Mod>;
 
 // ends with a slash
 const CCLOADER_DIR: string = paths.stripRoot(new URL('../', import.meta.url).pathname);
@@ -38,23 +44,23 @@ export async function boot(): Promise<void> {
     return;
   }
 
-  let installedMods = new Map<ModId, Mod>();
+  let installedMods = new Map<ModID, Mod>();
   installedMods.set(runtimeMod.manifest.id, runtimeMod);
   for (let dir of config.modsDirectories) {
     await loadAllModMetadata(dir, installedMods);
   }
   installedMods = dependencyResolver.sortModsInLoadOrder(runtimeMod, installedMods);
 
-  let loadedMods = new Map<ModId, Mod>();
+  let loadedMods = new Map<ModID, Mod>();
   let loadedModsSetupPromises: Array<Promise<void>> = [];
 
-  let virtualPackages = new Map<ModId, SemVer>([
+  let virtualPackages = new Map<ModID, SemVer>([
     ['crosscode', gameVersion],
     ['ccloader', modloaderMetadata.version],
   ]);
-  for (let [modId, mod] of installedMods) {
+  for (let [modID, mod] of installedMods) {
     let shouldBeLoaded = true;
-    mod.isEnabled = localStorage.getItem(`modEnabled-${modId}`) !== 'false';
+    mod.isEnabled = localStorage.getItem(`modEnabled-${modID}`) !== 'false';
 
     if (!mod.isEnabled) {
       shouldBeLoaded = false;
@@ -68,16 +74,16 @@ export async function boot(): Promise<void> {
       if (problems.length > 0) {
         shouldBeLoaded = false;
         for (let problem of problems) {
-          console.error(`Could not load mod '${modId}': ${problem}`);
+          console.error(`Could not load mod '${modID}': ${problem}`);
         }
       }
     }
 
     if (shouldBeLoaded) {
-      loadedMods.set(modId, mod);
+      loadedMods.set(modID, mod);
       loadedModsSetupPromises.push(
         mod.findAllAssets().catch((err) => {
-          console.error(`An error occured while searching assets of mod '${modId}':`, err);
+          console.error(`An error occured while searching assets of mod '${modID}':`, err);
         }),
       );
     }
@@ -129,7 +135,7 @@ async function loadModloaderMetadata(): Promise<{
   return { name: data.name, version: new SemVer(data.version) };
 }
 
-async function loadAllModMetadata(modsDir: string, installedMods: Map<ModId, Mod>): Promise<void> {
+async function loadAllModMetadata(modsDir: string, installedMods: ModsMap): Promise<void> {
   await Promise.all(
     (await files.getModDirectoriesIn(modsDir)).map(async (fullPath) => {
       try {
@@ -205,7 +211,7 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
   return new Mod(`${baseDirectory}/`, manifestData, legacyMode);
 }
 
-async function initModClasses(mods: ReadonlyMap<ModId, Mod>): Promise<void> {
+async function initModClasses(mods: ReadonlyModsMap): Promise<void> {
   for (let mod of mods.values()) {
     try {
       await mod.initClass();
@@ -215,7 +221,7 @@ async function initModClasses(mods: ReadonlyMap<ModId, Mod>): Promise<void> {
   }
 }
 
-async function executeStage(mods: ReadonlyMap<ModId, Mod>, stage: ModLoadingStage): Promise<void> {
+async function executeStage(mods: ReadonlyModsMap, stage: ModLoadingStage): Promise<void> {
   for (let mod of mods.values()) {
     try {
       await mod.executeStage(stage);

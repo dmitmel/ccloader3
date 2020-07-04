@@ -2,7 +2,6 @@ import { MOD_PROTOCOL_PREFIX } from './resources.private.js';
 import * as resourcesPlain from './resources-plain.js';
 import * as patchsteps from '../../common/vendor-libs/patchsteps.js';
 import PatchStepsDebugState from './patch-steps-debug-state.js';
-import { Mod } from '../../src/public/mod';
 import { errorHasMessage, mapGetOrInsert } from '../../common/dist/utils.js';
 import { ResourcePatchList, ResourcePatcherWithDeps } from './patch-list.js';
 import * as paths from '../../common/dist/paths.js';
@@ -20,7 +19,7 @@ export interface ImagePatcherContext extends ResolvePathAdvancedResult {
 export const assetOverridesTable = new Map<string, string>();
 
 {
-  let assetOverridesFromMods = new Map<string, Mod[]>();
+  let assetOverridesFromMods = new Map<string, modloader.Mod[]>();
 
   for (let mod of modloader.loadedMods.values()) {
     for (let asset of mod.assets) {
@@ -50,7 +49,7 @@ export const assetOverridesTable = new Map<string, string>();
 }
 
 function registerPatchstepsPatch(
-  mod: Mod,
+  mod: modloader.Mod,
   patchFileRelativePath: string,
   patchedAssetPath: string,
 ): void {
@@ -292,24 +291,24 @@ function applyModURLProtocol(fullURI: string): string | null {
       throw new Error('the URI is empty');
     }
 
-    let modIdSeparatorIndex = uri.indexOf('/');
-    if (modIdSeparatorIndex < 0) {
+    let modIDSeparatorIndex = uri.indexOf('/');
+    if (modIDSeparatorIndex < 0) {
       throw new Error("'/' after the mod ID is missing");
     }
 
-    let modId = uri.slice(0, modIdSeparatorIndex);
-    if (modId.length === 0) {
+    let modID = uri.slice(0, modIDSeparatorIndex);
+    if (modID.length === 0) {
       throw new Error('the mod ID is empty');
     }
 
-    let filePath = uri.slice(modIdSeparatorIndex + 1);
+    let filePath = uri.slice(modIDSeparatorIndex + 1);
     if (filePath.length === 0) {
       throw new Error('the file path is empty');
     }
 
-    let mod = modloader.loadedMods.get(modId);
+    let mod = modloader.loadedMods.get(modID);
     if (mod == null) {
-      throw new Error(`mod '${modId}' not found`);
+      throw new Error(`mod '${modID}' not found`);
     }
 
     return mod.resolvePath(filePath);

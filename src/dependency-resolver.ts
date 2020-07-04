@@ -1,16 +1,16 @@
 import { Mod } from './mod.js';
-import { ModId } from './public/manifest';
-import { ModDependency } from './public/mod';
 import { compare } from '../common/dist/utils.js';
 import { SemVer } from '../common/vendor-libs/semver.js';
 
-type ModsMap = Map<ModId, Mod>;
-type ReadonlyModsMap = ReadonlyMap<ModId, Mod>;
-type ReadonlyVirtualPackagesMap = ReadonlyMap<ModId, SemVer>;
+type ModID = modloader.ModID;
+type ModDependency = modloader.Mod.Dependency;
+type ModsMap = Map<ModID, Mod>;
+type ReadonlyModsMap = ReadonlyMap<ModID, Mod>;
+type ReadonlyVirtualPackagesMap = ReadonlyMap<ModID, SemVer>;
 
 export function sortModsInLoadOrder(runtimeMod: Mod, installedMods: ReadonlyModsMap): ModsMap {
   // note that maps preserve insertion order as defined in the ECMAScript spec
-  let sortedMods = new Map<ModId, Mod>();
+  let sortedMods = new Map<ModID, Mod>();
 
   sortedMods.set(runtimeMod.manifest.id, runtimeMod);
 
@@ -87,7 +87,7 @@ export function verifyModDependencies(
 }
 
 function checkDependencyConstraint(
-  depId: ModId,
+  depId: ModID,
   depConstraint: ModDependency,
   installedMods: ReadonlyModsMap,
   virtualPackages: ReadonlyVirtualPackagesMap,
