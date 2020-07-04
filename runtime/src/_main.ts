@@ -14,16 +14,14 @@ import './greenworks-fix.js';
 
 export default class CCLoaderRuntimeMod implements ModClass {
   public constructor() {
-    if (window.ccmod3 == null) window.ccmod3 = {} as typeof ccmod3;
-    Object.assign(ccmod3, {
-      paths,
-      utils,
-      require: requireFixed,
-      semver,
-      impactInitHooks,
-      impactModuleHooks,
-      resources,
-    });
+    if (window.ccmod == null) window.ccmod = {} as typeof ccmod;
+    ccmod.paths = paths;
+    ccmod.utils = utils;
+    ccmod.require = requireFixed;
+    ccmod.semver = semver;
+    ccmod.impactInitHooks = impactInitHooks;
+    ccmod.impactModuleHooks = impactModuleHooks;
+    ccmod.resources = resources;
   }
 
   public onImpactInit(): void {
