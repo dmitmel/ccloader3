@@ -153,10 +153,12 @@ for open_archive_fn in [
     lambda name: ZipArchiveAdapter.open_for_writing(name + ".zip"),
 ]:
 
-    def add_modloader_files(archive, path_prefix):
+    def add_modloader_files(archive, archived_path_prefix):
         def add(path, recursive=True):
             archive.add_real_file(
-                os.path.join(PROJECT_DIR, path), path_prefix + path, recursive=recursive
+                os.path.join(PROJECT_DIR, path),
+                os.path.join(archived_path_prefix, path),
+                recursive=recursive,
             )
 
         add("LICENSE")
@@ -182,4 +184,4 @@ for open_archive_fn in [
         archive.add_dir_entry("assets/mods/")
         archive.add_dir_entry(MODLOADER_DIR_NAME)
 
-        add_modloader_files(archive, MODLOADER_DIR_NAME + "/")
+        add_modloader_files(archive, MODLOADER_DIR_NAME)
