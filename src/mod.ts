@@ -11,7 +11,6 @@ export class Mod implements ModPublic {
   public readonly dependencies: ReadonlyMap<ModId, ModDependency>;
   public readonly assetsDirectory: string;
   public assets: Set<string> = new Set();
-  public shouldBeLoaded = true;
   public isEnabled = true;
   public classInstance: ModClass | null = null;
 
