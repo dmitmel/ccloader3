@@ -1,6 +1,7 @@
 import './font.js';
 import './options.js';
 import './input.js';
+import './error-screen.js';
 
 import './ui/options-mods-tab.js';
 import './ui/options-definitions.js';
