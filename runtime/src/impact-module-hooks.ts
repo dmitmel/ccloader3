@@ -1,9 +1,9 @@
 // based on https://github.com/CCDirectLink/DevModLoader/blob/7dd3c4ebee4b516b201205d0bb1c24913335b9f1/js/game/ig-interceptor.js
 
 import * as impactInitHooks from './impact-init-hooks.js';
-import PatchList from './patch-list.js';
+import { PatchList } from './patch-list.js';
 
-export type ImpactModuleHook = (moduleName: string) => void;
+type ImpactModuleHook = ccmod.impactModuleHooks.ImpactModuleHook;
 
 export const patchList = new PatchList<ImpactModuleHook>();
 
@@ -17,8 +17,8 @@ impactInitHooks.add(() => {
     let { name }: ig.Module = ig._current!;
     if (name == null) return originalDefines.call(this, body);
 
-    return originalDefines.call(this, function () {
-      body();
+    return originalDefines.call(this, function (this: unknown, ...args: []) {
+      body.apply(this, args);
       for (let callback of patchList.forPath(name!)) callback(name!);
     });
   };

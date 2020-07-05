@@ -1,4 +1,4 @@
-export type ImpactInitHook = () => void;
+export type ImpactInitHook = ccmod.impactInitHooks.ImpactInitHook;
 
 export const callbacks: ImpactInitHook[] = [];
 

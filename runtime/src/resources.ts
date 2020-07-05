@@ -3,19 +3,24 @@ import * as resourcesPlain from './resources-plain.js';
 import * as patchsteps from '../../common/vendor-libs/patchsteps.js';
 import PatchStepsDebugState from './patch-steps-debug-state.js';
 import { errorHasMessage, mapGetOrInsert } from '../../common/dist/utils.js';
-import { ResourcePatchList, ResourcePatcherWithDeps } from './patch-list.js';
+import { ResourcePatchList } from './patch-list.js';
 import * as paths from '../../common/dist/paths.js';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export import plain = resourcesPlain;
+
+type ResourcePatcherWithDeps<Data, Deps, Ctx> =
+  // <empty comment to force formatting>
+  ccmod.patchList.ResourcePatcherWithDeps<Data, Deps, Ctx>;
+type JSONPatcherContext = ccmod.resources.JSONPatcherContext;
+type ImagePatcherContext = ccmod.resources.ImagePatcherContext;
+type LoadJSONOptions = ccmod.resources.LoadJSONOptions;
+type LoadImageOptions = ccmod.resources.LoadImageOptions;
+type ResolvePathOptions = ccmod.resources.ResolvePathOptions;
+type ResolvePathAdvancedResult = ccmod.resources.ResolvePathAdvancedResult;
+
 export const jsonPatches = new ResourcePatchList<unknown, JSONPatcherContext>();
-export interface JSONPatcherContext extends ResolvePathAdvancedResult {
-  options: LoadJSONOptions;
-}
-
 export const imagePatches = new ResourcePatchList<HTMLCanvasElement, ImagePatcherContext>();
-export interface ImagePatcherContext extends ResolvePathAdvancedResult {
-  options: LoadImageOptions;
-}
-
 export const assetOverridesTable = new Map<string, string>();
 
 {
@@ -83,10 +88,6 @@ export function loadText(url: string): Promise<string> {
   return resourcesPlain.loadText(resolvePathToURL(url));
 }
 
-export interface LoadJSONOptions extends ResolvePathOptions {
-  callerThisValue?: unknown;
-}
-
 export async function loadJSON<T = unknown>(
   path: string,
   options?: LoadJSONOptions | null,
@@ -114,11 +115,6 @@ export async function loadJSON<T = unknown>(
   }
 
   return data as T;
-}
-
-export interface LoadImageOptions extends ResolvePathOptions {
-  callerThisValue?: unknown;
-  returnCanvas?: 'always' | 'if-patched' | 'never' | null;
 }
 
 export async function loadImage(
@@ -177,10 +173,10 @@ export async function loadImage(
   }
 }
 
-async function runResourcePatches<Data, Context>(
+async function runResourcePatches<Data, Ctx>(
   data: Data,
-  patchers: Array<ResourcePatcherWithDeps<Data, unknown, Context>>,
-  context: Context,
+  patchers: Array<ResourcePatcherWithDeps<Data, unknown, Ctx>>,
+  context: Ctx,
 ): Promise<Data> {
   /* eslint-disable no-undefined */
 
@@ -208,15 +204,6 @@ export function resolvePath(uri: string, options?: ResolvePathOptions | null): s
 
 export function resolvePathToURL(path: string, options?: ResolvePathOptions | null): string {
   return wrapPathIntoURL(resolvePath(path, options)).href;
-}
-
-export interface ResolvePathOptions {
-  allowAssetOverrides?: boolean | null;
-}
-
-export interface ResolvePathAdvancedResult {
-  resolvedPath: string;
-  requestedAsset: string | null;
 }
 
 export function resolvePathAdvanced(

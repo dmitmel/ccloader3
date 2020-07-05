@@ -1,6 +1,6 @@
-import { MaybePromise, mapGetOrInsert } from '../../common/dist/utils.js';
+import { mapGetOrInsert } from '../../common/dist/utils.js';
 
-export default class PatchList<P> {
+export class PatchList<P> implements ccmod.patchList.PatchList<P> {
   public patternPatchers: Array<[RegExp, P]> = [];
   public specificPatchers = new Map<string, P[]>();
 
@@ -28,20 +28,16 @@ export default class PatchList<P> {
   }
 }
 
-export type ResourcePatcherSimple<Data, Deps, Ctx> = (
-  data: Data,
-  dependencies: Deps,
-  context: Ctx,
-) => MaybePromise<Data | void>;
+type ResourcePatcherSimple<Data, Deps, Ctx> =
+  // <empty comment to force formatting>
+  ccmod.patchList.ResourcePatcherSimple<Data, Deps, Ctx>;
+type ResourcePatcherWithDeps<Data, Deps, Ctx> =
+  // <empty comment to force formatting>
+  ccmod.patchList.ResourcePatcherWithDeps<Data, Deps, Ctx>;
 
-export interface ResourcePatcherWithDeps<Data, Deps, Ctx> {
-  dependencies?: ((context: Ctx) => Promise<Deps>) | null;
-  patcher: ResourcePatcherSimple<Data, Deps, Ctx>;
-}
-
-export class ResourcePatchList<Data, Ctx> extends PatchList<
-  ResourcePatcherWithDeps<Data, unknown, Ctx>
-> {
+export class ResourcePatchList<Data, Ctx>
+  extends PatchList<ResourcePatcherWithDeps<Data, unknown, Ctx>>
+  implements ccmod.patchList.ResourcePatchList<Data, Ctx> {
   public add<Data2 extends Data = Data, Deps = never>(
     path: string | RegExp,
     patcher: ResourcePatcherSimple<Data2, Deps, Ctx> | ResourcePatcherWithDeps<Data2, Deps, Ctx>,

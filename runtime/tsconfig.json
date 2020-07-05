@@ -3,6 +3,8 @@
     "src",
     "../node_modules/ultimate-crosscode-typedefs/crosscode.d.ts",
     "../node_modules/ultimate-crosscode-typedefs/modloader.d.ts",
+    "../node_modules/ultimate-crosscode-typedefs/modloader-stdlib.d.ts",
+    "../node_modules/ultimate-crosscode-typedefs/ccloader-ui.d.ts",
     "../src/modloader-specific-extensions.d.ts"
   ],
   "compilerOptions": {

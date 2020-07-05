@@ -3,6 +3,7 @@ import * as utils from '../../common/dist/utils.js';
 import { requireFixed } from '../../common/dist/require.js';
 import * as semver from '../../common/vendor-libs/semver.js';
 
+import * as patchList from './patch-list.js';
 import * as impactInitHooks from './impact-init-hooks.js';
 import * as impactModuleHooks from './impact-module-hooks.js';
 import * as resources from './resources.js';
@@ -17,6 +18,7 @@ export default class CCLoaderRuntimeMod implements modloader.Mod.Class {
     ccmod.utils = utils;
     ccmod.require = requireFixed;
     ccmod.semver = semver;
+    ccmod.patchList = patchList;
     ccmod.impactInitHooks = impactInitHooks;
     ccmod.impactModuleHooks = impactModuleHooks;
     ccmod.resources = resources;

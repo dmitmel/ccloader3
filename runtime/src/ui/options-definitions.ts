@@ -1,3 +1,5 @@
+import { compare } from '../../../common/dist/utils.js';
+
 ig.module('ccloader-runtime.ui.options.definitions')
   .requires(
     'game.feature.model.options-model',
@@ -37,11 +39,13 @@ ig.module('ccloader-runtime.ui.options.definitions')
       };
     }
 
-    for (let modID of Array.from(modloader.installedMods.keys()).sort((id1, id2) =>
-      id1.localeCompare(id2),
-    )) {
-      if (modID === modloader._runtimeMod.manifest.id) continue;
+    let installedModIDs = [];
+    for (let [modID, mod] of modloader.installedMods) {
+      if (mod !== modloader._runtimeMod) installedModIDs.push(modID);
+    }
+    installedModIDs.sort((id1, id2) => compare(id1, id2));
 
+    for (let modID of installedModIDs) {
       sc.OPTIONS_DEFINITION[`modEnabled-${modID}`] = {
         type: 'CHECKBOX',
         cat: sc.OPTION_CATEGORY.MODS,
