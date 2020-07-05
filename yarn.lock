@@ -961,10 +961,11 @@ typescript@^3.8.3:
 
 ultimate-crosscode-typedefs@dmitmel/ultimate-crosscode-typedefs:
   version "0.0.1"
-  resolved "https://codeload.github.com/dmitmel/ultimate-crosscode-typedefs/tar.gz/60abea1f964370b367709b112e54d4a29f204ba2"
+  resolved "https://codeload.github.com/dmitmel/ultimate-crosscode-typedefs/tar.gz/4826ca364fde35bb2d72835767ae01031ed31db4"
   dependencies:
     "@types/jquery" "~1.10"
     "@types/node" ">=11.9"
+    "@types/semver" "^6.2.0"
 
 uri-js@^4.2.2:
   version "4.2.2"
