@@ -59,34 +59,30 @@ export async function boot(): Promise<void> {
     ['ccloader', modloaderMetadata.version],
   ]);
   for (let [modID, mod] of installedMods) {
-    let shouldBeLoaded = true;
     mod.isEnabled = localStorage.getItem(`modEnabled-${modID}`) !== 'false';
-
     if (!mod.isEnabled) {
-      shouldBeLoaded = false;
-    } else {
-      let problems = dependencyResolver.verifyModDependencies(
-        mod,
-        installedMods,
-        virtualPackages,
-        loadedMods,
-      );
-      if (problems.length > 0) {
-        shouldBeLoaded = false;
-        for (let problem of problems) {
-          console.error(`Could not load mod '${modID}': ${problem}`);
-        }
-      }
+      continue;
     }
 
-    if (shouldBeLoaded) {
-      loadedMods.set(modID, mod);
-      loadedModsSetupPromises.push(
-        mod.findAllAssets().catch((err) => {
-          console.error(`An error occured while searching assets of mod '${modID}':`, err);
-        }),
-      );
+    let dependencyProblems = dependencyResolver.verifyModDependencies(
+      mod,
+      installedMods,
+      virtualPackages,
+      loadedMods,
+    );
+    if (dependencyProblems.length > 0) {
+      for (let problem of dependencyProblems) {
+        console.error(`Problem with requirements of mod '${modID}': ${problem}`);
+      }
+      continue;
     }
+
+    loadedMods.set(modID, mod);
+    loadedModsSetupPromises.push(
+      mod.findAllAssets().catch((err) => {
+        console.error(`An error occured while searching assets of mod '${modID}':`, err);
+      }),
+    );
   }
 
   if (!loadedMods.has(runtimeMod.manifest.id)) {
