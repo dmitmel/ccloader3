@@ -96,6 +96,7 @@ export async function loadJSON<T = unknown>(
 
   let { resolvedPath, requestedAsset } = resolvePathAdvanced(path, {
     allowAssetOverrides: options.allowAssetOverrides,
+    allowPatching: options.allowPatching,
   });
   let data = await resourcesPlain.loadJSON(wrapPathIntoURL(resolvedPath).href);
 
@@ -125,6 +126,7 @@ export async function loadImage(
 
   let { resolvedPath, requestedAsset } = resolvePathAdvanced(path, {
     allowAssetOverrides: options.allowAssetOverrides,
+    allowPatching: options.allowPatching,
   });
   let data: HTMLImageElement | HTMLCanvasElement = await resourcesPlain.loadImage(
     wrapPathIntoURL(resolvedPath).href,
@@ -226,7 +228,7 @@ export function resolvePathAdvanced(
     let normalizedPath = paths.jailRelative(paths.join(gameAssetsPath, uri));
     result.resolvedPath = normalizedPath;
 
-    if (normalizedPath.startsWith(gameAssetsPath)) {
+    if ((options.allowPatching ?? true) && normalizedPath.startsWith(gameAssetsPath)) {
       result.requestedAsset = normalizedPath.slice(gameAssetsPath.length);
 
       if (options.allowAssetOverrides ?? true) {
