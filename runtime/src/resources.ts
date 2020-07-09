@@ -210,33 +210,39 @@ export function resolvePathAdvanced(
 ): ResolvePathAdvancedResult {
   options = options ?? {};
 
-  let result: ResolvePathAdvancedResult = {
-    resolvedPath: null!,
-    requestedAsset: null,
-  };
-
-  let gameAssetsPath = paths.stripRoot(getGameAssetsURL().pathname);
+  let resolvedPath: string;
+  let requestedAsset: string | null = null;
 
   let modResourcePath = applyModURLProtocol(uri);
   if (modResourcePath != null) {
-    result.resolvedPath = modResourcePath;
+    resolvedPath = modResourcePath;
   } else {
-    let normalizedPath = paths.jailRelative(paths.join(gameAssetsPath, uri));
-    result.resolvedPath = normalizedPath;
+    let normalizedPath = paths.normalize(uri);
 
-    if ((options.allowPatching ?? true) && normalizedPath.startsWith(gameAssetsPath)) {
-      result.requestedAsset = normalizedPath.slice(gameAssetsPath.length);
+    if (paths.isAbsolute(normalizedPath)) {
+      // `jailRelative` could've been performed instead, but it has the same
+      // effect as `stripRoot` on absolute paths here because the path has
+      // already been normalized, therefore the more time-expensive function can
+      // be avoided
+      resolvedPath = paths.stripRoot(normalizedPath);
+    } else {
+      let gameAssetsPath = paths.stripRoot(getGameAssetsURL().pathname);
+      resolvedPath = paths.jailRelative(paths.join(gameAssetsPath, normalizedPath));
 
-      if (options.allowAssetOverrides ?? true) {
-        let overridePath = assetOverridesTable.get(result.requestedAsset);
-        if (overridePath != null) {
-          result.resolvedPath = overridePath;
+      if ((options.allowPatching ?? true) && resolvedPath.startsWith(gameAssetsPath)) {
+        requestedAsset = resolvedPath.slice(gameAssetsPath.length);
+
+        if (options.allowAssetOverrides ?? true) {
+          let overridePath = assetOverridesTable.get(requestedAsset);
+          if (overridePath != null) {
+            resolvedPath = overridePath;
+          }
         }
       }
     }
   }
 
-  return result;
+  return { resolvedPath, requestedAsset };
 }
 
 export function wrapPathIntoURL(path: string): URL {
