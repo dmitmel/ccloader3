@@ -137,7 +137,7 @@ export class DebugState {
   public fileStack: Array<FileInfo | null>;
   public currentFile: FileInfo | null;
 
-  public translateParsedPath(parsedPath: ParsedPath): string;
+  public translateParsedPath(parsedPath: ParsedPath | null): string;
   /** @final */
   public addFile(parsedPath: ParsedPath): void;
   /** @final */

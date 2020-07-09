@@ -1,7 +1,6 @@
 import { MOD_PROTOCOL_PREFIX } from './resources.private.js';
 import * as resourcesPlain from './resources-plain.js';
 import * as patchsteps from '../../common/vendor-libs/patchsteps.js';
-import PatchStepsDebugState from './patch-steps-debug-state.js';
 import { errorHasMessage, mapGetOrInsert } from '../../common/dist/utils.js';
 import { ResourcePatchList } from './patch-list.js';
 import * as paths from '../../common/dist/paths.js';
@@ -66,22 +65,19 @@ function registerPatchstepsPatch(
     },
 
     patcher: async (data, patchData) => {
-      let debugState = new PatchStepsDebugState(mod);
+      let debugState = new PatchstepsCustomDebugState(mod);
       debugState.addFile([/* fromGame */ false, patchFileRelativePath]);
-
-      await patchsteps.patch(
-        data,
-        patchData,
-        (fromGame: string | boolean, url: string): Promise<unknown> =>
-          fromGame
-            ? loadJSON(url)
-            : resourcesPlain.loadJSON(wrapPathIntoURL(mod.resolvePath(url)).href),
-        debugState,
-      );
+      await patchsteps.patch(data, patchData, patchstepsResourceLoader, debugState);
 
       return data;
     },
   });
+
+  function patchstepsResourceLoader(fromGame: string | boolean, url: string): Promise<unknown> {
+    return fromGame
+      ? loadJSON(url)
+      : resourcesPlain.loadJSON(wrapPathIntoURL(mod.resolvePath(url)).href);
+  }
 }
 
 export function loadText(url: string): Promise<string> {
@@ -306,5 +302,31 @@ function applyModURLProtocol(fullURI: string): string | null {
       err.message = `Invalid '${MOD_PROTOCOL_PREFIX}' URL '${fullURI}': ${err.message}`;
     }
     throw err;
+  }
+}
+
+class PatchstepsCustomDebugState extends patchsteps.DebugState {
+  public constructor(private currentMod: modloader.Mod) {
+    super();
+  }
+
+  public translateParsedPath(parsedPath: patchsteps.ParsedPath): string {
+    if (parsedPath != null) {
+      let [protocol, path] = parsedPath;
+
+      // note that switch-case performs strict, i.e. `===`, comparisons
+      switch (protocol) {
+        case true:
+        case 'game':
+          return resolvePath(path);
+
+        case false:
+        case 'mod':
+          return this.currentMod.resolvePath(path);
+      }
+    }
+
+    // fallback to the default implementation on unknown paths and protocols
+    return super.translateParsedPath(parsedPath);
   }
 }
