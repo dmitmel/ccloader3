@@ -7,6 +7,7 @@ import { SemVer } from '../common/vendor-libs/semver.js';
 import { errorHasMessage } from '../common/dist/utils.js';
 import * as paths from '../common/dist/paths.js';
 import * as dependencyResolver from './dependency-resolver.js';
+import modDataStorage from './mod-data-storage.js';
 
 type ModID = modloader.ModID;
 type Manifest = modloader.Manifest;
@@ -28,6 +29,15 @@ export async function boot(): Promise<void> {
   let { version: gameVersion, hotfix: gameVersionHotfix } = await game.loadVersion();
   console.log(`crosscode ${gameVersion}-${gameVersionHotfix}`);
 
+  try {
+    await modDataStorage.readImmediately();
+  } catch (err) {
+    if (errorHasMessage(err)) {
+      err.message = `Failed to read mod data storage: ${err.message}`;
+    }
+    throw err;
+  }
+
   let runtimeModBaseDirectory = `${CCLOADER_DIR}runtime`;
   let runtimeMod: Mod | null;
   try {
@@ -37,11 +47,10 @@ export async function boot(): Promise<void> {
       throw new Error('Assertion failed: runtimeMod != null');
     }
   } catch (err) {
-    console.error(
-      `Failed to load metadata of the runtime mod in '${runtimeModBaseDirectory}', please check if you installed CCLoader correctly!`,
-      err,
-    );
-    return;
+    if (errorHasMessage(err)) {
+      err.message = `Failed to load metadata of the runtime mod in '${runtimeModBaseDirectory}', please check if you installed CCLoader correctly! ${err.message}`;
+    }
+    throw err;
   }
 
   let installedMods = new Map<ModID, Mod>();
@@ -59,8 +68,7 @@ export async function boot(): Promise<void> {
     ['ccloader', modloaderMetadata.version],
   ]);
   for (let [modID, mod] of installedMods) {
-    mod.isEnabled = localStorage.getItem(`modEnabled-${modID}`) !== 'false';
-    if (!mod.isEnabled) {
+    if (!modDataStorage.isModEnabled(modID)) {
       continue;
     }
 
@@ -101,6 +109,7 @@ export async function boot(): Promise<void> {
     installedMods,
     loadedMods,
     _runtimeMod: runtimeMod,
+    _modDataStorage: modDataStorage,
   };
 
   await game.buildNecessaryDOM(config);

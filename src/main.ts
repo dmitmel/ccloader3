@@ -1,7 +1,7 @@
 import * as modloader from './modloader.js';
 import { showDevTools, wait } from '../common/dist/utils.js';
 
-(async () => {
+async function main(): Promise<void> {
   let onloadPromise = new Promise((resolve) => {
     window.addEventListener('load', () => resolve());
   });
@@ -27,4 +27,8 @@ import { showDevTools, wait } from '../common/dist/utils.js';
 
   await onloadPromise;
   await modloader.boot();
-})();
+}
+
+main().catch((err) => {
+  console.error(err);
+});

@@ -14,7 +14,6 @@ export class Mod implements modloader.Mod {
   public readonly dependencies: ReadonlyMap<ModID, ModDependency>;
   public readonly assetsDirectory: string;
   public assets: Set<string> = new Set();
-  public isEnabled = true;
   public classInstance: ModClass | null = null;
 
   public constructor(

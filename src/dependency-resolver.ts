@@ -1,6 +1,7 @@
 import { Mod } from './mod.js';
 import { compare } from '../common/dist/utils.js';
 import { SemVer } from '../common/vendor-libs/semver.js';
+import modDataStorage from './mod-data-storage.js';
 
 type ModID = modloader.ModID;
 type ModDependency = modloader.Mod.Dependency;
@@ -107,7 +108,7 @@ function checkDependencyConstraint(
       return depConstraint.optional ? null : `${depTitle} is not installed`;
     }
 
-    if (!depMod.isEnabled) {
+    if (!modDataStorage.isModEnabled(depId)) {
       return depConstraint.optional ? null : `${depTitle} is disabled`;
     }
 
