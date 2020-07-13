@@ -14,7 +14,7 @@ const { promises: fs } = (typeof require === 'function'
 const pathsNative = (typeof require === 'function' ? require('path') : {}) as typeof import('path');
 
 type ModID = modloader.ModID;
-type ModEntry = modloader._modDataStorage.FileData.v1.ModEntry;
+type ModEntry = modloader.modDataStorage.FileDataV1.ModEntry;
 
 const FILENAME = 'cc-mod-settings.json';
 
@@ -89,7 +89,7 @@ class ModSettingsStorageFile {
   }
 
   private serialize(): Buffer {
-    let jsonData: modloader._modDataStorage.FileData = { version: 1, data: {} };
+    let jsonData: modloader.modDataStorage.FileData = { version: 1, data: {} };
     for (let [modID, modEntry] of this.data) {
       jsonData.data[modID] = modEntry;
     }
@@ -109,7 +109,7 @@ class ModSettingsStorageFile {
   }
 
   private deserialize(rawData: Buffer): void {
-    let jsonData = JSON.parse(rawData.toString('utf8')) as modloader._modDataStorage.FileData;
+    let jsonData = JSON.parse(rawData.toString('utf8')) as modloader.modDataStorage.FileData;
     if (jsonData.version !== 1) {
       throw new Error(`Unsupported format version '${jsonData.version}'`);
     }

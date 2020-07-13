@@ -1,7 +1,7 @@
 ig.module('ccloader-runtime.ui.options.values')
   .requires('game.feature.model.options-model')
   .defines(() => {
-    const modDataStorage = modloader._modDataStorage;
+    const { modDataStorage } = modloader;
 
     sc.OptionModel.inject({
       // TODO: maybe rewrite this as a game addon?

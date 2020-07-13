@@ -109,7 +109,7 @@ export async function boot(): Promise<void> {
     installedMods,
     loadedMods,
     _runtimeMod: runtimeMod,
-    _modDataStorage: modDataStorage,
+    modDataStorage,
   };
 
   await game.buildNecessaryDOM(config);
