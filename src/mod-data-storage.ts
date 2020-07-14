@@ -6,7 +6,7 @@
 // https://github.com/Wizcorp/locks/blob/master/lib/ReadWriteLock.js
 // https://github.com/71104/rwlock/blob/master/src/lock.js
 
-import { errorHasCode, mapGetOrInsert, wait } from '../common/dist/utils.js';
+import { errorHasCode, mapGetOrInsert } from '../common/dist/utils.js';
 
 const { promises: fs } = (typeof require === 'function'
   ? require('fs')
@@ -59,7 +59,6 @@ class ModSettingsStorageFile {
   public async writeImmediately(): Promise<void> {
     let rawData: Buffer = this.serialize();
     await fs.writeFile(this.path, rawData);
-    await wait(3000);
   }
 
   public async write(): Promise<void> {
