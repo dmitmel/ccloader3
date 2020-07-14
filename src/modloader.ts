@@ -7,7 +7,7 @@ import { SemVer } from '../common/vendor-libs/semver.js';
 import { errorHasMessage } from '../common/dist/utils.js';
 import * as paths from '../common/dist/paths.js';
 import * as dependencyResolver from './dependency-resolver.js';
-import modDataStorage from './mod-data-storage.js';
+import * as modDataStorage from './mod-data-storage.js';
 
 type ModID = modloader.ModID;
 type Manifest = modloader.Manifest;

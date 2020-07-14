@@ -1,7 +1,7 @@
 import { Mod } from './mod.js';
 import { compare } from '../common/dist/utils.js';
 import { SemVer } from '../common/vendor-libs/semver.js';
-import modDataStorage from './mod-data-storage.js';
+import * as modDataStorage from './mod-data-storage.js';
 
 type ModID = modloader.ModID;
 type ModDependency = modloader.Mod.Dependency;

@@ -16,118 +16,95 @@ const pathsNative = (typeof require === 'function' ? require('path') : {}) as ty
 type ModID = modloader.ModID;
 type ModEntry = modloader.modDataStorage.FileDataV1.ModEntry;
 
-const FILENAME = 'cc-mod-settings.json';
+const FILE_PATH: string = (function getFilePath() {
+  // taken from https://github.com/dmitmel/crosscode-readable-saves/blob/ed25ab8b061f0a75acf54bc2485fead47523fc2e/src/postload.ts#L289-L298
+  let saveDirPath = nw.App.dataPath;
 
-class ModSettingsStorageFile {
-  private path: string;
-  public serializeIndentation: string | number | undefined | null = null;
-  public data: Map<ModID, ModEntry> = null!;
-  private queuedWritesPromise: Promise<void> | null = null;
-  private queuedWritesFlag = false;
+  // On Windows `nw.App.dataPath` is `%LOCALAPPDATA%\CrossCode\User Data\Default`,
+  // yet the game writes the savegame to `%LOCALAPPDATA%\CrossCode` when
+  // possible, so I reproduce this behavior. Notice that this implementation
+  // IS BROKEN when `%LOCALAPPDATA%` contains the `\User Data\Default`
+  // substring, but eh, whatever, this is the exact piece of code the stock
+  // game uses.
+  let userDataIndex = saveDirPath.indexOf('\\User Data\\Default');
+  if (userDataIndex >= 0) saveDirPath = saveDirPath.slice(0, userDataIndex);
 
-  public constructor() {
-    // taken from https://github.com/dmitmel/crosscode-readable-saves/blob/ed25ab8b061f0a75acf54bc2485fead47523fc2e/src/postload.ts#L289-L298
-    let saveDirPath = nw.App.dataPath;
+  return pathsNative.join(saveDirPath, 'cc-mod-settings.json');
+})();
 
-    // On Windows `nw.App.dataPath` is `%LOCALAPPDATA%\CrossCode\User Data\Default`,
-    // yet the game writes the savegame to `%LOCALAPPDATA%\CrossCode` when
-    // possible, so I reproduce this behavior. Notice that this implementation
-    // IS BROKEN when `%LOCALAPPDATA%` contains the `\User Data\Default`
-    // substring, but eh, whatever, this is the exact piece of code the stock
-    // game uses.
-    let userDataIndex = saveDirPath.indexOf('\\User Data\\Default');
-    if (userDataIndex >= 0) saveDirPath = saveDirPath.slice(0, userDataIndex);
+export const data = new Map<ModID, ModEntry>();
 
-    this.path = pathsNative.join(saveDirPath, FILENAME);
+let queuedWritesPromise: Promise<void> | null = null;
+let queuedWritesFlag = false;
+
+export async function readImmediately(): Promise<void> {
+  data.clear();
+
+  let rawData: Buffer;
+  try {
+    rawData = await fs.readFile(FILE_PATH);
+  } catch (err) {
+    if (errorHasCode(err) && err.code === 'ENOENT') return;
+    throw err;
   }
+  deserialize(rawData);
+}
 
-  public async readImmediately(): Promise<void> {
-    let rawData: Buffer;
-    try {
-      rawData = await fs.readFile(this.path);
-    } catch (err) {
-      if (errorHasCode(err) && err.code === 'ENOENT') {
-        this.data = new Map();
-        return;
-      } else {
-        throw err;
+export async function writeImmediately(): Promise<void> {
+  let rawData: Buffer = serialize();
+  await fs.writeFile(FILE_PATH, rawData);
+}
+
+export async function write(): Promise<void> {
+  if (queuedWritesPromise == null) {
+    let queuedWritesResolve: () => void = null!;
+    queuedWritesPromise = new Promise((resolve) => {
+      queuedWritesResolve = resolve;
+    });
+
+    do {
+      queuedWritesFlag = false;
+      try {
+        await writeImmediately();
+      } catch (err) {
+        console.error('Error while writing mod data and settings:', err);
+        // TODO: can, and, more importantly, should, the error be thrown out of
+        // this function?
       }
-    }
-    this.deserialize(rawData);
-  }
+    } while (queuedWritesFlag);
 
-  public async writeImmediately(): Promise<void> {
-    let rawData: Buffer = this.serialize();
-    await fs.writeFile(this.path, rawData);
-  }
-
-  public async write(): Promise<void> {
-    if (this.queuedWritesPromise == null) {
-      let queuedWritesResolve: () => void = null!;
-      this.queuedWritesPromise = new Promise((resolve) => {
-        queuedWritesResolve = resolve;
-      });
-
-      do {
-        this.queuedWritesFlag = false;
-        try {
-          await this.writeImmediately();
-        } catch (err) {
-          console.error('Error while writing mod data and settings:', err);
-          // TODO: can, and, more importantly, should, the error be thrown out
-          // of this function?
-        }
-      } while (this.queuedWritesFlag);
-
-      this.queuedWritesPromise = null;
-      queuedWritesResolve();
-    } else {
-      this.queuedWritesFlag = true;
-      await this.queuedWritesPromise;
-    }
-  }
-
-  private serialize(): Buffer {
-    let jsonData: modloader.modDataStorage.FileData = { version: 1, data: {} };
-    for (let [modID, modEntry] of this.data) {
-      jsonData.data[modID] = modEntry;
-    }
-
-    return Buffer.from(
-      JSON.stringify(
-        jsonData,
-        null,
-        // definition of `JSON.stringify` accepts only `undefined` and not `null`
-        // here, so I abuse the `??` operator here to turn nullable values of
-        // type `X | null | undefined` into `X | undefined`
-        // eslint-disable-next-line no-undefined
-        this.serializeIndentation ?? undefined,
-      ),
-      'utf8',
-    );
-  }
-
-  private deserialize(rawData: Buffer): void {
-    let jsonData = JSON.parse(rawData.toString('utf8')) as modloader.modDataStorage.FileData;
-    if (jsonData.version !== 1) {
-      throw new Error(`Unsupported format version '${jsonData.version}'`);
-    }
-
-    this.data = new Map();
-    for (let [modID, modEntry] of Object.entries(jsonData.data)) {
-      this.data.set(modID, modEntry);
-    }
-  }
-
-  public isModEnabled(id: ModID): boolean {
-    return localStorage.getItem(`modEnabled-${id}`) !== 'false';
-  }
-
-  public setModEnabled(id: ModID, enabled: boolean): void {
-    let modEntry = mapGetOrInsert(this.data, id, { enabled });
-    modEntry.enabled = enabled;
-    localStorage.setItem(`modEnabled-${id}`, String(enabled));
+    queuedWritesPromise = null;
+    queuedWritesResolve();
+  } else {
+    queuedWritesFlag = true;
+    await queuedWritesPromise;
   }
 }
 
-export default new ModSettingsStorageFile();
+function deserialize(rawData: Buffer): void {
+  let jsonData = JSON.parse(rawData.toString('utf8')) as modloader.modDataStorage.FileData;
+  if (jsonData.version !== 1) {
+    throw new Error(`Unsupported format version '${jsonData.version}'`);
+  }
+
+  for (let [modID, modEntry] of Object.entries(jsonData.data)) {
+    data.set(modID, modEntry);
+  }
+}
+
+function serialize(): Buffer {
+  let jsonData: modloader.modDataStorage.FileData = { version: 1, data: {} };
+  for (let [modID, modEntry] of data) {
+    jsonData.data[modID] = modEntry;
+  }
+
+  return Buffer.from(JSON.stringify(jsonData), 'utf8');
+}
+
+export function isModEnabled(id: ModID): boolean {
+  return data.get(id)?.enabled ?? true;
+}
+
+export function setModEnabled(id: ModID, enabled: boolean): void {
+  mapGetOrInsert(data, id, { enabled }).enabled = enabled;
+}
