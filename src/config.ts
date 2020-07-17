@@ -1,6 +1,7 @@
 import * as paths from '../common/dist/paths.js';
 import { MaybePromise, errorHasMessage } from '../common/dist/utils.js';
 import * as files from './files.js';
+import { SemVer } from '../common/vendor-libs/semver.js';
 
 export interface Config {
   modsDirectories: string[];
@@ -11,29 +12,35 @@ export interface Config {
   onGameDOMCreated: () => MaybePromise<void>;
 }
 
-const CONFIG_SCRIPT_PATH = paths.stripRoot(
-  new URL('/ccloader-user-config.js', import.meta.url).pathname,
-);
-
-interface ConfigModule {
-  default: (config: Config) => MaybePromise<void>;
+export interface ConfigModule {
+  default: (config: Config, context: ConfigModuleContext) => MaybePromise<void>;
 }
 
-export async function load(): Promise<Config> {
+export interface ConfigModuleContext {
+  modloaderName: string;
+  modloaderVersion: SemVer;
+}
+
+export async function load(modloaderName: string, modloaderVersion: SemVer): Promise<Config> {
   let config = createDefaultConfig();
+  let ctx: ConfigModuleContext = { modloaderName, modloaderVersion };
+
+  let configScriptPath = paths.stripRoot(
+    new URL(`/${modloaderName}-user-config.js`, import.meta.url).pathname,
+  );
 
   try {
     // there is no way to check if an error thrown by `import()` was a network
     // error (such as the 404 status code) and error messages thrown by it
     // aren't standardized, so we have to check beforehand if the config module
     // exists or not
-    if (await files.exists(CONFIG_SCRIPT_PATH)) {
-      let configModule: ConfigModule = await import(`/${CONFIG_SCRIPT_PATH}`);
-      await configModule.default(config);
+    if (await files.exists(configScriptPath)) {
+      let configModule: ConfigModule = await import(`/${configScriptPath}`);
+      await configModule.default(config, ctx);
     }
   } catch (err) {
     if (errorHasMessage(err)) {
-      err.message = `Error while loading '${CONFIG_SCRIPT_PATH}': ${err.message}`;
+      err.message = `Error while loading '${configScriptPath}': ${err.message}`;
     }
     throw err;
   }

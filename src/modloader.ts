@@ -24,7 +24,7 @@ export async function boot(): Promise<void> {
   let modloaderMetadata = await loadModloaderMetadata();
   console.log(`${modloaderMetadata.name} ${modloaderMetadata.version}`);
 
-  let config = await loadConfig();
+  let config = await loadConfig(modloaderMetadata.name, modloaderMetadata.version);
 
   let { version: gameVersion, hotfix: gameVersionHotfix } = await game.loadVersion();
   console.log(`crosscode ${gameVersion}-${gameVersionHotfix}`);
@@ -63,10 +63,10 @@ export async function boot(): Promise<void> {
   let loadedMods = new Map<ModID, Mod>();
   let loadedModsSetupPromises: Array<Promise<void>> = [];
 
-  let virtualPackages = new Map<ModID, SemVer>([
-    ['crosscode', gameVersion],
-    ['ccloader', modloaderMetadata.version],
-  ]);
+  let virtualPackages = new Map<ModID, SemVer>()
+    .set('crosscode', gameVersion)
+    .set(modloaderMetadata.name, modloaderMetadata.version);
+
   for (let [modID, mod] of installedMods) {
     if (!modDataStorage.isModEnabled(modID)) {
       continue;
@@ -128,7 +128,7 @@ export async function boot(): Promise<void> {
   await executeStage(loadedMods, 'prestart');
   startGame();
   await game.waitForIgGameInitialization();
-  // TODO: delay further game initialization
+  // TODO: delay further game initialization until poststart is complete
   await executeStage(loadedMods, 'poststart');
 }
 
