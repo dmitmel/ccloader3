@@ -23,7 +23,7 @@ export async function boot(): Promise<void> {
 
   let config = await loadConfig(modloaderMetadata.name, modloaderMetadata.version);
 
-  let { version: gameVersion, hotfix: gameVersionHotfix } = await game.loadVersion();
+  let { version: gameVersion, hotfix: gameVersionHotfix } = await game.loadVersion(config);
   console.log(`crosscode ${gameVersion}-${gameVersionHotfix}`);
 
   try {
@@ -52,7 +52,7 @@ export async function boot(): Promise<void> {
 
   let installedMods = new Map<ModID, Mod>();
   installedMods.set(runtimeMod.manifest.id, runtimeMod);
-  for (let dir of config.modsDirectories) {
+  for (let dir of config.modsDirs) {
     await loadAllModMetadata(dir, installedMods);
   }
   installedMods = dependencyResolver.sortModsInLoadOrder(runtimeMod, installedMods);

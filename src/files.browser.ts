@@ -3,7 +3,7 @@ import * as paths from '../common/dist/paths.js';
 
 export async function loadText(path: string): Promise<string> {
   try {
-    let res = await fetch(`/${path}`);
+    let res = await fetch(`/${encodeURI(path)}`);
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     return await res.text();
   } catch (err) {
@@ -16,7 +16,7 @@ export async function loadText(path: string): Promise<string> {
 
 export async function exists(path: string): Promise<boolean> {
   try {
-    let res = await fetch(`/${path}`);
+    let res = await fetch(`/${encodeURI(path)}`);
     if (res.status === 404) return false;
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     return true;

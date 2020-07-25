@@ -4,7 +4,8 @@ import * as files from './files.js';
 import { SemVer } from '../common/vendor-libs/semver.js';
 
 export interface Config {
-  modsDirectories: string[];
+  gameAssetsDir: string;
+  modsDirs: string[];
   stylesheetURLs: string[];
   scriptURLs: string[];
   gameScriptURL: string;
@@ -50,7 +51,8 @@ export async function load(modloaderName: string, modloaderVersion: SemVer): Pro
 
 function createDefaultConfig(): Config {
   return {
-    modsDirectories: ['assets/mods'],
+    gameAssetsDir: 'assets',
+    modsDirs: ['assets/mods'],
 
     // no stylesheets have been removed
     stylesheetURLs: [

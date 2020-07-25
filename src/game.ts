@@ -3,9 +3,12 @@ import { SemVer } from '../common/vendor-libs/semver.js';
 import * as files from './files.js';
 import { ChangelogFileData } from 'ultimate-crosscode-typedefs/file-types/changelog';
 import { Config } from './config.js';
+import * as paths from '../common/dist/paths.js';
 
-export async function loadVersion(): Promise<{ version: SemVer; hotfix: number }> {
-  let changelogText = await files.loadText('assets/data/changelog.json');
+export async function loadVersion(config: Config): Promise<{ version: SemVer; hotfix: number }> {
+  let changelogText = await files.loadText(
+    paths.jailRelative(paths.join(config.gameAssetsDir, 'data/changelog.json')),
+  );
   let { changelog } = JSON.parse(changelogText) as ChangelogFileData;
   let latestEntry = changelog[0];
 
@@ -27,7 +30,7 @@ export async function loadVersion(): Promise<{ version: SemVer; hotfix: number }
 
 export async function buildNecessaryDOM(config: Config): Promise<void> {
   let base = document.createElement('base');
-  base.href = `${location.origin}/assets/`;
+  base.href = new URL(`/${encodeURI(config.gameAssetsDir)}/`, location.origin).href;
   document.head.appendChild(base);
 
   // meta tags have been removed, they appear to not affect anything
