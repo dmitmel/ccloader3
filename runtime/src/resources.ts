@@ -5,8 +5,7 @@ import { errorHasMessage, mapGetOrInsert } from '../../common/dist/utils.js';
 import { ResourcePatchList } from './patch-list.js';
 import * as paths from '../../common/dist/paths.js';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export import plain = resourcesPlain;
+export { resourcesPlain as plain };
 
 type ResourcePatcherWithDeps<Data, Deps, Ctx> =
   // <empty comment to force formatting>

@@ -78,7 +78,6 @@ export class Mod implements ModPublic {
     if (script == null) return;
     let scriptFullPath = this.resolvePath(script);
 
-    // eslint-disable-next-line no-shadow
     let module: { default: new (mod: ModPublic) => MainClass };
     try {
       module = await import(`/${scriptFullPath}`);

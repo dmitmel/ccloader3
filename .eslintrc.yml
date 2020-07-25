@@ -5,22 +5,6 @@ parserOptions:
   sourceType: module
 
 rules:
-  no-shadow:
-    - error
-    - builtinGlobals: true
-      hoist: functions
-      allow:
-        - name
-        - length
-        - location
-        - self
-        - status
-        - event
-        - hasOwnProperty
-        - parent
-
-  global-require: off
-
   func-names: off
 
   node/no-unsupported-features/es-syntax:
@@ -33,32 +17,18 @@ rules:
   node/no-unpublished-require: off
   node/shebang: off
 
-  require-await: off
-  no-await-in-loop: off
-  handle-callback-err: off
-
-  no-unexpected-multiline: off
-
 overrides:
   - files: '**/*.ts'
     extends: eslint-config-dmitmel/presets/typescript-addon
     rules:
       node/no-missing-import: off
-      '@typescript-eslint/no-namespace': off
 
   - files: '**/src/**/*.ts'
     extends: eslint-config-dmitmel/rules/typescript/with-type-checking
-    rules:
-      '@typescript-eslint/no-unsafe-assignment': off
-      '@typescript-eslint/no-unsafe-call': off
-      '@typescript-eslint/no-unsafe-member-access': off
-      '@typescript-eslint/no-unsafe-return': off
-      '@typescript-eslint/require-await': off
 
   - files: '**/*.d.ts'
     rules:
       no-var: off
-      no-shadow: off
 
   - files: 'src/**/*.ts'
     parserOptions:
