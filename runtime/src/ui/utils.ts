@@ -1,5 +1,7 @@
+import { LocalizedString } from 'ultimate-crosscode-typedefs/file-types/mod-manifest';
+
 export function getLocalizedString(
-  str: modloader.Manifest.LocalizedString | null | undefined,
+  str: LocalizedString | null | undefined,
 ): string | null | undefined {
   if (str == null || typeof str === 'string') return str;
   return str[ig.currentLang] ?? str.en_US;

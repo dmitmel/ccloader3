@@ -1,15 +1,4 @@
-export interface ChangelogFile {
-  changelog: ChangelogFile.Entry[];
-}
-export namespace ChangelogFile {
-  export interface Entry {
-    name: string;
-    version: string;
-    date: string;
-    fixes?: string[];
-    changes?: string[];
-  }
-}
+export {};
 
 declare global {
   namespace ig {

@@ -2,9 +2,8 @@ import { Mod } from './mod.js';
 import { compare } from '../common/dist/utils.js';
 import { SemVer } from '../common/vendor-libs/semver.js';
 import * as modDataStorage from './mod-data-storage.js';
+import { Dependency, ModID } from 'ultimate-crosscode-typedefs/modloader/mod';
 
-type ModID = modloader.ModID;
-type ModDependency = modloader.Mod.Dependency;
 type ModsMap = Map<ModID, Mod>;
 type ReadonlyModsMap = ReadonlyMap<ModID, Mod>;
 type ReadonlyVirtualPackagesMap = ReadonlyMap<ModID, SemVer>;
@@ -89,7 +88,7 @@ export function verifyModDependencies(
 
 function checkDependencyConstraint(
   depId: ModID,
-  depConstraint: ModDependency,
+  depConstraint: Dependency,
   installedMods: ReadonlyModsMap,
   virtualPackages: ReadonlyVirtualPackagesMap,
   loadedMods: ReadonlyModsMap,

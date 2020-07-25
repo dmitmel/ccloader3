@@ -2,19 +2,22 @@ import { SemVer, Range as SemVerRange } from '../common/vendor-libs/semver.js';
 import * as paths from '../common/dist/paths.js';
 import { PLATFORM_TYPE, PlatformType, errorHasMessage } from '../common/dist/utils.js';
 import * as files from './files.js';
+import { Manifest } from 'ultimate-crosscode-typedefs/file-types/mod-manifest';
+import {
+  Dependency,
+  LegacyMainClass,
+  LoadingStage,
+  MainClass,
+  ModID,
+  Mod as ModPublic,
+} from 'ultimate-crosscode-typedefs/modloader/mod';
 
-type ModID = modloader.ModID;
-type ModDependency = modloader.Mod.Dependency;
-type ModClass = modloader.Mod.Class;
-type ModLoadingStage = modloader.Mod.LoadingStage;
-type Manifest = modloader.Manifest;
-
-export class Mod implements modloader.Mod {
+export class Mod implements ModPublic {
   public readonly version: SemVer;
-  public readonly dependencies: ReadonlyMap<ModID, ModDependency>;
+  public readonly dependencies: ReadonlyMap<ModID, Dependency>;
   public readonly assetsDirectory: string;
   public assets: Set<string> = new Set();
-  public classInstance: ModClass | null = null;
+  public mainClassInstance: MainClass | null = null;
 
   public constructor(
     public readonly baseDirectory: string,
@@ -31,7 +34,7 @@ export class Mod implements modloader.Mod {
       throw err;
     }
 
-    let dependencies = new Map<ModID, ModDependency>();
+    let dependencies = new Map<ModID, Dependency>();
 
     if (manifest.dependencies != null) {
       for (let depId of Object.keys(manifest.dependencies)) {
@@ -76,7 +79,7 @@ export class Mod implements modloader.Mod {
     let scriptFullPath = this.resolvePath(script);
 
     // eslint-disable-next-line no-shadow
-    let module: { default: new (mod: modloader.Mod) => ModClass };
+    let module: { default: new (mod: ModPublic) => MainClass };
     try {
       module = await import(`/${scriptFullPath}`);
     } catch (err) {
@@ -91,16 +94,19 @@ export class Mod implements modloader.Mod {
     }
 
     // eslint-disable-next-line new-cap
-    this.classInstance = new module.default(this);
+    this.mainClassInstance = new module.default(this);
   }
 
-  public async executeStage(stage: ModLoadingStage): Promise<void> {
-    let classMethodName: keyof ModClass = stage;
-    if (this.legacyMode && stage === 'poststart') {
-      classMethodName = 'main';
-    }
-    if (this.classInstance != null && classMethodName in this.classInstance) {
-      await this.classInstance[classMethodName]!(this);
+  public async executeStage(stage: LoadingStage): Promise<void> {
+    let mainCls = this.mainClassInstance;
+    if (mainCls != null) {
+      if (!this.legacyMode) {
+        if (stage in mainCls) await mainCls[stage]!(this);
+      } else {
+        let legacyMainCls = mainCls as LegacyMainClass;
+        let methodName: keyof LegacyMainClass = stage === 'poststart' ? 'main' : stage;
+        if (methodName in legacyMainCls) await legacyMainCls[methodName]!();
+      }
     }
 
     let script = this.manifest[stage];

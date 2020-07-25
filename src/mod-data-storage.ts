@@ -7,14 +7,14 @@
 // https://github.com/71104/rwlock/blob/master/src/lock.js
 
 import { errorHasCode, mapGetOrInsert } from '../common/dist/utils.js';
+import { FileData } from 'ultimate-crosscode-typedefs/file-types/mod-data-storage';
+import { ModEntry } from 'ultimate-crosscode-typedefs/file-types/mod-data-storage/v1';
+import { ModID } from 'ultimate-crosscode-typedefs/modloader/mod';
 
 const { promises: fs } = (typeof require === 'function'
   ? require('fs')
   : {}) as typeof import('fs');
 const pathsNative = (typeof require === 'function' ? require('path') : {}) as typeof import('path');
-
-type ModID = modloader.ModID;
-type ModEntry = modloader.modDataStorage.FileDataV1.ModEntry;
 
 const FILE_PATH: string = (function getFilePath() {
   // taken from https://github.com/dmitmel/crosscode-readable-saves/blob/ed25ab8b061f0a75acf54bc2485fead47523fc2e/src/postload.ts#L289-L298
@@ -82,7 +82,7 @@ export async function write(): Promise<void> {
 }
 
 function deserialize(rawData: Buffer): void {
-  let jsonData = JSON.parse(rawData.toString('utf8')) as modloader.modDataStorage.FileData;
+  let jsonData = JSON.parse(rawData.toString('utf8')) as FileData;
   if (jsonData.version !== 1) {
     throw new Error(`Unsupported format version '${jsonData.version}'`);
   }
@@ -93,7 +93,7 @@ function deserialize(rawData: Buffer): void {
 }
 
 function serialize(): Buffer {
-  let jsonData: modloader.modDataStorage.FileData = { version: 1, data: {} };
+  let jsonData: FileData = { version: 1, data: {} };
   for (let [modID, modEntry] of data) {
     jsonData.data[modID] = modEntry;
   }

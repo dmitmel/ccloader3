@@ -8,11 +8,8 @@ import { errorHasMessage } from '../common/dist/utils.js';
 import * as paths from '../common/dist/paths.js';
 import * as dependencyResolver from './dependency-resolver.js';
 import * as modDataStorage from './mod-data-storage.js';
-
-type ModID = modloader.ModID;
-type Manifest = modloader.Manifest;
-type ManifestLegacy = modloader.ManifestLegacy;
-type ModLoadingStage = modloader.Mod.LoadingStage;
+import { LegacyManifest, Manifest } from 'ultimate-crosscode-typedefs/file-types/mod-manifest';
+import { LoadingStage, ModID } from 'ultimate-crosscode-typedefs/modloader/mod';
 
 type ModsMap = Map<ModID, Mod>;
 type ReadonlyModsMap = ReadonlyMap<ModID, Mod>;
@@ -119,7 +116,7 @@ export async function boot(): Promise<void> {
   await executeStage(loadedMods, 'preload');
   let domReadyCallback = await game.loadMainScript(
     config,
-    runtimeMod.classInstance! as import('../runtime/src/_main').default,
+    runtimeMod.mainClassInstance as import('../runtime/src/_main').default,
   );
   await executeStage(loadedMods, 'postload');
   domReadyCallback();
@@ -187,7 +184,7 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
     }
   }
 
-  let manifestData: Manifest | ManifestLegacy;
+  let manifestData: Manifest | LegacyManifest;
   try {
     manifestData = JSON.parse(manifestText);
   } catch (err) {
@@ -199,7 +196,7 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
 
   try {
     if (legacyMode) {
-      manifestData = manifestData as ManifestLegacy;
+      manifestData = manifestData as LegacyManifest;
       manifestValidator.validateLegacy(manifestData);
       manifestData = convertManifestFromLegacy(manifestData);
     } else {
@@ -227,7 +224,7 @@ async function initModClasses(mods: ReadonlyModsMap): Promise<void> {
   }
 }
 
-async function executeStage(mods: ReadonlyModsMap, stage: ModLoadingStage): Promise<void> {
+async function executeStage(mods: ReadonlyModsMap, stage: LoadingStage): Promise<void> {
   for (let mod of mods.values()) {
     try {
       await mod.executeStage(stage);

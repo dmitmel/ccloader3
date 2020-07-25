@@ -1,13 +1,15 @@
-type Manifest = modloader.Manifest;
-type ManifestLegacy = modloader.ManifestLegacy;
-type LocalizedString = modloader.Manifest.LocalizedString;
-type Person = modloader.Manifest.Person;
-type PersonDetails = modloader.Manifest.PersonDetails;
-type ModDependencies = modloader.Manifest.ModDependencies;
-type ModDependency = modloader.Manifest.ModDependency;
-type ModDependencyDetails = modloader.Manifest.ModDependencyDetails;
-type FilePath = modloader.Manifest.FilePath;
-type Locale = modloader.Manifest.Locale;
+import {
+  FilePath,
+  LegacyManifest,
+  Locale,
+  LocalizedString,
+  Manifest,
+  ModDependencies,
+  ModDependency,
+  ModDependencyDetails,
+  Person,
+  PersonDetails,
+} from 'ultimate-crosscode-typedefs/file-types/mod-manifest';
 
 enum Type {
   string = 'string',
@@ -112,7 +114,7 @@ export class ManifestValidator {
     }
   }
 
-  public validateLegacy(data: ManifestLegacy): void {
+  public validateLegacy(data: LegacyManifest): void {
     this.problems = [];
 
     if (this.assertType([], data, [Type.object]).status === 'ok') {
@@ -261,7 +263,7 @@ export class ManifestValidator {
   }
 }
 
-export function convertFromLegacy(data: ManifestLegacy): Manifest {
+export function convertFromLegacy(data: LegacyManifest): Manifest {
   return {
     id: data.name,
     version: data.version !== undefined ? data.version : '0.0.0',

@@ -11,7 +11,7 @@ import './resources-injections.js';
 import './lang-file-patcher.js';
 import './greenworks-fix.js';
 
-export default class CCLoaderRuntimeMod implements modloader.Mod.Class {
+export default class CCLoaderRuntimeMod implements modloader.Mod.MainClass {
   public constructor() {
     if (window.ccmod == null) window.ccmod = {} as typeof ccmod;
     ccmod.paths = paths;

@@ -1,23 +1,20 @@
 import { loadScript, loadStylesheet } from '../common/dist/resources.js';
 import { SemVer } from '../common/vendor-libs/semver.js';
 import * as files from './files.js';
-import { ChangelogFile } from './game-types';
+import { ChangelogFileData } from 'ultimate-crosscode-typedefs/file-types/changelog';
 import { Config } from './config.js';
 
-export async function loadVersion(): Promise<{
-  version: SemVer;
-  hotfix: number;
-}> {
+export async function loadVersion(): Promise<{ version: SemVer; hotfix: number }> {
   let changelogText = await files.loadText('assets/data/changelog.json');
-  let { changelog } = JSON.parse(changelogText) as ChangelogFile;
-  let latestChangelog = changelog[0];
+  let { changelog } = JSON.parse(changelogText) as ChangelogFileData;
+  let latestEntry = changelog[0];
 
-  let version = new SemVer(latestChangelog.version);
+  let version = new SemVer(latestEntry.version);
 
   let hotfix = 0;
   let changes = [];
-  if (latestChangelog.changes != null) changes.push(...latestChangelog.changes);
-  if (latestChangelog.fixes != null) changes.push(...latestChangelog.fixes);
+  if (latestEntry.changes != null) changes.push(...latestEntry.changes);
+  if (latestEntry.fixes != null) changes.push(...latestEntry.fixes);
   for (let change of changes) {
     let match = /^\W*HOTFIX\((\d+)\)/i.exec(change);
     if (match != null && match.length === 2) {
