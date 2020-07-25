@@ -18,6 +18,7 @@
     "build": "tsc --build",
     "watch": "tsc --build --watch",
     "lint": "eslint . --ext .js,.ts --ignore-path .eslintignore",
-    "check-fmt": "prettier --check '**/*.{js,ts,json,css,scss,html}'"
+    "check-fmt": "prettier --check '**/*.{js,ts,json,css,scss,html}'",
+    "clean": "rm -rv common/dist/ runtime/dist/ dist/"
   }
 }

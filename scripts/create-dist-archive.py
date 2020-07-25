@@ -80,12 +80,18 @@ class TarGzArchiveAdapter:
         info.mtime = time.time()
         self._tarfile.addfile(info, data)
 
-    def add_real_file(self, path, archived_path, recursive=True):
+    def add_real_file(self, path, archived_path, recursive=True, predicate=None):
         self._tarfile.add(
-            path, arcname=archived_path, recursive=recursive, filter=self._reset_tarinfo,
+            path,
+            arcname=archived_path,
+            recursive=recursive,
+            filter=lambda info: self._reset_tarinfo(info, predicate),
         )
 
-    def _reset_tarinfo(self, info):
+    def _reset_tarinfo(self, info, predicate):
+        if predicate is not None and not predicate(info.name):
+            return None
+
         # remove user and group IDs as they are irrelevant for distribution and
         # may require subsequent `chown`ing on multi-tenant systems
         info.uid = 0
@@ -126,18 +132,24 @@ class ZipArchiveAdapter:
         self._set_zipinfo_compression(info)
         self._zipfile.writestr(info, data)
 
-    def add_real_file(self, path, archived_path, recursive=True):
+    def add_real_file(self, path, archived_path, recursive=True, predicate=None):
         info = ZipInfo.from_file(
             path, archived_path, strict_timestamps=self._zipfile._strict_timestamps
         )
         self._set_zipinfo_compression(info)
+
+        if predicate is not None and not predicate(info.filename):
+            return
 
         if info.is_dir():
             self._zipfile.open(info, "w").close()
             if recursive:
                 for f in sorted(os.listdir(path)):
                     self.add_real_file(
-                        os.path.join(path, f), os.path.join(archived_path, f), recursive=recursive
+                        os.path.join(path, f),
+                        os.path.join(archived_path, f),
+                        recursive=recursive,
+                        predicate=predicate,
                     )
         else:
             with open(path, "rb") as src, self._zipfile.open(info, "w") as dest:
@@ -159,6 +171,7 @@ for open_archive_fn in [
                 os.path.join(PROJECT_DIR, path),
                 os.path.join(archived_path_prefix, path),
                 recursive=recursive,
+                predicate=lambda name: not name.endswith(".tsbuildinfo"),
             )
 
         add("LICENSE")
