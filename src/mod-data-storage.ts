@@ -14,9 +14,12 @@ import { ModID } from 'ultimate-crosscode-typedefs/modloader/mod';
 const { promises: fs } = (typeof require === 'function'
   ? require('fs')
   : {}) as typeof import('fs');
-const pathsNative = (typeof require === 'function' ? require('path') : {}) as typeof import('path');
 
-const FILE_PATH: string = (function getFilePath() {
+export const filePath: string | null = (function getFilePath() {
+  if (typeof nw === 'undefined') return null;
+
+  const pathsNative = require('path') as typeof import('path');
+
   // taken from https://github.com/dmitmel/crosscode-readable-saves/blob/ed25ab8b061f0a75acf54bc2485fead47523fc2e/src/postload.ts#L289-L298
   let saveDirPath = nw.App.dataPath;
 
@@ -40,19 +43,27 @@ let queuedWritesFlag = false;
 export async function readImmediately(): Promise<void> {
   data.clear();
 
-  let rawData: Buffer;
-  try {
-    rawData = await fs.readFile(FILE_PATH);
-  } catch (err) {
-    if (errorHasCode(err) && err.code === 'ENOENT') return;
-    throw err;
+  if (filePath != null) {
+    let rawData: Buffer;
+    try {
+      rawData = await fs.readFile(filePath);
+    } catch (err) {
+      if (errorHasCode(err) && err.code === 'ENOENT') return;
+      throw err;
+    }
+    deserialize(rawData);
+  } else {
+    readFromLocalStorage();
   }
-  deserialize(rawData);
 }
 
 export async function writeImmediately(): Promise<void> {
-  let rawData: Buffer = serialize();
-  await fs.writeFile(FILE_PATH, rawData);
+  if (filePath != null) {
+    let rawData: Buffer = serialize();
+    await fs.writeFile(filePath, rawData);
+  } else {
+    writeToLocalStorage();
+  }
 }
 
 export async function write(): Promise<void> {
@@ -92,6 +103,16 @@ function deserialize(rawData: Buffer): void {
   }
 }
 
+function readFromLocalStorage(): void {
+  for (let [key, value] of Object.entries(localStorage)) {
+    let match = /^modEnabled-(.+)$/.exec(key);
+    if (match != null && match.length === 2) {
+      let modID = match[1];
+      data.set(modID, { enabled: value === '1' });
+    }
+  }
+}
+
 function serialize(): Buffer {
   let jsonData: FileData = { version: 1, data: {} };
   for (let [modID, modEntry] of data) {
@@ -99,6 +120,12 @@ function serialize(): Buffer {
   }
 
   return Buffer.from(JSON.stringify(jsonData), 'utf8');
+}
+
+function writeToLocalStorage(): void {
+  for (let [modID, modEntry] of data) {
+    localStorage.setItem(`modEnabled-${modID}`, modEntry.enabled ? '1' : '0');
+  }
 }
 
 export function isModEnabled(id: ModID): boolean {
