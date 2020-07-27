@@ -4,18 +4,17 @@ import * as patchsteps from '../../common/vendor-libs/patchsteps.js';
 import { errorHasMessage, mapGetOrInsert } from '../../common/dist/utils.js';
 import { ResourcePatchList } from './patch-list.js';
 import * as paths from '../../common/dist/paths.js';
+import {
+  ImagePatcherContext,
+  JSONPatcherContext,
+  LoadImageOptions,
+  LoadJSONOptions,
+  ResolvePathAdvancedResult,
+  ResolvePathOptions,
+} from 'ultimate-crosscode-typedefs/modloader-stdlib/resources';
+import { ResourcePatcherWithDeps } from 'ultimate-crosscode-typedefs/modloader-stdlib/patch-list';
 
 export { resourcesPlain as plain };
-
-type ResourcePatcherWithDeps<Data, Deps, Ctx> =
-  // <empty comment to force formatting>
-  ccmod.patchList.ResourcePatcherWithDeps<Data, Deps, Ctx>;
-type JSONPatcherContext = ccmod.resources.JSONPatcherContext;
-type ImagePatcherContext = ccmod.resources.ImagePatcherContext;
-type LoadJSONOptions = ccmod.resources.LoadJSONOptions;
-type LoadImageOptions = ccmod.resources.LoadImageOptions;
-type ResolvePathOptions = ccmod.resources.ResolvePathOptions;
-type ResolvePathAdvancedResult = ccmod.resources.ResolvePathAdvancedResult;
 
 export const jsonPatches = new ResourcePatchList<unknown, JSONPatcherContext>();
 export const imagePatches = new ResourcePatchList<HTMLCanvasElement, ImagePatcherContext>();

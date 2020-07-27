@@ -1,9 +1,8 @@
 // based on https://github.com/CCDirectLink/DevModLoader/blob/7dd3c4ebee4b516b201205d0bb1c24913335b9f1/js/game/ig-interceptor.js
 
 import * as impactInitHooks from './impact-init-hooks.js';
+import { ImpactModuleHook } from 'ultimate-crosscode-typedefs/modloader-stdlib/impact-module-hooks';
 import { PatchList } from './patch-list.js';
-
-type ImpactModuleHook = ccmod.impactModuleHooks.ImpactModuleHook;
 
 export const patchList = new PatchList<ImpactModuleHook>();
 
