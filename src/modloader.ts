@@ -65,7 +65,7 @@ export async function boot(): Promise<void> {
     .set(modloaderMetadata.name, modloaderMetadata.version);
 
   for (let [modID, mod] of installedMods) {
-    if (!modDataStorage.isModEnabled(modID)) {
+    if (mod !== runtimeMod && !modDataStorage.isModEnabled(modID)) {
       continue;
     }
 
