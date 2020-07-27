@@ -11,17 +11,23 @@ import './resources-injections.js';
 import './lang-file-patcher.js';
 import './greenworks-fix.js';
 
+type RemoveReadonly<T> = { -readonly [P in keyof T]: T[P] };
+
 export default class CCLoaderRuntimeMod implements modloader.Mod.MainClass {
-  public constructor() {
+  public constructor(mod: modloader.Mod) {
     if (window.ccmod == null) window.ccmod = {} as typeof ccmod;
-    ccmod.paths = paths;
-    ccmod.utils = utils;
-    ccmod.require = requireFixed;
-    ccmod.semver = semver;
-    ccmod.patchList = patchList;
-    ccmod.impactInitHooks = impactInitHooks;
-    ccmod.impactModuleHooks = impactModuleHooks;
-    ccmod.resources = resources;
+
+    let ns = window.ccmod as RemoveReadonly<typeof ccmod>;
+    ns.implementor = modloader.name;
+    ns.implementation = mod.manifest.id;
+    ns.paths = paths;
+    ns.utils = utils;
+    ns.require = requireFixed;
+    ns.semver = semver;
+    ns.patchList = patchList;
+    ns.impactInitHooks = impactInitHooks;
+    ns.impactModuleHooks = impactModuleHooks;
+    ns.resources = resources;
   }
 
   public onImpactInit(): void {
