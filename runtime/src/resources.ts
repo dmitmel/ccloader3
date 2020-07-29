@@ -244,7 +244,7 @@ export function resolvePathAdvanced(
 }
 
 export function wrapPathIntoURL(path: string): URL {
-  let url = new URL(`/${encodeURI(path)}`, getGameAssetsURL());
+  let url = new URL(encodeURI(paths.join('/', path)), getGameAssetsURL());
   url.href += getCacheSuffix();
   return url;
 }
