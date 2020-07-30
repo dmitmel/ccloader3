@@ -1,8 +1,8 @@
+import * as consoleM from '../../../common/dist/console.js';
+
 ig.module('ccloader-runtime.ui.options.values')
   .requires('game.feature.model.options-model')
   .defines(() => {
-    const { modDataStorage } = modloader;
-
     sc.OptionModel.inject({
       // TODO: maybe rewrite this as a game addon?
       onStorageGlobalSave(globalsData, ...args) {
@@ -10,12 +10,13 @@ ig.module('ccloader-runtime.ui.options.values')
 
         let { options } = globalsData;
 
-        let logFlags = 0;
-        logFlags |= Number(options['logLevel-log']) << 2;
-        logFlags |= Number(options['logLevel-warn']) << 1;
-        logFlags |= Number(options['logLevel-error']) << 0;
-        localStorage.setItem('logFlags', String(logFlags));
+        consoleM.setLogLevels({
+          LOG: options['logLevel-log'],
+          WARN: options['logLevel-warn'],
+          ERROR: options['logLevel-error'],
+        });
 
+        const { modDataStorage } = modloader;
         for (let [modID, mod] of modloader.installedMods) {
           if (mod !== modloader._runtimeMod) {
             modDataStorage.setModEnabled(modID, Boolean(options[`modEnabled-${modID}`]));

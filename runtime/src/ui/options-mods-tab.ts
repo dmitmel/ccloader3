@@ -1,3 +1,5 @@
+import { addEnumMember } from './utils.js';
+
 ig.module('ccloader-runtime.ui.options.mods-tab')
   .requires(
     'impact.base.font',
@@ -13,7 +15,7 @@ ig.module('ccloader-runtime.ui.options.mods-tab')
       },
     );
 
-    (sc.OPTION_CATEGORY as { MODS: number }).MODS = Object.keys(sc.OPTION_CATEGORY).length;
+    addEnumMember(sc.OPTION_CATEGORY, 'MODS');
 
     sc.OptionsTabBox.prototype.tabs.mods = null!;
     sc.OptionsTabBox.inject({

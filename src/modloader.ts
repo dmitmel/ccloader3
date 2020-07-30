@@ -10,6 +10,7 @@ import * as dependencyResolver from './dependency-resolver.js';
 import * as modDataStorage from './mod-data-storage.js';
 import { LegacyManifest, Manifest } from 'ultimate-crosscode-typedefs/file-types/mod-manifest';
 import { LoadingStage, ModID } from 'ultimate-crosscode-typedefs/modloader/mod';
+import * as consoleM from '../common/dist/console.js';
 
 type ModsMap = Map<ModID, Mod>;
 type ReadonlyModsMap = ReadonlyMap<ModID, Mod>;
@@ -18,13 +19,12 @@ type ReadonlyModsMap = ReadonlyMap<ModID, Mod>;
 const CCLOADER_DIR: string = paths.stripRoot(new URL('../', import.meta.url).pathname);
 
 export async function boot(): Promise<void> {
+  consoleM.inject();
+
   let modloaderMetadata = await loadModloaderMetadata();
   console.log(`${modloaderMetadata.name} ${modloaderMetadata.version}`);
 
   let config = await configM.load(modloaderMetadata.name, modloaderMetadata.version);
-
-  let { version: gameVersion, hotfix: gameVersionHotfix } = await game.loadVersion(config);
-  console.log(`crosscode ${gameVersion}-${gameVersionHotfix}`);
 
   try {
     await modDataStorage.readImmediately();
@@ -34,6 +34,9 @@ export async function boot(): Promise<void> {
     }
     throw err;
   }
+
+  let { version: gameVersion, hotfix: gameVersionHotfix } = await game.loadVersion(config);
+  console.log(`crosscode ${gameVersion}-${gameVersionHotfix}`);
 
   let runtimeModBaseDirectory = `${CCLOADER_DIR}runtime`;
   let runtimeMod: Mod | null;

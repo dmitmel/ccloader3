@@ -10,3 +10,9 @@ export function getLocalizedString(
 export function getModTitle(mod: modloader.Mod): string {
   return getLocalizedString(mod.manifest.title) ?? mod.manifest.id;
 }
+
+export function addEnumMember<N extends string>(enumObj: { [k in N]: number }, name: N): number {
+  let number = Object.keys(enumObj).length;
+  enumObj[name] = number;
+  return number;
+}

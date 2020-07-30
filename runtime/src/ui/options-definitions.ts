@@ -1,4 +1,5 @@
 import * as utils from '../../../common/dist/utils.js';
+import * as consoleM from '../../../common/dist/console.js';
 
 ig.module('ccloader-runtime.ui.options.definitions')
   .requires(
@@ -10,7 +11,7 @@ ig.module('ccloader-runtime.ui.options.definitions')
     sc.OPTIONS_DEFINITION['logLevel-log'] = {
       type: 'CHECKBOX',
       cat: sc.OPTION_CATEGORY.GENERAL,
-      init: false,
+      init: consoleM.DEFAULT_LOG_LEVELS.LOG,
       restart: true,
       hasDivider: true,
       header: 'logLevel',
@@ -19,14 +20,14 @@ ig.module('ccloader-runtime.ui.options.definitions')
     sc.OPTIONS_DEFINITION['logLevel-warn'] = {
       type: 'CHECKBOX',
       cat: sc.OPTION_CATEGORY.GENERAL,
-      init: true,
+      init: consoleM.DEFAULT_LOG_LEVELS.WARN,
       restart: true,
     };
 
     sc.OPTIONS_DEFINITION['logLevel-error'] = {
       type: 'CHECKBOX',
       cat: sc.OPTION_CATEGORY.GENERAL,
-      init: true,
+      init: consoleM.DEFAULT_LOG_LEVELS.ERROR,
       restart: true,
     };
 
