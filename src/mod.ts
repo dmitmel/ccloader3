@@ -1,6 +1,6 @@
-import { SemVer, Range as SemVerRange } from '../common/vendor-libs/semver.js';
+import * as semver from '../common/vendor-libs/semver.js';
 import * as paths from '../common/dist/paths.js';
-import { PLATFORM_TYPE, PlatformType, errorHasMessage } from '../common/dist/utils.js';
+import * as utils from '../common/dist/utils.js';
 import * as files from './files.js';
 import { Manifest } from 'ultimate-crosscode-typedefs/file-types/mod-manifest';
 import {
@@ -13,7 +13,7 @@ import {
 } from 'ultimate-crosscode-typedefs/modloader/mod';
 
 export class Mod implements ModPublic {
-  public readonly version: SemVer;
+  public readonly version: semver.SemVer;
   public readonly dependencies: ReadonlyMap<ModID, Dependency>;
   public readonly assetsDirectory: string;
   public assets: Set<string> = new Set();
@@ -25,9 +25,9 @@ export class Mod implements ModPublic {
     public readonly legacyMode: boolean,
   ) {
     try {
-      this.version = new SemVer(manifest.version);
+      this.version = new semver.SemVer(manifest.version);
     } catch (err) {
-      if (errorHasMessage(err)) {
+      if (utils.errorHasMessage(err)) {
         // TODO: put a link to semver docs here
         err.message = `mod version '${manifest.version}' is not a valid semver version: ${err.message}`;
       }
@@ -41,11 +41,11 @@ export class Mod implements ModPublic {
         let dep = manifest.dependencies[depId];
         if (typeof dep === 'string') dep = { version: dep };
 
-        let depVersionRange: SemVerRange;
+        let depVersionRange: semver.Range;
         try {
-          depVersionRange = new SemVerRange(dep.version);
+          depVersionRange = new semver.Range(dep.version);
         } catch (err) {
-          if (errorHasMessage(err)) {
+          if (utils.errorHasMessage(err)) {
             err.message = `dependency version constraint '${dep.version}' for mod '${depId}' is not a valid semver range: ${err.message}`;
           }
           throw err;
@@ -67,7 +67,7 @@ export class Mod implements ModPublic {
     let assets: string[] = [];
     if (this.manifest.assets != null) {
       assets = this.manifest.assets.map((path) => paths.jailRelative(path));
-    } else if (PLATFORM_TYPE === PlatformType.Desktop) {
+    } else if (utils.PLATFORM_TYPE === utils.PlatformType.Desktop) {
       assets = await files.findRecursively(this.assetsDirectory);
     }
     this.assets = new Set(assets);
@@ -82,7 +82,7 @@ export class Mod implements ModPublic {
     try {
       module = await import(`/${scriptFullPath}`);
     } catch (err) {
-      if (errorHasMessage(err)) {
+      if (utils.errorHasMessage(err)) {
         err.message = `Error while importing '${scriptFullPath}': ${err.message}`;
       }
       throw err;

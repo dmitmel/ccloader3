@@ -1,4 +1,4 @@
-import { errorHasMessage } from '../common/dist/utils.js';
+import * as utils from '../common/dist/utils.js';
 import * as paths from '../common/dist/paths.js';
 
 export async function loadText(path: string): Promise<string> {
@@ -7,7 +7,7 @@ export async function loadText(path: string): Promise<string> {
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     return await res.text();
   } catch (err) {
-    if (errorHasMessage(err)) {
+    if (utils.errorHasMessage(err)) {
       err.message = `Failed to load file '${path}': ${err.message}`;
     }
     throw err;
@@ -21,7 +21,7 @@ export async function exists(path: string): Promise<boolean> {
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     return true;
   } catch (err) {
-    if (errorHasMessage(err)) {
+    if (utils.errorHasMessage(err)) {
       err.message = `HEAD request to '${path}' failed: ${err.message}`;
     }
     throw err;
@@ -42,7 +42,7 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
   try {
     index = JSON.parse(indexJsonText);
   } catch (err) {
-    if (errorHasMessage(err)) {
+    if (utils.errorHasMessage(err)) {
       err.message = `Syntax error in mods directory index in '${indexPath}': ${err.message}`;
     }
     throw err;

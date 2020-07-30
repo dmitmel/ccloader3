@@ -6,7 +6,7 @@
 // https://github.com/Wizcorp/locks/blob/master/lib/ReadWriteLock.js
 // https://github.com/71104/rwlock/blob/master/src/lock.js
 
-import { errorHasCode, mapGetOrInsert } from '../common/dist/utils.js';
+import * as utils from '../common/dist/utils.js';
 import { FileData } from 'ultimate-crosscode-typedefs/file-types/mod-data-storage';
 import { ModEntry } from 'ultimate-crosscode-typedefs/file-types/mod-data-storage/v1';
 import { ModID } from 'ultimate-crosscode-typedefs/modloader/mod';
@@ -48,7 +48,7 @@ export async function readImmediately(): Promise<void> {
     try {
       rawData = await fs.readFile(filePath);
     } catch (err) {
-      if (errorHasCode(err) && err.code === 'ENOENT') return;
+      if (utils.errorHasCode(err) && err.code === 'ENOENT') return;
       throw err;
     }
     deserialize(rawData);
@@ -133,5 +133,5 @@ export function isModEnabled(id: ModID): boolean {
 }
 
 export function setModEnabled(id: ModID, enabled: boolean): void {
-  mapGetOrInsert(data, id, { enabled }).enabled = enabled;
+  utils.mapGetOrInsert(data, id, { enabled }).enabled = enabled;
 }

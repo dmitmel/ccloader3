@@ -72,7 +72,7 @@ function jsonPathToString(path: JsonPath): string {
 
 /* eslint-disable no-undefined */
 
-export class ManifestValidator {
+export class Validator {
   private problems: string[] = [];
 
   public validate(data: Manifest): void {

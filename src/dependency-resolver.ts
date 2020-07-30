@@ -1,12 +1,12 @@
 import { Mod } from './mod.js';
-import { compare } from '../common/dist/utils.js';
-import { SemVer } from '../common/vendor-libs/semver.js';
+import * as utils from '../common/dist/utils.js';
+import * as semver from '../common/vendor-libs/semver.js';
 import * as modDataStorage from './mod-data-storage.js';
 import { Dependency, ModID } from 'ultimate-crosscode-typedefs/modloader/mod';
 
 type ModsMap = Map<ModID, Mod>;
 type ReadonlyModsMap = ReadonlyMap<ModID, Mod>;
-type ReadonlyVirtualPackagesMap = ReadonlyMap<ModID, SemVer>;
+type ReadonlyVirtualPackagesMap = ReadonlyMap<ModID, semver.SemVer>;
 
 export function sortModsInLoadOrder(runtimeMod: Mod, installedMods: ReadonlyModsMap): ModsMap {
   // note that maps preserve insertion order as defined in the ECMAScript spec
@@ -18,7 +18,7 @@ export function sortModsInLoadOrder(runtimeMod: Mod, installedMods: ReadonlyMods
   for (let mod of installedMods.values()) {
     if (mod !== runtimeMod) unsortedModsList.push(mod);
   }
-  unsortedModsList.sort((mod1, mod2) => compare(mod1.manifest.id, mod2.manifest.id));
+  unsortedModsList.sort((mod1, mod2) => utils.compare(mod1.manifest.id, mod2.manifest.id));
 
   while (unsortedModsList.length > 0) {
     // dependency cycles can be detected by checking if we removed any
@@ -93,7 +93,7 @@ function checkDependencyConstraint(
   virtualPackages: ReadonlyVirtualPackagesMap,
   loadedMods: ReadonlyModsMap,
 ): string | null {
-  let availableDepVersion: SemVer;
+  let availableDepVersion: semver.SemVer;
   let depTitle = depId;
 
   let virtualPackageVersion = virtualPackages.get(depId);

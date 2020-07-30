@@ -1,10 +1,10 @@
 import * as files from './files.js';
-import { load as loadConfig } from './config.js';
-import { ManifestValidator, convertFromLegacy as convertManifestFromLegacy } from './manifest.js';
+import * as configM from './config.js';
+import * as manifestM from './manifest.js';
 import { Mod } from './mod.js';
 import * as game from './game.js';
-import { SemVer } from '../common/vendor-libs/semver.js';
-import { errorHasMessage } from '../common/dist/utils.js';
+import * as semver from '../common/vendor-libs/semver.js';
+import * as utils from '../common/dist/utils.js';
 import * as paths from '../common/dist/paths.js';
 import * as dependencyResolver from './dependency-resolver.js';
 import * as modDataStorage from './mod-data-storage.js';
@@ -21,7 +21,7 @@ export async function boot(): Promise<void> {
   let modloaderMetadata = await loadModloaderMetadata();
   console.log(`${modloaderMetadata.name} ${modloaderMetadata.version}`);
 
-  let config = await loadConfig(modloaderMetadata.name, modloaderMetadata.version);
+  let config = await configM.load(modloaderMetadata.name, modloaderMetadata.version);
 
   let { version: gameVersion, hotfix: gameVersionHotfix } = await game.loadVersion(config);
   console.log(`crosscode ${gameVersion}-${gameVersionHotfix}`);
@@ -29,7 +29,7 @@ export async function boot(): Promise<void> {
   try {
     await modDataStorage.readImmediately();
   } catch (err) {
-    if (errorHasMessage(err)) {
+    if (utils.errorHasMessage(err)) {
       err.message = `Failed to read mod data storage: ${err.message}`;
     }
     throw err;
@@ -44,7 +44,7 @@ export async function boot(): Promise<void> {
       throw new Error('Assertion failed: runtimeMod != null');
     }
   } catch (err) {
-    if (errorHasMessage(err)) {
+    if (utils.errorHasMessage(err)) {
       err.message = `Failed to load metadata of the runtime mod in '${runtimeModBaseDirectory}', please check if you installed CCLoader correctly! ${err.message}`;
     }
     throw err;
@@ -60,7 +60,7 @@ export async function boot(): Promise<void> {
   let loadedMods = new Map<ModID, Mod>();
   let loadedModsSetupPromises: Array<Promise<void>> = [];
 
-  let virtualPackages = new Map<ModID, SemVer>()
+  let virtualPackages = new Map<ModID, semver.SemVer>()
     .set('crosscode', gameVersion)
     .set(modloaderMetadata.name, modloaderMetadata.version);
 
@@ -132,11 +132,11 @@ export async function boot(): Promise<void> {
 
 async function loadModloaderMetadata(): Promise<{
   name: string;
-  version: SemVer;
+  version: semver.SemVer;
 }> {
   let toolJsonText = await files.loadText(`${CCLOADER_DIR}tool.config.json`);
   let data = JSON.parse(toolJsonText) as { name: string; version: string };
-  return { name: data.name, version: new SemVer(data.version) };
+  return { name: data.name, version: new semver.SemVer(data.version) };
 }
 
 async function loadAllModMetadata(modsDir: string, installedMods: ModsMap): Promise<void> {
@@ -165,7 +165,7 @@ async function loadAllModMetadata(modsDir: string, installedMods: ModsMap): Prom
   );
 }
 
-let manifestValidator = new ManifestValidator();
+let manifestValidator = new manifestM.Validator();
 
 async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
   let manifestFile: string;
@@ -189,7 +189,7 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
   try {
     manifestData = JSON.parse(manifestText);
   } catch (err) {
-    if (errorHasMessage(err)) {
+    if (utils.errorHasMessage(err)) {
       err.message = `Syntax error in mod manifest in '${manifestFile}': ${err.message}`;
     }
     throw err;
@@ -199,13 +199,13 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
     if (legacyMode) {
       manifestData = manifestData as LegacyManifest;
       manifestValidator.validateLegacy(manifestData);
-      manifestData = convertManifestFromLegacy(manifestData);
+      manifestData = manifestM.convertFromLegacy(manifestData);
     } else {
       manifestData = manifestData as Manifest;
       manifestValidator.validate(manifestData);
     }
   } catch (err) {
-    if (errorHasMessage(err)) {
+    if (utils.errorHasMessage(err)) {
       err.message = `Invalid mod manifest in '${manifestFile}': ${err.message}`;
       // TODO: put a link to the documentation here
     }

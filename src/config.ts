@@ -1,7 +1,7 @@
 import * as paths from '../common/dist/paths.js';
-import { MaybePromise, errorHasMessage } from '../common/dist/utils.js';
+import * as utils from '../common/dist/utils.js';
 import * as files from './files.js';
-import { SemVer } from '../common/vendor-libs/semver.js';
+import * as semver from '../common/vendor-libs/semver.js';
 
 export interface Config {
   gameAssetsDir: string;
@@ -10,19 +10,22 @@ export interface Config {
   scriptURLs: string[];
   gameScriptURL: string;
   impactConfig: Record<string, unknown>;
-  onGameDOMCreated: () => MaybePromise<void>;
+  onGameDOMCreated: () => utils.MaybePromise<void>;
 }
 
 export interface ConfigModule {
-  default: (config: Config, context: ConfigModuleContext) => MaybePromise<void>;
+  default: (config: Config, context: ConfigModuleContext) => utils.MaybePromise<void>;
 }
 
 export interface ConfigModuleContext {
   modloaderName: string;
-  modloaderVersion: SemVer;
+  modloaderVersion: semver.SemVer;
 }
 
-export async function load(modloaderName: string, modloaderVersion: SemVer): Promise<Config> {
+export async function load(
+  modloaderName: string,
+  modloaderVersion: semver.SemVer,
+): Promise<Config> {
   let config = createDefaultConfig();
   let ctx: ConfigModuleContext = { modloaderName, modloaderVersion };
 
@@ -40,7 +43,7 @@ export async function load(modloaderName: string, modloaderVersion: SemVer): Pro
       await configModule.default(config, ctx);
     }
   } catch (err) {
-    if (errorHasMessage(err)) {
+    if (utils.errorHasMessage(err)) {
       err.message = `Error while loading '${configScriptPath}': ${err.message}`;
     }
     throw err;

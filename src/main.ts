@@ -1,5 +1,5 @@
 import * as modloader from './modloader.js';
-import { showDevTools, wait } from '../common/dist/utils.js';
+import * as utils from '../common/dist/utils.js';
 
 async function main(): Promise<void> {
   let onloadPromise = new Promise((resolve) => {
@@ -12,9 +12,9 @@ async function main(): Promise<void> {
     if (env.CCLOADER_OPEN_DEVTOOLS) {
       delete env.CCLOADER_OPEN_DEVTOOLS;
       let win = nw.Window.get();
-      await showDevTools();
+      await utils.showDevTools();
       win.focus();
-      await wait(500);
+      await utils.wait(500);
     }
 
     let urlOverride = env.CCLOADER_OVERRIDE_MAIN_URL;

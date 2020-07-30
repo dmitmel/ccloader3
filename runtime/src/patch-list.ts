@@ -1,4 +1,4 @@
-import { mapGetOrInsert } from '../../common/dist/utils.js';
+import * as utils from '../../common/dist/utils.js';
 import {
   PatchList as PatchListPublic,
   ResourcePatchList as ResourcePatchListPublic,
@@ -26,7 +26,7 @@ export class PatchList<P> implements PatchListPublic<P> {
 
   public add(path: string | RegExp, patcher: P): void {
     if (typeof path === 'string') {
-      let list = mapGetOrInsert(this.specificPatchers, path, []);
+      let list = utils.mapGetOrInsert(this.specificPatchers, path, []);
       list.push(patcher);
     } else {
       this.patternPatchers.push([path, patcher]);

@@ -1,4 +1,4 @@
-import { errorHasCode } from '../common/dist/utils.js';
+import * as utils from '../common/dist/utils.js';
 
 const { promises: fs } = (typeof require === 'function'
   ? require('fs')
@@ -12,7 +12,7 @@ export async function exists(path: string): Promise<boolean> {
   try {
     await fs.access(path);
   } catch (err) {
-    if (errorHasCode(err) && err.code === 'ENOENT') return false;
+    if (utils.errorHasCode(err) && err.code === 'ENOENT') return false;
     throw err;
   }
   return true;
@@ -35,7 +35,7 @@ async function findRecursivelyInternal(
   try {
     contents = await fs.readdir(currentDir);
   } catch (err) {
-    if (errorHasCode(err) && err.code === 'ENOENT') return;
+    if (utils.errorHasCode(err) && err.code === 'ENOENT') return;
     throw err;
   }
 
@@ -60,7 +60,7 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
   try {
     allContents = await fs.readdir(dir);
   } catch (err) {
-    if (errorHasCode(err) && err.code === 'ENOENT') {
+    if (utils.errorHasCode(err) && err.code === 'ENOENT') {
       console.warn(`Directory '${dir}' not found, did you forget to create it?`);
       allContents = [];
     } else {

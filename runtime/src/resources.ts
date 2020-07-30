@@ -1,7 +1,7 @@
 import { MOD_PROTOCOL_PREFIX } from './resources.private.js';
 import * as resourcesPlain from './resources-plain.js';
 import * as patchsteps from '../../common/vendor-libs/patchsteps.js';
-import { errorHasMessage, mapGetOrInsert } from '../../common/dist/utils.js';
+import * as utils from '../../common/dist/utils.js';
 import { ResourcePatchList } from './patch-list.js';
 import * as paths from '../../common/dist/paths.js';
 import {
@@ -31,7 +31,7 @@ export const assetOverridesTable = new Map<string, string>();
         continue;
       }
 
-      let modsWithThisAsset = mapGetOrInsert(assetOverridesFromMods, asset, []);
+      let modsWithThisAsset = utils.mapGetOrInsert(assetOverridesFromMods, asset, []);
       modsWithThisAsset.push(mod);
     }
   }
@@ -102,7 +102,7 @@ export async function loadJSON<T = unknown>(
         data = await runResourcePatches(data, patchers, ctx);
       }
     } catch (err) {
-      if (errorHasMessage(err)) {
+      if (utils.errorHasMessage(err)) {
         err.message = `Failed to patch JSON file '${path}': ${err.message}`;
       }
       throw err;
@@ -135,7 +135,7 @@ export async function loadImage(
         data = await runResourcePatches(data, patchers, ctx);
       }
     } catch (err) {
-      if (errorHasMessage(err)) {
+      if (utils.errorHasMessage(err)) {
         err.message = `Failed to patch image file '${path}': ${err.message}`;
       }
       throw err;
@@ -302,7 +302,7 @@ function applyModURLProtocol(fullURI: string): string | null {
 
     return mod.resolvePath(filePath);
   } catch (err) {
-    if (errorHasMessage(err)) {
+    if (utils.errorHasMessage(err)) {
       err.message = `Invalid '${MOD_PROTOCOL_PREFIX}' URL '${fullURI}': ${err.message}`;
     }
     throw err;

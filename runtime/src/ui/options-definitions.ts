@@ -1,4 +1,4 @@
-import { compare } from '../../../common/dist/utils.js';
+import * as utils from '../../../common/dist/utils.js';
 
 ig.module('ccloader-runtime.ui.options.definitions')
   .requires(
@@ -43,7 +43,7 @@ ig.module('ccloader-runtime.ui.options.definitions')
     for (let [modID, mod] of modloader.installedMods) {
       if (mod !== modloader._runtimeMod) installedModIDs.push(modID);
     }
-    installedModIDs.sort((id1, id2) => compare(id1, id2));
+    installedModIDs.sort((id1, id2) => utils.compare(id1, id2));
 
     for (let modID of installedModIDs) {
       sc.OPTIONS_DEFINITION[`modEnabled-${modID}`] = {

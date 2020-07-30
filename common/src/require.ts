@@ -1,7 +1,7 @@
 // This code is based on the `mod-require-fix` mod:
 // https://github.com/CCDirectLink/CCdiscord/blob/8c5dce9653b170ecb4d4a1ba5b170629539c2644/mod-require-fix/preload.js
 
-let requireFixed: NodeRequire;
+let requireFixed: NodeRequire = null!;
 
 if (typeof require === 'function') {
   const paths = require('path') as typeof import('path');
@@ -9,14 +9,14 @@ if (typeof require === 'function') {
   requireFixed = ((id) => {
     try {
       return require(id);
-    } catch (_err) {}
+    } catch (_err) {
+      let caller = getCaller();
+      let searchPaths = getRequireSearchPaths(caller);
+      // this will throw an error if it could not find it
+      let pathToId = require.resolve(id, { paths: searchPaths });
 
-    let caller = getCaller();
-    let searchPaths = getRequireSearchPaths(caller);
-    // this will throw an error if it could not find it
-    let pathToId = require.resolve(id, { paths: searchPaths });
-
-    return require(pathToId);
+      return require(pathToId);
+    }
   }) as NodeRequire;
 
   for (let prop in require) {
@@ -75,4 +75,4 @@ if (typeof require === 'function') {
   }
 }
 
-export { requireFixed };
+export default requireFixed;

@@ -1,6 +1,6 @@
 import * as paths from '../../common/dist/paths.js';
 import * as utils from '../../common/dist/utils.js';
-import { requireFixed } from '../../common/dist/require.js';
+import requireFixed from '../../common/dist/require.js';
 import * as semver from '../../common/vendor-libs/semver.js';
 
 import * as patchList from './patch-list.js';
