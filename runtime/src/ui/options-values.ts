@@ -23,7 +23,7 @@ ig.module('ccloader-runtime.ui.options.values')
           }
         }
         modDataStorage.write().catch((err) => {
-          console.warn(err);
+          console.error('Failed to write mod data and settings:', err);
         });
 
         return result;

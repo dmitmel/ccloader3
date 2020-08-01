@@ -112,6 +112,8 @@ export function inject(): void {
     el.id = 'console';
     el.style.display = 'flex';
     el.style.flexDirection = 'column';
+    el.style.margin = '0';
+    el.style.padding = '0';
     el.style.position = 'fixed';
     el.style.top = el.style.left = el.style.right = '0';
     el.style.zIndex = '9999';
@@ -159,7 +161,7 @@ function log(level: LogLevel, ...message: unknown[]): void {
 
   el.style.color = TEXT_COLOR;
   let colors = LOG_LEVEL_COLORS[levelName];
-  el.style.backgroundColor = Color.toCSS({ ...colors.bg, a: 0.9 });
+  el.style.backgroundColor = Color.toCSS({ ...colors.bg, a: 0.8 });
   el.style.borderColor = Color.toCSS(colors.border);
 
   el.textContent = `[${LogLevel[level]}] ${formatMessage(...message)}`;
@@ -176,6 +178,8 @@ function log(level: LogLevel, ...message: unknown[]): void {
     el.remove();
     clearTimeout(removeTimeout);
   });
+
+  rootElement.scrollTo(0, rootElement.scrollHeight);
 }
 
 function formatMessage(...message: unknown[]): string {

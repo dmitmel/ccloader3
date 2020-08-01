@@ -34,6 +34,7 @@ export async function boot(): Promise<void> {
     }
     throw err;
   }
+  console.log(`loaded mod data storage and settings, ${modDataStorage.data.size} entries`);
 
   let { version: gameVersion, hotfix: gameVersionHotfix } = await game.loadVersion(config);
   console.log(`crosscode ${gameVersion}-${gameVersionHotfix}`);
@@ -52,11 +53,13 @@ export async function boot(): Promise<void> {
     }
     throw err;
   }
+  console.log(`${runtimeMod.manifest.id} ${runtimeMod.version}`);
 
   let installedMods = new Map<ModID, Mod>();
   installedMods.set(runtimeMod.manifest.id, runtimeMod);
   for (let dir of config.modsDirs) {
-    await loadAllModMetadata(dir, installedMods);
+    let count = await loadAllModMetadata(dir, installedMods);
+    console.log(`found ${count} mods in '${dir}'`);
   }
   installedMods = dependencyResolver.sortModsInLoadOrder(runtimeMod, installedMods);
 
@@ -80,7 +83,7 @@ export async function boot(): Promise<void> {
     );
     if (dependencyProblems.length > 0) {
       for (let problem of dependencyProblems) {
-        console.error(`Problem with requirements of mod '${modID}': ${problem}`);
+        console.warn(`Problem with requirements of mod '${modID}': ${problem}`);
       }
       continue;
     }
@@ -99,7 +102,11 @@ export async function boot(): Promise<void> {
 
   await Promise.all(loadedModsSetupPromises);
 
-  console.log(loadedMods);
+  console.log(
+    `${loadedMods.size} mods will be loaded: ${Array.from(loadedMods.values())
+      .map((mod) => `${mod.manifest.id} v${mod.version}`)
+      .join(', ')}`,
+  );
 
   window.modloader = {
     name: modloaderMetadata.name,
@@ -113,24 +120,38 @@ export async function boot(): Promise<void> {
     _runtimeMod: runtimeMod,
   };
 
+  console.log('beginning the game boot sequence...');
   await game.buildNecessaryDOM(config);
 
   await initModClasses(loadedMods);
+  console.log('mod main classes created!');
 
+  console.log("stage 'preload' reached!");
   await executeStage(loadedMods, 'preload');
+
+  console.log('running the main game script...');
   let domReadyCallback = await game.loadMainScript(
     config,
     runtimeMod.mainClassInstance as import('../runtime/src/_main').default,
   );
+
+  console.log("stage 'postload' reached!");
   await executeStage(loadedMods, 'postload');
   domReadyCallback();
 
   let startGame = await game.getStartFunction();
+  console.log("stage 'prestart' reached!");
   await executeStage(loadedMods, 'prestart');
+
+  console.log('running startCrossCode()...');
   startGame();
   await game.waitForIgGameInitialization();
+
+  console.log("stage 'postload' reached!");
   // TODO: delay further game initialization until poststart is complete
   await executeStage(loadedMods, 'poststart');
+
+  console.log('crosscode with mods is now fully loaded!');
 }
 
 async function loadModloaderMetadata(): Promise<{
@@ -142,7 +163,8 @@ async function loadModloaderMetadata(): Promise<{
   return { name: data.name, version: new semver.SemVer(data.version) };
 }
 
-async function loadAllModMetadata(modsDir: string, installedMods: ModsMap): Promise<void> {
+async function loadAllModMetadata(modsDir: string, installedMods: ModsMap): Promise<number> {
+  let count = 0;
   await Promise.all(
     (await files.getModDirectoriesIn(modsDir)).map(async (fullPath) => {
       try {
@@ -155,9 +177,10 @@ async function loadAllModMetadata(modsDir: string, installedMods: ModsMap): Prom
           throw new Error(
             `a mod with ID '${id}' has already been loaded from '${modWithSameId.baseDirectory}'`,
           );
-        } else {
-          installedMods.set(id, mod);
         }
+
+        installedMods.set(id, mod);
+        count++;
       } catch (err) {
         console.error(
           `An error occured while loading the metadata of a mod in '${fullPath}':`,
@@ -166,6 +189,7 @@ async function loadAllModMetadata(modsDir: string, installedMods: ModsMap): Prom
       }
     }),
   );
+  return count;
 }
 
 let manifestValidator = new manifestM.Validator();

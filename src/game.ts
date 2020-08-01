@@ -122,7 +122,7 @@ export async function getStartFunction(): Promise<() => void> {
       if (typeof window.startCrossCode === 'function') {
         resolve(window.startCrossCode);
       } else {
-        console.log('wait');
+        console.log('waiting for startCrossCode()...');
         setTimeout(waitForStartFunction, 100);
       }
     })();

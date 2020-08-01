@@ -33,20 +33,21 @@ export async function load(
     new URL(`/${modloaderName}-user-config.js`, import.meta.url).pathname,
   );
 
-  try {
-    // there is no way to check if an error thrown by `import()` was a network
-    // error (such as the 404 status code) and error messages thrown by it
-    // aren't standardized, so we have to check beforehand if the config module
-    // exists or not
-    if (await files.exists(configScriptPath)) {
+  // there is no way to check if an error thrown by `import()` was a network
+  // error (such as the 404 status code) and error messages thrown by it
+  // aren't standardized, so we have to check beforehand if the config module
+  // exists or not
+  if (await files.exists(configScriptPath)) {
+    try {
       let configModule: ConfigModule = await import(`/${configScriptPath}`);
       await configModule.default(config, ctx);
+    } catch (err) {
+      if (utils.errorHasMessage(err)) {
+        err.message = `Error while loading '${configScriptPath}': ${err.message}`;
+      }
+      throw err;
     }
-  } catch (err) {
-    if (utils.errorHasMessage(err)) {
-      err.message = `Error while loading '${configScriptPath}': ${err.message}`;
-    }
-    throw err;
+    console.log('loaded the user configuration');
   }
 
   return config;
