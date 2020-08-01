@@ -35,7 +35,7 @@ resources.jsonPatches.add('data/lang/sc/gui.en_US.json', (data: any) => {
 
   for (let mod of modloader.installedMods.values()) {
     if (mod === modloader._runtimeMod) continue;
-    let { id, description } = mod.manifest;
+    let { description } = mod.manifest;
 
     let name = getModTitle(mod) || ' ';
     description = getLocalizedString(description) || ' ';
@@ -43,6 +43,6 @@ resources.jsonPatches.add('data/lang/sc/gui.en_US.json', (data: any) => {
       description = `${description} \\c[1]Needs a restart!`;
     }
 
-    langOptions[`modEnabled-${id}`] = { name, description };
+    langOptions[`modEnabled-${mod.id}`] = { name, description };
   }
 });

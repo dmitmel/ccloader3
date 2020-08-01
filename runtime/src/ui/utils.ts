@@ -8,7 +8,7 @@ export function getLocalizedString(
 }
 
 export function getModTitle(mod: modloader.Mod): string {
-  return getLocalizedString(mod.manifest.title) ?? mod.manifest.id;
+  return getLocalizedString(mod.manifest.title) ?? mod.id;
 }
 
 export function addEnumMember<N extends string>(enumObj: { [k in N]: number }, name: N): number {

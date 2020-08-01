@@ -13,6 +13,7 @@ import {
 } from 'ultimate-crosscode-typedefs/modloader/mod';
 
 export class Mod implements ModPublic {
+  public readonly id: ModID;
   public readonly version: semver.SemVer;
   public readonly dependencies: ReadonlyMap<ModID, Dependency>;
   public readonly assetsDirectory: string;
@@ -24,6 +25,7 @@ export class Mod implements ModPublic {
     public readonly manifest: Manifest,
     public readonly legacyMode: boolean,
   ) {
+    this.id = manifest.id;
     try {
       this.version = new semver.SemVer(manifest.version);
     } catch (err) {

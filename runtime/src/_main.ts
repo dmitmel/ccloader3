@@ -16,7 +16,7 @@ export default class CCLoaderRuntimeMod implements modloader.Mod.MainClass {
     if (window.ccmod == null) window.ccmod = {} as typeof ccmod;
     Object.assign<typeof ccmod, Partial<typeof ccmod>>(window.ccmod, {
       implementor: modloader.name,
-      implementation: mod.manifest.id,
+      implementation: mod.id,
       paths,
       utils,
       require: requireFixed,

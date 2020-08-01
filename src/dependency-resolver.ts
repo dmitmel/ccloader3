@@ -12,13 +12,13 @@ export function sortModsInLoadOrder(runtimeMod: Mod, installedMods: ReadonlyMods
   // note that maps preserve insertion order as defined in the ECMAScript spec
   let sortedMods = new Map<ModID, Mod>();
 
-  sortedMods.set(runtimeMod.manifest.id, runtimeMod);
+  sortedMods.set(runtimeMod.id, runtimeMod);
 
   let unsortedModsList: Mod[] = [];
   for (let mod of installedMods.values()) {
     if (mod !== runtimeMod) unsortedModsList.push(mod);
   }
-  unsortedModsList.sort((mod1, mod2) => utils.compare(mod1.manifest.id, mod2.manifest.id));
+  unsortedModsList.sort((mod1, mod2) => utils.compare(mod1.id, mod2.id));
 
   while (unsortedModsList.length > 0) {
     // dependency cycles can be detected by checking if we removed any
@@ -29,7 +29,7 @@ export function sortModsInLoadOrder(runtimeMod: Mod, installedMods: ReadonlyMods
       let mod = unsortedModsList[i];
       if (!modHasUnsortedInstalledDependencies(mod, sortedMods, installedMods)) {
         unsortedModsList.splice(i, 1);
-        sortedMods.set(mod.manifest.id, mod);
+        sortedMods.set(mod.id, mod);
         dependencyCyclesExist = false;
       } else {
         i++;
@@ -69,7 +69,7 @@ export function verifyModDependencies(
   let problems = [];
 
   for (let [depId, dep] of mod.dependencies) {
-    if (depId === mod.manifest.id) {
+    if (depId === mod.id) {
       problems.push("a mod can't depend on itself");
     } else {
       let problem = checkDependencyConstraint(

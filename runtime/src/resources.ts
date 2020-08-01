@@ -40,8 +40,8 @@ export const assetOverridesTable = new Map<string, string>();
     if (modsWithThisAsset.length > 1) {
       console.warn(
         `Conflict between overrides for '${asset}' found in mods '${modsWithThisAsset
-          .map((mod) => mod.manifest.id)
-          .join("', '")}'. Using the override from mod '${modsWithThisAsset[0].manifest.id}'`,
+          .map((mod) => mod.id)
+          .join("', '")}'. Using the override from mod '${modsWithThisAsset[0].id}'`,
       );
     }
 

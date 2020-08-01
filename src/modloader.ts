@@ -53,10 +53,10 @@ export async function boot(): Promise<void> {
     }
     throw err;
   }
-  console.log(`${runtimeMod.manifest.id} ${runtimeMod.version}`);
+  console.log(`${runtimeMod.id} ${runtimeMod.version}`);
 
   let installedMods = new Map<ModID, Mod>();
-  installedMods.set(runtimeMod.manifest.id, runtimeMod);
+  installedMods.set(runtimeMod.id, runtimeMod);
   for (let dir of config.modsDirs) {
     let count = await loadAllModMetadata(dir, installedMods);
     console.log(`found ${count} mods in '${dir}'`);
@@ -96,7 +96,7 @@ export async function boot(): Promise<void> {
     );
   }
 
-  if (!loadedMods.has(runtimeMod.manifest.id)) {
+  if (!loadedMods.has(runtimeMod.id)) {
     throw new Error('Could not load the runtime mod, game initialization is impossible!');
   }
 
@@ -104,7 +104,7 @@ export async function boot(): Promise<void> {
 
   console.log(
     `${loadedMods.size} mods will be loaded: ${Array.from(loadedMods.values())
-      .map((mod) => `${mod.manifest.id} v${mod.version}`)
+      .map((mod) => `${mod.id} v${mod.version}`)
       .join(', ')}`,
   );
 
@@ -171,15 +171,14 @@ async function loadAllModMetadata(modsDir: string, installedMods: ModsMap): Prom
         let mod = await loadModMetadata(fullPath);
         if (mod == null) return;
 
-        let { id } = mod.manifest;
-        let modWithSameId = installedMods.get(id);
+        let modWithSameId = installedMods.get(mod.id);
         if (modWithSameId != null) {
           throw new Error(
-            `a mod with ID '${id}' has already been loaded from '${modWithSameId.baseDirectory}'`,
+            `a mod with ID '${mod.id}' has already been loaded from '${modWithSameId.baseDirectory}'`,
           );
         }
 
-        installedMods.set(id, mod);
+        installedMods.set(mod.id, mod);
         count++;
       } catch (err) {
         console.error(
@@ -247,7 +246,7 @@ async function initModClasses(mods: ReadonlyModsMap): Promise<void> {
     try {
       await mod.initClass();
     } catch (err) {
-      console.error(`Failed to initialize class of mod '${mod.manifest.id}':`, err);
+      console.error(`Failed to initialize class of mod '${mod.id}':`, err);
     }
   }
 }
@@ -257,7 +256,7 @@ async function executeStage(mods: ReadonlyModsMap, stage: LoadingStage): Promise
     try {
       await mod.executeStage(stage);
     } catch (err) {
-      console.error(`Failed to execute ${stage} of mod '${mod.manifest.id}':`, err);
+      console.error(`Failed to execute ${stage} of mod '${mod.id}':`, err);
     }
   }
 }
