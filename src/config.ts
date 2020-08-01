@@ -29,9 +29,7 @@ export async function load(
   let config = createDefaultConfig();
   let ctx: ConfigModuleContext = { modloaderName, modloaderVersion };
 
-  let configScriptPath = paths.stripRoot(
-    new URL(`/${modloaderName}-user-config.js`, import.meta.url).pathname,
-  );
+  let configScriptPath = `${modloaderName}-user-config.js`;
 
   // there is no way to check if an error thrown by `import()` was a network
   // error (such as the 404 status code) and error messages thrown by it
@@ -39,7 +37,7 @@ export async function load(
   // exists or not
   if (await files.exists(configScriptPath)) {
     try {
-      let configModule: ConfigModule = await import(`/${configScriptPath}`);
+      let configModule: ConfigModule = await import(`/${encodeURI(configScriptPath)}`);
       await configModule.default(config, ctx);
     } catch (err) {
       if (utils.errorHasMessage(err)) {

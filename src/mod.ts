@@ -82,7 +82,7 @@ export class Mod implements ModPublic {
 
     let module: { default: new (mod: ModPublic) => MainClass };
     try {
-      module = await import(`/${scriptFullPath}`);
+      module = await import(`/${encodeURI(scriptFullPath)}`);
     } catch (err) {
       if (utils.errorHasMessage(err)) {
         err.message = `Error while importing '${scriptFullPath}': ${err.message}`;
@@ -114,7 +114,7 @@ export class Mod implements ModPublic {
     if (script == null) return;
     let scriptFullPath = this.resolvePath(script);
 
-    await import(`/${scriptFullPath}`);
+    await import(`/${encodeURI(scriptFullPath)}`);
   }
 
   public resolvePath(path: string): string {
