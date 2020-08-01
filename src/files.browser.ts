@@ -16,7 +16,7 @@ export async function loadText(path: string): Promise<string> {
 
 export async function exists(path: string): Promise<boolean> {
   try {
-    let res = await fetch(`/${encodeURI(path)}`);
+    let res = await fetch(`/${encodeURI(path)}`, { method: 'HEAD' });
     if (res.status === 404) return false;
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     return true;
