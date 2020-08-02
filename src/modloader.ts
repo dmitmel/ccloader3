@@ -145,7 +145,7 @@ export async function boot(): Promise<void> {
   startGame();
   await game.waitForIgGameInitialization();
 
-  console.log("stage 'postload' reached!");
+  console.log("stage 'poststart' reached!");
   // TODO: delay further game initialization until poststart is complete
   await executeStage(loadedMods, 'poststart');
 

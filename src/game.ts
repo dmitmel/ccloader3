@@ -91,7 +91,7 @@ export async function loadMainScript(
   await resources.loadScript(config.gameScriptURL, { async: false });
 
   if (domReadyCallback == null) {
-    throw new Error('domReadyCallback');
+    throw new Error('ig._DOMReady is not available. Is your main game script valid?');
   }
 
   return domReadyCallback;
