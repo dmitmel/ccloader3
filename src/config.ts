@@ -1,5 +1,4 @@
-import * as paths from '../common/dist/paths.js';
-import * as utils from '../common/dist/utils.js';
+import * as utils from '../common/dist/utils.private.js';
 import * as files from './files.js';
 import * as semver from '../common/vendor-libs/semver.js';
 
@@ -37,7 +36,7 @@ export async function load(
   // exists or not
   if (await files.exists(configScriptPath)) {
     try {
-      let configModule: ConfigModule = await import(`/${encodeURI(configScriptPath)}`);
+      let configModule: ConfigModule = await import(utils.cwdFilePathToURL(configScriptPath).href);
       await configModule.default(config, ctx);
     } catch (err) {
       if (utils.errorHasMessage(err)) {

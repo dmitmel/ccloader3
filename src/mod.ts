@@ -1,6 +1,6 @@
 import * as semver from '../common/vendor-libs/semver.js';
 import * as paths from '../common/dist/paths.js';
-import * as utils from '../common/dist/utils.js';
+import * as utils from '../common/dist/utils.private.js';
 import * as files from './files.js';
 import { Manifest } from 'ultimate-crosscode-typedefs/file-types/mod-manifest';
 import {
@@ -82,7 +82,7 @@ export class Mod implements ModPublic {
 
     let module: { default: new (mod: ModPublic) => MainClass };
     try {
-      module = await import(`/${encodeURI(scriptFullPath)}`);
+      module = await import(utils.cwdFilePathToURL(scriptFullPath).href);
     } catch (err) {
       if (utils.errorHasMessage(err)) {
         err.message = `Error while importing '${scriptFullPath}': ${err.message}`;
@@ -114,7 +114,7 @@ export class Mod implements ModPublic {
     if (script == null) return;
     let scriptFullPath = this.resolvePath(script);
 
-    await import(`/${encodeURI(scriptFullPath)}`);
+    await import(utils.cwdFilePathToURL(scriptFullPath).href);
   }
 
   public resolvePath(path: string): string {

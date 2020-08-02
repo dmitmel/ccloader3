@@ -1,7 +1,7 @@
 import { MOD_PROTOCOL_PREFIX } from './resources.private.js';
 import * as resourcesPlain from './resources-plain.js';
 import * as patchsteps from '../../common/vendor-libs/patchsteps.js';
-import * as utils from '../../common/dist/utils.js';
+import * as utils from '../../common/dist/utils.private.js';
 import { ResourcePatchList } from './patch-list.js';
 import * as paths from '../../common/dist/paths.js';
 import {
@@ -244,7 +244,7 @@ export function resolvePathAdvanced(
 }
 
 export function wrapPathIntoURL(path: string): URL {
-  let url = new URL(encodeURI(paths.join('/', path)), getGameAssetsURL());
+  let url = utils.cwdFilePathToURL(path, getGameAssetsURL().href);
   url.href += getCacheSuffix();
   return url;
 }

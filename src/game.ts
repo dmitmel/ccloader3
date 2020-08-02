@@ -1,18 +1,21 @@
-import { loadScript, loadStylesheet } from '../common/dist/resources.js';
-import { SemVer } from '../common/vendor-libs/semver.js';
+import * as resources from '../common/dist/resources.js';
+import * as semver from '../common/vendor-libs/semver.js';
 import * as files from './files.js';
 import { ChangelogFileData } from 'ultimate-crosscode-typedefs/file-types/changelog';
 import { Config } from './config.js';
 import * as paths from '../common/dist/paths.js';
+import * as utils from '../common/dist/utils.private.js';
 
-export async function loadVersion(config: Config): Promise<{ version: SemVer; hotfix: number }> {
+export async function loadVersion(
+  config: Config,
+): Promise<{ version: semver.SemVer; hotfix: number }> {
   let changelogText = await files.loadText(
     paths.jailRelative(paths.join(config.gameAssetsDir, 'data/changelog.json')),
   );
   let { changelog } = JSON.parse(changelogText) as ChangelogFileData;
   let latestEntry = changelog[0];
 
-  let version = new SemVer(latestEntry.version);
+  let version = new semver.SemVer(latestEntry.version);
 
   let hotfix = 0;
   let changes = [];
@@ -30,7 +33,9 @@ export async function loadVersion(config: Config): Promise<{ version: SemVer; ho
 
 export async function buildNecessaryDOM(config: Config): Promise<void> {
   let base = document.createElement('base');
-  base.href = new URL(`/${encodeURI(config.gameAssetsDir)}/`, location.origin).href;
+  let { gameAssetsDir } = config;
+  if (!gameAssetsDir.endsWith('/')) gameAssetsDir += '/';
+  base.href = utils.cwdFilePathToURL(gameAssetsDir, window.location.origin).href;
   document.head.appendChild(base);
 
   // meta tags have been removed, they appear to not affect anything
@@ -61,11 +66,11 @@ export async function buildNecessaryDOM(config: Config): Promise<void> {
   await config.onGameDOMCreated();
 
   await Promise.all([
-    ...config.stylesheetURLs.map((url) => loadStylesheet(url)),
+    ...config.stylesheetURLs.map((url) => resources.loadStylesheet(url)),
     ...config.scriptURLs.map((url) =>
       // async is turned off so that these scripts are loaded in the order of
       // addition
-      loadScript(url, { async: false }),
+      resources.loadScript(url, { async: false }),
     ),
   ]);
 }
@@ -83,7 +88,7 @@ export async function loadMainScript(
 
   // async is turned off so that the main script blocks the UI thread while it
   // is being executed
-  await loadScript(config.gameScriptURL, { async: false });
+  await resources.loadScript(config.gameScriptURL, { async: false });
 
   if (domReadyCallback == null) {
     throw new Error('domReadyCallback');
