@@ -1,6 +1,8 @@
 // This code is based on the `mod-require-fix` mod:
 // https://github.com/CCDirectLink/CCdiscord/blob/8c5dce9653b170ecb4d4a1ba5b170629539c2644/mod-require-fix/preload.js
 
+import * as utils from './utils.private.js';
+
 let requireFixed: NodeRequire = null!;
 
 if (typeof require === 'function') {
@@ -27,16 +29,13 @@ if (typeof require === 'function') {
   requireFixed.prototype = { constructor: requireFixed };
 
   function getRequireSearchPaths(caller: NodeJS.CallSite): string[] {
-    let callerFileNameStr: string | null = caller.getFileName();
-    if (!callerFileNameStr) return [];
+    let callerPath = resolveCallSiteFilePath(caller);
+    if (callerPath == null) return [];
 
-    let callerUrl = new URL(callerFileNameStr);
-    let callerPath = callerUrl.pathname;
-    if (callerPath.startsWith('/')) callerPath = callerPath.slice(1);
-    callerPath = paths.resolve(callerPath);
+    let cwd = process.cwd();
 
     // just to avoid an infinite loop
-    if (!callerPath.startsWith(process.cwd())) return [];
+    if (!callerPath.startsWith(cwd)) return [];
 
     let searchPaths = [];
     let currentDirectory;
@@ -46,11 +45,29 @@ if (typeof require === 'function') {
       searchPaths.push(paths.join(currentDirectory, 'node_modules/'));
 
       currentPath = currentDirectory;
-    } while (currentDirectory !== process.cwd());
+    } while (currentDirectory !== cwd);
     // the last pushed entry would be a duplicate
     searchPaths.pop();
 
     return searchPaths;
+  }
+
+  function resolveCallSiteFilePath(caller: NodeJS.CallSite): string | null {
+    let fileNameStr = caller.getFileName();
+    if (fileNameStr == null) return null;
+
+    let url: URL | null = null;
+    try {
+      url = new URL(fileNameStr);
+    } catch {}
+    // the cal site is a script running in the browser context
+    if (url != null) return paths.resolve(utils.cwdFilePathFromURL(url));
+
+    // the call site is a built-in module
+    if (!paths.isAbsolute(fileNameStr)) return null;
+
+    // the call site is a script from the node.js context
+    return paths.resolve(fileNameStr);
   }
 
   function getCaller(): NodeJS.CallSite {

@@ -4,8 +4,7 @@ import * as manifestM from './manifest.js';
 import { Mod } from './mod.js';
 import * as game from './game.js';
 import * as semver from '../common/vendor-libs/semver.js';
-import * as utils from '../common/dist/utils.js';
-import * as paths from '../common/dist/paths.js';
+import * as utils from '../common/dist/utils.private.js';
 import * as dependencyResolver from './dependency-resolver.js';
 import * as modDataStorage from './mod-data-storage.js';
 import { LegacyManifest, Manifest } from 'ultimate-crosscode-typedefs/file-types/mod-manifest';
@@ -15,8 +14,7 @@ import * as consoleM from '../common/dist/console.js';
 type ModsMap = Map<ModID, Mod>;
 type ReadonlyModsMap = ReadonlyMap<ModID, Mod>;
 
-// ends with a slash
-const CCLOADER_DIR: string = paths.stripRoot(new URL('../', import.meta.url).pathname);
+const CCLOADER_DIR = utils.cwdFilePathFromURL(new URL('../', import.meta.url));
 
 export async function boot(): Promise<void> {
   consoleM.inject();
