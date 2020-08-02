@@ -1,12 +1,12 @@
 export type MaybePromise<T> = T | Promise<T>;
 
 export enum PlatformType {
-  Desktop = 'Desktop',
-  Browser = 'Browser',
+  DESKTOP = 'DESKTOP',
+  BROWSER = 'BROWSER',
 }
 
 export const PLATFORM_TYPE =
-  typeof require === 'function' ? PlatformType.Desktop : PlatformType.Browser;
+  typeof require === 'function' ? PlatformType.DESKTOP : PlatformType.BROWSER;
 
 export function showDevTools(): Promise<void> {
   return new Promise((resolve) =>

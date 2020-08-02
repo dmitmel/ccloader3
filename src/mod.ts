@@ -69,7 +69,7 @@ export class Mod implements ModPublic {
     let assets: string[] = [];
     if (this.manifest.assets != null) {
       assets = this.manifest.assets.map((path) => paths.jailRelative(path));
-    } else if (utils.PLATFORM_TYPE === utils.PlatformType.Desktop) {
+    } else if (utils.PLATFORM_TYPE === utils.PlatformType.DESKTOP) {
       assets = await files.findRecursively(this.assetsDirectory);
     }
     this.assets = new Set(assets);
