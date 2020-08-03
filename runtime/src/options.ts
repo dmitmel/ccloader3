@@ -1,17 +1,15 @@
 ig.module('ccloader-runtime.stdlib.options.gui')
   .requires('game.feature.menu.gui.options.options-types')
   .defines(() => {
-    if ('OptionInfoBox' in sc) {
-      sc.OptionInfoBox.inject({
-        init(...args) {
-          this.parent(...args);
-          let [option] = args;
-          if (option.marginBottom != null) {
-            this.hook.size.y += option.marginBottom;
-          }
-        },
-      });
-    }
+    sc.OptionInfoBox.inject({
+      init(...args) {
+        this.parent(...args);
+        let [option] = args;
+        if (option.marginBottom != null) {
+          this.hook.size.y += option.marginBottom;
+        }
+      },
+    });
 
     sc.OptionRow.inject({
       init(...args) {

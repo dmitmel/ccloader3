@@ -5,4 +5,3 @@ import './error-screen.js';
 
 import './ui/options.js';
 import './ui/version-display.js';
-import './ui/lang.js';

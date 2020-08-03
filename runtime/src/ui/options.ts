@@ -2,6 +2,7 @@
 
 import * as utils from './utils.js';
 import * as consoleM from '../../../common/dist/console.js';
+import * as resources from '../resources.js';
 
 const LOG_LEVEL_OPTION_IDS: consoleM.LogLevelsDict<string> = {
   LOG: 'logLevel-log',
@@ -14,6 +15,17 @@ const MOD_ENABLED_OPTION_ID_PREFIX = 'modEnabled-';
 const INSTALLED_MODS: modloader.Mod[] = Array.from(modloader.installedMods.values())
   .filter((mod) => mod !== modloader._runtimeMod)
   .sort((mod1, mod2) => utils.compare(mod1.id, mod2.id));
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+resources.jsonPatches.add('data/lang/sc/gui.en_US.json', (data: any) => {
+  let { options } = data.labels;
+  for (let mod of INSTALLED_MODS) {
+    options[`modEnabled-${mod.id}`] = {
+      name: utils.getModTitle(mod) || ' ',
+      description: utils.getLocalizedString(mod.manifest.description) || ' ',
+    };
+  }
+});
 
 ig.module('ccloader-runtime.ui.options')
   .requires(
@@ -40,14 +52,12 @@ ig.module('ccloader-runtime.ui.options')
       sc.OPTIONS_DEFINITION[LOG_LEVEL_OPTION_IDS[level]] = def;
     }
 
-    if ('OptionInfoBox' in sc) {
-      sc.OPTIONS_DEFINITION['mods-description'] = {
-        type: 'INFO',
-        cat: sc.OPTION_CATEGORY.MODS,
-        data: 'options.mods-description.description',
-        marginBottom: 6,
-      };
-    }
+    sc.OPTIONS_DEFINITION['mods-description'] = {
+      type: 'INFO',
+      cat: sc.OPTION_CATEGORY.MODS,
+      data: 'options.mods-description.description',
+      marginBottom: 6,
+    };
 
     for (let mod of INSTALLED_MODS) {
       sc.OPTIONS_DEFINITION[`${MOD_ENABLED_OPTION_ID_PREFIX}${mod.id}`] = {
@@ -59,22 +69,17 @@ ig.module('ccloader-runtime.ui.options')
       };
     }
 
+    const MODS_TAB_ID = 'mods' as const;
     sc.fontsystem.font.pushIconSet(
       new ig.Font('mod://ccloader-runtime/media/icons.png', 16, ig.MultiFont.ICON_START),
-      {
-        mods: 0,
-      },
+      { [MODS_TAB_ID]: 0 },
     );
-
-    sc.OptionsTabBox.prototype.tabs.mods = null!;
+    sc.OptionsTabBox.prototype.tabs[MODS_TAB_ID] = null!;
     sc.OptionsTabBox.inject({
       init(...args) {
         this.parent(...args);
-        this.tabs.mods = this._createTabButton(
-          'mods',
-          this.tabArray.length,
-          sc.OPTION_CATEGORY.MODS,
-        );
+        let btn = this._createTabButton(MODS_TAB_ID, this.tabArray.length, sc.OPTION_CATEGORY.MODS);
+        this.tabs[MODS_TAB_ID] = btn;
         this._rearrangeTabs();
       },
     });

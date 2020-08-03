@@ -183,6 +183,7 @@ for open_archive_fn in [
         add("dist/")
         add("runtime/", recursive=False)
         add("runtime/ccmod.json")
+        add("runtime/assets/")
         add("runtime/dist/")
         add("runtime/media/")
 
