@@ -3,14 +3,16 @@
 const nodejsUtil =
   typeof require !== 'undefined' ? (require('util') as typeof import('util')) : null;
 
-enum LogLevel {
+export enum LogLevel {
   LOG = 2,
   WARN = 1,
   ERROR = 0,
 }
 
-type LogLevelName = keyof typeof LogLevel;
-type LogLevelsDict<T = boolean> = Record<LogLevelName, T>;
+export type LogLevelName = keyof typeof LogLevel;
+export type LogLevelsDict<T = boolean> = Record<LogLevelName, T>;
+
+export const LOG_LEVEL_NAMES: readonly LogLevelName[] = ['LOG', 'WARN', 'ERROR'];
 
 export const DEFAULT_LOG_LEVELS: LogLevelsDict = {
   LOG: false,
@@ -20,17 +22,18 @@ export const DEFAULT_LOG_LEVELS: LogLevelsDict = {
 
 function logLevelsToBitFlags(levels: LogLevelsDict): number {
   let flags = 0;
-  for (let [level, enabled] of Object.entries(levels)) {
-    flags |= Number(enabled) << LogLevel[level as LogLevelName];
+  for (let level of LOG_LEVEL_NAMES) {
+    let enabled = levels[level];
+    flags |= Number(enabled) << LogLevel[level];
   }
   return flags;
 }
 
 function logLevelsFromBitFlags(flags: number): LogLevelsDict {
   let levels = {} as LogLevelsDict;
-  for (let [level, bit] of Object.entries(LogLevel)) {
-    if (typeof bit !== 'number') continue;
-    levels[level as LogLevelName] = Boolean(flags & (1 << bit));
+  for (let level of LOG_LEVEL_NAMES) {
+    let bit = LogLevel[level];
+    levels[level] = Boolean(flags & (1 << bit));
   }
   return levels;
 }

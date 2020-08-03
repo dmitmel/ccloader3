@@ -1,5 +1,7 @@
 import { LocalizedString } from 'ultimate-crosscode-typedefs/file-types/mod-manifest';
 
+export * from '../../../common/dist/utils.js';
+
 export function getLocalizedString(
   str: LocalizedString | null | undefined,
 ): string | null | undefined {

@@ -40,7 +40,7 @@ resources.jsonPatches.add('data/lang/sc/gui.en_US.json', (data: any) => {
     let name = getModTitle(mod) || ' ';
     description = getLocalizedString(description) || ' ';
     if (!INFO_BOX_IS_SUPPORTED) {
-      description = `${description} \\c[1]Needs a restart!`;
+      description += ' \\c[1]Needs a restart!';
     }
 
     langOptions[`modEnabled-${mod.id}`] = { name, description };

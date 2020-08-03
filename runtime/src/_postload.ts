@@ -3,8 +3,6 @@ import './options.js';
 import './input.js';
 import './error-screen.js';
 
-import './ui/options-mods-tab.js';
-import './ui/options-definitions.js';
-import './ui/options-values.js';
+import './ui/options.js';
 import './ui/version-display.js';
 import './ui/lang.js';
