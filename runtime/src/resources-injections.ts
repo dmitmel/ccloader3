@@ -19,7 +19,7 @@ impactInitHooks.add(() => {
       if (!url.startsWith(MOD_PROTOCOL_PREFIX)) {
         let gameAssetsURL = resources.getGameAssetsURL().href;
 
-        let parsedURL = new URL(url, document.baseURI).href;
+        let parsedURL = new URL(encodeURI(url), document.baseURI).href;
         if (!parsedURL.startsWith(gameAssetsURL)) {
           return true;
         }

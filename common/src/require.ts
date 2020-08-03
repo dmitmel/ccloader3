@@ -58,7 +58,7 @@ if (typeof require === 'function') {
 
     let url: URL | null = null;
     try {
-      url = new URL(fileNameStr);
+      url = new URL(encodeURI(fileNameStr));
     } catch {}
     // the cal site is a script running in the browser context
     if (url != null) return paths.resolve(utils.cwdFilePathFromURL(url));
