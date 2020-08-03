@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-dynamic-delete */
+
 import * as utils from './utils.js';
 import * as consoleM from '../../../common/dist/console.js';
 
@@ -8,6 +10,10 @@ const LOG_LEVEL_OPTION_IDS: consoleM.LogLevelsDict<string> = {
 };
 
 const MOD_ENABLED_OPTION_ID_PREFIX = 'modEnabled-';
+
+const INSTALLED_MODS: modloader.Mod[] = Array.from(modloader.installedMods.values())
+  .filter((mod) => mod !== modloader._runtimeMod)
+  .sort((mod1, mod2) => utils.compare(mod1.id, mod2.id));
 
 ig.module('ccloader-runtime.ui.options')
   .requires(
@@ -43,10 +49,7 @@ ig.module('ccloader-runtime.ui.options')
       };
     }
 
-    let installedMods = Array.from(modloader.installedMods.values())
-      .filter((mod) => mod !== modloader._runtimeMod)
-      .sort((mod1, mod2) => utils.compare(mod1.id, mod2.id));
-    for (let mod of installedMods) {
+    for (let mod of INSTALLED_MODS) {
       sc.OPTIONS_DEFINITION[`${MOD_ENABLED_OPTION_ID_PREFIX}${mod.id}`] = {
         type: 'CHECKBOX',
         cat: sc.OPTION_CATEGORY.MODS,
@@ -76,7 +79,25 @@ ig.module('ccloader-runtime.ui.options')
       },
     });
 
+    const { modDataStorage } = modloader;
+
     sc.OptionModel.inject({
+      onStorageGlobalLoad(globalsData, ...args) {
+        let { options } = globalsData;
+
+        for (let key of Object.keys(options)) {
+          if (key.startsWith(MOD_ENABLED_OPTION_ID_PREFIX)) {
+            delete options[key];
+          }
+        }
+
+        for (let { id } of INSTALLED_MODS) {
+          options[`${MOD_ENABLED_OPTION_ID_PREFIX}${id}`] = modDataStorage.isModEnabled(id);
+        }
+
+        return this.parent(globalsData, ...args);
+      },
+
       onStorageGlobalSave(globalsData, ...args) {
         let result = this.parent(globalsData, ...args);
 
@@ -88,11 +109,10 @@ ig.module('ccloader-runtime.ui.options')
         }
         consoleM.setLogLevels(logLevels);
 
-        const { modDataStorage } = modloader;
-        for (let [modID, mod] of modloader.installedMods) {
-          if (mod === modloader._runtimeMod) continue;
-          let enabled = options[`${MOD_ENABLED_OPTION_ID_PREFIX}${modID}`] as boolean;
-          modDataStorage.setModEnabled(modID, enabled);
+        for (let { id } of INSTALLED_MODS) {
+          let optionID = `${MOD_ENABLED_OPTION_ID_PREFIX}${id}`;
+          modDataStorage.setModEnabled(id, Boolean(options[optionID]));
+          delete options[optionID];
         }
         modDataStorage.write().catch((err) => {
           console.error('Failed to write mod data and settings:', err);
