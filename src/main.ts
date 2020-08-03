@@ -9,7 +9,7 @@ async function main(): Promise<void> {
   if (typeof process !== 'undefined') {
     let { env } = process;
 
-    if (env.CCLOADER_OPEN_DEVTOOLS) {
+    if (env.CCLOADER_OPEN_DEVTOOLS != null) {
       delete env.CCLOADER_OPEN_DEVTOOLS;
       let win = nw.Window.get();
       await utils.showDevTools();
@@ -18,7 +18,7 @@ async function main(): Promise<void> {
     }
 
     let urlOverride = env.CCLOADER_OVERRIDE_MAIN_URL;
-    if (urlOverride) {
+    if (urlOverride != null) {
       delete env.CCLOADER_OVERRIDE_MAIN_URL;
       window.location.replace(urlOverride);
       return;

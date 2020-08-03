@@ -72,9 +72,9 @@ function registerPatchstepsPatch(
   });
 
   function patchstepsResourceLoader(fromGame: string | boolean, url: string): Promise<unknown> {
-    return fromGame
-      ? loadJSON(url)
-      : resourcesPlain.loadJSON(wrapPathIntoURL(mod.resolvePath(url)).href);
+    return fromGame === false
+      ? resourcesPlain.loadJSON(wrapPathIntoURL(mod.resolvePath(url)).href)
+      : loadJSON(url);
   }
 }
 
@@ -253,7 +253,7 @@ export function getGameAssetsURL(): URL {
   let str: string;
   if (typeof ig !== 'undefined') {
     str = ig.root;
-  } else if (window.IG_ROOT) {
+  } else if (window.IG_ROOT != null) {
     str = window.IG_ROOT;
   } else {
     str = '';
@@ -264,7 +264,7 @@ export function getGameAssetsURL(): URL {
 export function getCacheSuffix(): string {
   if (typeof ig !== 'undefined') {
     return ig.getCacheSuffix();
-  } else if (window.IG_GAME_CACHE) {
+  } else if (window.IG_GAME_CACHE != null && window.IG_GAME_CACHE) {
     return `?nocache=${window.IG_GAME_CACHE}`;
   } else {
     return '';

@@ -127,7 +127,7 @@ function createDefaultConfig(): Config {
     // TODO: add descriptions of each constant
     impactConfig: {
       IG_GAME_SCALE: 2,
-      IG_GAME_CACHE: '',
+      IG_GAME_CACHE: 0,
       IG_ROOT: '',
       IG_WIDTH: 568,
       IG_HEIGHT: 320,
