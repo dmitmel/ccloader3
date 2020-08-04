@@ -2,23 +2,28 @@ import { MOD_PROTOCOL_PREFIX } from './resources.private.js';
 import * as resourcesPlain from './resources-plain.js';
 import * as patchsteps from '../../common/vendor-libs/patchsteps.js';
 import * as utils from '../../common/dist/utils.private.js';
-import { ResourcePatchList } from './patch-list.js';
+import { PatchList, ResourcePatchList } from './patch-list.js';
 import * as paths from '../../common/dist/paths.js';
+import * as types from 'ultimate-crosscode-typedefs/modloader-stdlib/resources';
 import {
-  ImagePatcherContext,
-  JSONPatcherContext,
-  LoadImageOptions,
-  LoadJSONOptions,
-  ResolvePathAdvancedResult,
-  ResolvePathOptions,
-} from 'ultimate-crosscode-typedefs/modloader-stdlib/resources';
-import { ResourcePatcherWithDeps } from 'ultimate-crosscode-typedefs/modloader-stdlib/patch-list';
+  ResourceGenerator,
+  ResourcePatcherWithDeps,
+} from 'ultimate-crosscode-typedefs/modloader-stdlib/patch-list';
 
 export { resourcesPlain as plain };
 
-export const jsonPatches = new ResourcePatchList<unknown, JSONPatcherContext>();
-export const imagePatches = new ResourcePatchList<HTMLCanvasElement, ImagePatcherContext>();
 export const assetOverridesTable = new Map<string, string>();
+export const textGenerators = new PatchList<
+  ResourceGenerator<string, types.TextGeneratorContext>
+>();
+export const jsonPatches = new ResourcePatchList<unknown, types.JSONPatcherContext>();
+export const jsonGenerators = new PatchList<
+  ResourceGenerator<unknown, types.JSONGeneratorContext>
+>();
+export const imagePatches = new ResourcePatchList<HTMLCanvasElement, types.ImagePatcherContext>();
+export const imageGenerators = new PatchList<
+  ResourceGenerator<HTMLImageElement | HTMLCanvasElement, types.ImageGeneratorContext>
+>();
 
 {
   let assetOverridesFromMods = new Map<string, modloader.Mod[]>();
@@ -78,34 +83,53 @@ function registerPatchstepsPatch(
   }
 }
 
-export function loadText(url: string): Promise<string> {
-  return resourcesPlain.loadText(resolvePathToURL(url));
+export async function loadText(
+  path: string,
+  options?: types.LoadTextOptions | null,
+): Promise<string> {
+  options = options ?? {};
+
+  let { resolvedPath, requestedAsset } = resolvePathAdvanced(path, options);
+
+  if ((options.allowGenerators ?? true) && requestedAsset != null) {
+    let generators = textGenerators.forPath(requestedAsset);
+    if (generators.length > 0) {
+      let ctx: types.TextGeneratorContext = { resolvedPath, requestedAsset, options };
+      return runResourceGenerator('text file', path, generators, ctx);
+    }
+  }
+
+  return resourcesPlain.loadText(wrapPathIntoURL(resolvedPath).href);
 }
 
 export async function loadJSON<T = unknown>(
   path: string,
-  options?: LoadJSONOptions | null,
+  options?: types.LoadJSONOptions | null,
 ): Promise<T> {
   options = options ?? {};
 
-  let { resolvedPath, requestedAsset } = resolvePathAdvanced(path, {
-    allowAssetOverrides: options.allowAssetOverrides,
-    allowPatching: options.allowPatching,
-  });
-  let data = await resourcesPlain.loadJSON(wrapPathIntoURL(resolvedPath).href);
+  let { resolvedPath, requestedAsset } = resolvePathAdvanced(path, options);
+  let data: unknown = null!;
+  let shouldFetchRealData = false;
+
+  if ((options.allowGenerators ?? true) && requestedAsset != null) {
+    let generators = jsonGenerators.forPath(requestedAsset);
+    if (generators.length > 0) {
+      let ctx: types.JSONGeneratorContext = { resolvedPath, requestedAsset, options };
+      data = await runResourceGenerator('JSON file', path, generators, ctx);
+      shouldFetchRealData = true;
+    }
+  }
+
+  if (!shouldFetchRealData) {
+    data = await resourcesPlain.loadJSON(wrapPathIntoURL(resolvedPath).href);
+  }
 
   if (requestedAsset != null) {
-    try {
-      let patchers = jsonPatches.forPath(requestedAsset);
-      if (patchers.length > 0) {
-        let ctx: JSONPatcherContext = { resolvedPath, requestedAsset, options };
-        data = await runResourcePatches(data, patchers, ctx);
-      }
-    } catch (err) {
-      if (utils.errorHasMessage(err)) {
-        err.message = `Failed to patch JSON file '${path}': ${err.message}`;
-      }
-      throw err;
+    let patchers = jsonPatches.forPath(requestedAsset);
+    if (patchers.length > 0) {
+      let ctx: types.JSONPatcherContext = { resolvedPath, requestedAsset, options };
+      data = await runResourcePatches('JSON file', path, data, patchers, ctx);
     }
   }
 
@@ -114,31 +138,35 @@ export async function loadJSON<T = unknown>(
 
 export async function loadImage(
   path: string,
-  options?: LoadImageOptions | null,
+  options?: types.LoadImageOptions | null,
 ): Promise<HTMLImageElement | HTMLCanvasElement> {
   options = options ?? {};
 
-  let { resolvedPath, requestedAsset } = resolvePathAdvanced(path, {
-    allowAssetOverrides: options.allowAssetOverrides,
-    allowPatching: options.allowPatching,
-  });
-  let data: HTMLImageElement | HTMLCanvasElement = await resourcesPlain.loadImage(
-    wrapPathIntoURL(resolvedPath).href,
-  );
+  let { resolvedPath, requestedAsset } = resolvePathAdvanced(path, options);
+  let data: HTMLImageElement | HTMLCanvasElement = null!;
+  let shouldFetchRealData = false;
+
+  if ((options.allowGenerators ?? true) && requestedAsset != null) {
+    let generators = imageGenerators.forPath(requestedAsset);
+    if (generators.length > 0) {
+      let ctx: types.ImageGeneratorContext = { resolvedPath, requestedAsset, options };
+      data = await runResourceGenerator('image', path, generators, ctx);
+      shouldFetchRealData = true;
+    }
+  }
+
+  if (!shouldFetchRealData) {
+    data = await resourcesPlain.loadImage(wrapPathIntoURL(resolvedPath).href);
+  }
 
   if (requestedAsset != null) {
-    try {
-      let patchers = imagePatches.forPath(requestedAsset);
-      if (patchers.length > 0) {
+    let patchers = imagePatches.forPath(requestedAsset);
+    if (patchers.length > 0) {
+      if (!(data instanceof HTMLCanvasElement)) {
         data = imageToCanvas(data);
-        let ctx: ImagePatcherContext = { resolvedPath, requestedAsset, options };
-        data = await runResourcePatches(data, patchers, ctx);
       }
-    } catch (err) {
-      if (utils.errorHasMessage(err)) {
-        err.message = `Failed to patch image file '${path}': ${err.message}`;
-      }
-      throw err;
+      let ctx: types.ImagePatcherContext = { resolvedPath, requestedAsset, options };
+      data = await runResourcePatches('image', path, data, patchers, ctx);
     }
   }
 
@@ -169,43 +197,77 @@ export async function loadImage(
   }
 }
 
+async function runResourceGenerator<Data, Ctx>(
+  kind: string,
+  path: string,
+  matchingGenerators: Array<ResourceGenerator<Data, Ctx>>,
+  context: Ctx,
+): Promise<Data> {
+  try {
+    if (matchingGenerators.length === 1) {
+      let generator = matchingGenerators[0];
+      return generator(context);
+    } else if (matchingGenerators.length > 1) {
+      throw new Error(
+        `Conflict between ${matchingGenerators.length} matching generators for '${path}' found`,
+      );
+    } else {
+      throw new Error('unreachable');
+    }
+  } catch (err) {
+    if (utils.errorHasMessage(err)) {
+      err.message = `Failed to generate ${kind} '${path}': ${err.message}`;
+    }
+    throw err;
+  }
+}
+
 async function runResourcePatches<Data, Ctx>(
+  kind: string,
+  path: string,
   data: Data,
   patchers: Array<ResourcePatcherWithDeps<Data, unknown, Ctx>>,
   context: Ctx,
 ): Promise<Data> {
-  /* eslint-disable no-undefined */
+  try {
+    /* eslint-disable no-undefined */
 
-  let allDependencies: unknown[] = await Promise.all(
-    patchers.map((patcher) =>
-      patcher.dependencies != null ? patcher.dependencies(context) : undefined,
-    ),
-  );
+    let allDependencies: unknown[] = await Promise.all(
+      patchers.map((patcher) =>
+        patcher.dependencies != null ? patcher.dependencies(context) : undefined,
+      ),
+    );
 
-  for (let i = 0; i < patchers.length; i++) {
-    let patcher = patchers[i];
-    let deps = allDependencies[i];
-    let newData = await patcher.patcher(data, deps, context);
-    if (newData !== undefined) data = newData;
+    for (let i = 0; i < patchers.length; i++) {
+      let patcher = patchers[i];
+      let deps = allDependencies[i];
+      let newData = await patcher.patcher(data, deps, context);
+      if (newData !== undefined) data = newData;
+    }
+
+    return data;
+
+    /* eslint-enable no-undefined */
+  } catch (err) {
+    if (utils.errorHasMessage(err)) {
+      err.message = `Failed to patch ${kind} '${path}': ${err.message}`;
+    }
+    throw err;
   }
-
-  return data;
-
-  /* eslint-enable no-undefined */
 }
 
-export function resolvePath(uri: string, options?: ResolvePathOptions | null): string {
+export function resolvePath(uri: string, options?: types.ResolvePathOptions | null): string {
   return resolvePathAdvanced(uri, options).resolvedPath;
 }
 
-export function resolvePathToURL(path: string, options?: ResolvePathOptions | null): string {
+export function resolvePathToURL(path: string, options?: types.ResolvePathOptions | null): string {
   return wrapPathIntoURL(resolvePath(path, options)).href;
 }
 
 export function resolvePathAdvanced(
   uri: string,
-  options?: ResolvePathOptions | null,
-): ResolvePathAdvancedResult {
+  options?: types.ResolvePathOptions | null,
+): types.ResolvePathAdvancedResult {
   options = options ?? {};
 
   let resolvedPath: string;
