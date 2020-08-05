@@ -14,7 +14,7 @@ import {
 
 export class Mod implements ModPublic {
   public readonly id: ModID;
-  public readonly version: semver.SemVer;
+  public readonly version: semver.SemVer | null = null;
   public readonly dependencies: ReadonlyMap<ModID, Dependency>;
   public readonly assetsDirectory: string;
   public assets: Set<string> = new Set();
@@ -26,14 +26,17 @@ export class Mod implements ModPublic {
     public readonly legacyMode: boolean,
   ) {
     this.id = manifest.id;
-    try {
-      this.version = new semver.SemVer(manifest.version);
-    } catch (err) {
-      if (utils.errorHasMessage(err)) {
-        // TODO: put a link to semver docs here
-        err.message = `mod version '${manifest.version}' is not a valid semver version: ${err.message}`;
+
+    if (manifest.version != null) {
+      try {
+        this.version = new semver.SemVer(manifest.version);
+      } catch (err) {
+        if (utils.errorHasMessage(err)) {
+          // TODO: put a link to semver docs here
+          err.message = `mod version '${manifest.version}' is not a valid semver version: ${err.message}`;
+        }
+        throw err;
       }
-      throw err;
     }
 
     let dependencies = new Map<ModID, Dependency>();

@@ -87,7 +87,7 @@ export class Validator {
         }
       }
 
-      this.assertType(['version'], data.version, [Type.string]);
+      this.assertType(['version'], data.version, [Type.string], true);
 
       this.assertLocalizedString(['title'], data.title, true);
       this.assertLocalizedString(['description'], data.description, true);
@@ -266,14 +266,14 @@ export class Validator {
 export function convertFromLegacy(data: LegacyManifest): Manifest {
   return {
     id: data.name,
-    version: data.version !== undefined ? data.version : '0.0.0',
+    version: data.version,
     license: data.license,
 
     title: data.ccmodHumanName,
     description: data.description,
     homepage: data.homepage,
 
-    dependencies: data.ccmodDependencies !== undefined ? data.ccmodDependencies : data.dependencies,
+    dependencies: data.ccmodDependencies ?? data.dependencies,
 
     assets: data.assets?.map((path) => (path.startsWith('assets/') ? path.slice(7) : path)),
 

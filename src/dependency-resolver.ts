@@ -102,17 +102,23 @@ function checkDependencyConstraint(
   } else {
     depTitle = `mod '${depId}'`;
 
+    let { optional } = depConstraint;
+
     let depMod = installedMods.get(depId);
     if (depMod == null) {
-      return depConstraint.optional ? null : `${depTitle} is not installed`;
+      return optional ? null : `${depTitle} is not installed`;
+    }
+
+    if (depMod.version == null) {
+      return optional ? null : `${depTitle} doesn't have a version`;
     }
 
     if (!modDataStorage.isModEnabled(depId)) {
-      return depConstraint.optional ? null : `${depTitle} is disabled`;
+      return optional ? null : `${depTitle} is disabled`;
     }
 
     if (!loadedMods.has(depId)) {
-      return depConstraint.optional ? null : `${depTitle} is not loaded`;
+      return optional ? null : `${depTitle} is not loaded`;
     }
 
     availableDepVersion = depMod.version;

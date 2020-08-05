@@ -5,7 +5,7 @@ if (originalErrorCallback != null) {
   const MODLOADER_NAME = modloader.name;
   const MODLOADER_VERSION = modloader.version.toString();
   const RUNTIME_MOD_ID = modloader._runtimeMod.id;
-  const RUNTIME_MOD_VERSION = modloader._runtimeMod.version.toString();
+  const RUNTIME_MOD_VERSION = modloader._runtimeMod.version!.toString();
 
   window.GAME_ERROR_CALLBACK = function (error, info, gameInfo, ...args) {
     info[`${MODLOADER_NAME} version`] = MODLOADER_VERSION;
