@@ -89,6 +89,10 @@ ig.module('ccloader-runtime.ui.options')
     sc.OptionModel.inject({
       onStorageGlobalLoad(globalsData, ...args) {
         let { options } = globalsData;
+        if (options == null) {
+          options = {} as ig.Storage.GlobalsData.Options;
+          globalsData.options = options;
+        }
 
         for (let key of Object.keys(options)) {
           if (key.startsWith(MOD_ENABLED_OPTION_ID_PREFIX)) {
