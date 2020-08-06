@@ -66,6 +66,9 @@ export async function boot(): Promise<void> {
   let virtualPackages = new Map<ModID, semver.SemVer>()
     .set('crosscode', gameVersion)
     .set(modloaderMetadata.name, modloaderMetadata.version);
+  if (typeof process !== 'undefined') {
+    virtualPackages.set('nw', new semver.SemVer(process.versions.nw));
+  }
 
   for (let [modID, mod] of installedMods) {
     if (mod !== runtimeMod && !modDataStorage.isModEnabled(modID)) {
