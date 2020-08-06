@@ -40,7 +40,6 @@ export async function boot(): Promise<void> {
   let runtimeModBaseDirectory = `${CCLOADER_DIR}runtime`;
   let runtimeMod: Mod | null;
   try {
-    // the runtime mod is added to `installedMods` in `sortModsInLoadOrder`
     runtimeMod = await loadModMetadata(runtimeModBaseDirectory);
     if (!(runtimeMod != null)) {
       throw new Error('Assertion failed: runtimeMod != null');
@@ -102,7 +101,11 @@ export async function boot(): Promise<void> {
 
   console.log(
     `${loadedMods.size} mods will be loaded: ${Array.from(loadedMods.values())
-      .map((mod) => `${mod.id} v${mod.version}`)
+      .map((mod) => {
+        let str = mod.id;
+        if (mod.version != null) str += ` v${mod.version}`;
+        return str;
+      })
       .join(', ')}`,
   );
 
@@ -172,7 +175,7 @@ async function loadAllModMetadata(modsDir: string, installedMods: ModsMap): Prom
         let modWithSameId = installedMods.get(mod.id);
         if (modWithSameId != null) {
           throw new Error(
-            `a mod with ID '${mod.id}' has already been loaded from '${modWithSameId.baseDirectory}'`,
+            `A mod with ID '${mod.id}' has already been loaded from '${modWithSameId.baseDirectory}'`,
           );
         }
 

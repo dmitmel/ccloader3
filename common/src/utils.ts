@@ -1,3 +1,6 @@
+// eslint-disable-next-line no-var, @typescript-eslint/no-explicit-any
+declare var chrome: any;
+
 export type MaybePromise<T> = T | Promise<T>;
 
 export enum PlatformType {
@@ -12,6 +15,19 @@ export function showDevTools(): Promise<void> {
   return new Promise((resolve) =>
     // eslint-disable-next-line no-undefined
     nw.Window.get().showDevTools(undefined, () => resolve()),
+  );
+}
+
+export function showBackgroundPageDevTools(): Promise<void> {
+  return new Promise((resolve) =>
+    chrome.developerPrivate.openDevTools(
+      {
+        renderViewId: -1,
+        renderProcessId: -1,
+        extensionId: chrome.runtime.id,
+      },
+      () => resolve(),
+    ),
   );
 }
 
