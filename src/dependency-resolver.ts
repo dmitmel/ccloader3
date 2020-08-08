@@ -42,7 +42,11 @@ export function sortModsInLoadOrder(runtimeMod: Mod, installedMods: ReadonlyMods
       // now, but if you know how to do that - please implement. For anyone
       // interested google "circular dependency detection" or "detect graph edge
       // cycles" and you'll most likely find something useful for our case.
-      throw new Error('Detected a dependency cycle');
+      throw new Error(
+        `Detected a dependency cycle, most likely in the following mods: ${unsortedModsList
+          .map((mod) => mod.id)
+          .join(', ')}`,
+      );
     }
   }
 
