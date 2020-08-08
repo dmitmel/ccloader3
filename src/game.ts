@@ -115,7 +115,7 @@ function callOnImpactInit(callback: () => void): void {
   });
 }
 
-export async function getStartFunction(): Promise<() => void> {
+export function getStartFunction(): Promise<() => void> {
   return new Promise((resolve) => {
     // TODO: this replicates the behavior from the original HTML page, I hope we
     // can find a better solution to catch `window.startCrossCode` immediately.
@@ -134,13 +134,32 @@ export async function getStartFunction(): Promise<() => void> {
   });
 }
 
-export async function waitForIgGameInitialization(): Promise<void> {
+export function waitForIgGameInitialization(): Promise<void> {
   return new Promise((resolve) => {
-    let realSetGameNow = ig.system.setGameNow;
-    ig.system.setGameNow = function (...args) {
-      let result = realSetGameNow.apply(this, args);
+    if (ig.game != null) {
       resolve();
-      return result;
-    };
+    } else {
+      let realSetGameNow = ig.system.setGameNow;
+      ig.system.setGameNow = function (...args) {
+        let result = realSetGameNow.apply(this, args);
+        resolve();
+        return result;
+      };
+    }
+  });
+}
+
+export function waitForGameToFullyLoad(): Promise<void> {
+  return new Promise((resolve) => {
+    if (ig.system.delegate != null) {
+      resolve();
+    } else {
+      let realSetDelegate = ig.system.setDelegate;
+      ig.system.setDelegate = function (...args) {
+        let result = realSetDelegate.apply(this, args);
+        resolve();
+        return result;
+      };
+    }
   });
 }

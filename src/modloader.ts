@@ -155,6 +155,8 @@ export async function boot(): Promise<void> {
   // TODO: delay further game initialization until poststart is complete
   await executeStage(loadedMods, 'poststart');
 
+  await game.waitForGameToFullyLoad();
+
   console.log('crosscode with mods is now fully loaded!');
 }
 
