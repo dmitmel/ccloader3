@@ -54,7 +54,7 @@ PACKAGE_JSON_DATA = {
 class TarGzArchiveAdapter:
     @classmethod
     def open_for_writing(cls, path):
-        return cls(TarFile.open(path, "w:gz"))
+        return cls(TarFile.open(path + ".tar.gz", "w:gz"))
 
     def __init__(self, tarfile):
         self._tarfile = tarfile
@@ -104,7 +104,7 @@ class TarGzArchiveAdapter:
 class ZipArchiveAdapter:
     @classmethod
     def open_for_writing(cls, path):
-        return cls(ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED))
+        return cls(ZipFile(path + ".zip", "w", compression=zipfile.ZIP_DEFLATED))
 
     def __init__(self, zipfile):
         self._zipfile = zipfile
@@ -160,10 +160,7 @@ class ZipArchiveAdapter:
         zipinfo._compresslevel = self._zipfile.compresslevel
 
 
-for open_archive_fn in [
-    lambda name: TarGzArchiveAdapter.open_for_writing(name + ".tar.gz"),
-    lambda name: ZipArchiveAdapter.open_for_writing(name + ".zip"),
-]:
+for ArchiveAdapter in [TarGzArchiveAdapter, ZipArchiveAdapter]:
 
     def add_modloader_files(archive, archived_path_prefix):
         def add(path, recursive=True):
@@ -187,10 +184,10 @@ for open_archive_fn in [
         add("runtime/dist/")
         add("runtime/media/")
 
-    with open_archive_fn(ARCHIVE_NAME_PACKAGE) as archive:
+    with ArchiveAdapter.open_for_writing(ARCHIVE_NAME_PACKAGE) as archive:
         add_modloader_files(archive, "")
 
-    with open_archive_fn(ARCHIVE_NAME_QUICK_INSTALL) as archive:
+    with ArchiveAdapter.open_for_writing(ARCHIVE_NAME_QUICK_INSTALL) as archive:
         archive.add_file_entry(
             "package.json", (json.dumps(PACKAGE_JSON_DATA, indent=2) + "\n").encode("utf8"),
         )
