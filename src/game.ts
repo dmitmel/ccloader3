@@ -33,9 +33,10 @@ export async function loadVersion(
 
 export async function buildNecessaryDOM(config: Config): Promise<void> {
   let base = document.createElement('base');
-  let { gameAssetsDir } = config;
-  if (!gameAssetsDir.endsWith('/')) gameAssetsDir += '/';
-  base.href = utils.cwdFilePathToURL(gameAssetsDir, window.location.origin).href;
+  base.href = utils.cwdFilePathToURL(
+    paths.join(config.gameAssetsDir, '/'),
+    window.location.origin,
+  ).href;
   document.head.appendChild(base);
 
   // meta tags have been removed, they appear to not affect anything

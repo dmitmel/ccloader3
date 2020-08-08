@@ -51,9 +51,10 @@ export async function load(
 }
 
 function createDefaultConfig(): Config {
+  let gameAssetsDir = utils.cwdFilePathFromURL(new URL('../assets/', document.baseURI));
   return {
-    gameAssetsDir: 'assets',
-    modsDirs: ['assets/mods'],
+    gameAssetsDir,
+    modsDirs: [`${gameAssetsDir}mods/`],
 
     // no stylesheets have been removed
     stylesheetURLs: [

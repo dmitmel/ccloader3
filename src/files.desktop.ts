@@ -53,7 +53,7 @@ async function findRecursivelyInternal(
 }
 
 export async function getModDirectoriesIn(dir: string): Promise<string[]> {
-  if (dir.endsWith('/')) dir = dir.slice(-1);
+  if (dir.endsWith('/')) dir = dir.slice(0, -1);
 
   let allContents: string[];
 
