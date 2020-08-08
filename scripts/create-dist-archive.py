@@ -42,7 +42,7 @@ PACKAGE_JSON_DATA = {
         ]
     ),
     "window": {
-        "toolbar": True,
+        "toolbar": False,
         "icon": "favicon.png",
         "width": 1136,
         "height": 640,
