@@ -135,46 +135,16 @@ export function getStartFunction(): Promise<() => void> {
   });
 }
 
-export function waitForIgGameInitialization(): Promise<() => void> {
+export function getDelegateActivationFunction(): Promise<() => void> {
   return new Promise((resolve) => {
-    if (!(ig.game == null)) {
-      throw new Error('Assertion failed: ig.game == null');
+    if (ig.system.delegate == null) {
+      let realSetDelegate = ig.system.setDelegate;
+      ig.system.setDelegate = function (...args) {
+        ig.system.setDelegate = realSetDelegate;
+        resolve(() => realSetDelegate.apply(this, args));
+      };
+    } else {
+      resolve(() => {});
     }
-
-    let realSetGameNow = ig.system.setGameNow;
-    ig.system.setGameNow = function (...args) {
-      ig.system.setGameNow = realSetGameNow;
-      let result = realSetGameNow.apply(this, args);
-
-      // TODO: block game initialization on `poststart` for real, that is, don't
-      // start loading the loadables at all while `poststart` hooks are running
-      ig.addResource({
-        cacheType: 'modloader-fake-resource',
-        path: 'block-full-load-after-game-init',
-        load(callback) {
-          let unblockFullLoad = (): void => callback!(this.cacheType, this.path, true);
-          resolve(unblockFullLoad);
-        },
-      });
-
-      return result;
-    };
-  });
-}
-
-export function waitForGameToFullyLoad(): Promise<void> {
-  return new Promise((resolve) => {
-    if (ig.system.delegate != null) {
-      resolve();
-      return;
-    }
-
-    let realSetDelegate = ig.system.setDelegate;
-    ig.system.setDelegate = function (...args) {
-      ig.system.setDelegate = realSetDelegate;
-      let result = realSetDelegate.apply(this, args);
-      resolve();
-      return result;
-    };
   });
 }

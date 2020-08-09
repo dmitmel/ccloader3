@@ -143,20 +143,18 @@ export async function boot(): Promise<void> {
   await executeStage(loadedMods, 'postload');
   domReadyCallback();
 
-  let startGame = await game.getStartFunction();
+  let startGameFn = await game.getStartFunction();
   console.log("stage 'prestart' reached!");
   await executeStage(loadedMods, 'prestart');
 
   console.log('running startCrossCode()...');
-  startGame();
-  let unblockFullLoadCallback = await game.waitForIgGameInitialization();
+  startGameFn();
 
+  let activeDelegateFn = await game.getDelegateActivationFunction();
   console.log("stage 'poststart' reached!");
   await executeStage(loadedMods, 'poststart');
-  unblockFullLoadCallback();
 
-  await game.waitForGameToFullyLoad();
-
+  activeDelegateFn();
   console.log('crosscode with mods is now fully loaded!');
 }
 
