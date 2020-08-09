@@ -149,11 +149,11 @@ export async function boot(): Promise<void> {
 
   console.log('running startCrossCode()...');
   startGame();
-  await game.waitForIgGameInitialization();
+  let unblockFullLoadCallback = await game.waitForIgGameInitialization();
 
   console.log("stage 'poststart' reached!");
-  // TODO: delay further game initialization until poststart is complete
   await executeStage(loadedMods, 'poststart');
+  unblockFullLoadCallback();
 
   await game.waitForGameToFullyLoad();
 

@@ -1,18 +1,33 @@
+/* eslint-disable @typescript-eslint/explicit-member-accessibility */
+
 export {};
 
 declare global {
   namespace ig {
+    interface Resource {
+      cacheType: string;
+      path: string;
+      load(
+        this: this,
+        callback?: (cacheType: string, path: string, success: boolean) => void,
+      ): void;
+    }
+    function addResource(resource: Resource): void;
+
     function _DOMReady(): void;
 
-    interface System {
-      delegate: unknown;
+    class System {
+      delegate: Game;
 
-      setGameNow(this: this, gameClass: unknown): void;
-      setDelegate(this: this, delegate: unknown): void;
+      setGameNow(gameClass: new () => ig.Game): void;
+      setDelegate(delegate: ig.Game): void;
     }
 
-    var system: System;
-    var game: unknown;
+    // eslint-disable-next-line @typescript-eslint/no-extraneous-class
+    class Game {}
+
+    let system: ig.System;
+    let game: ig.Game;
   }
 
   function startCrossCode(): void;

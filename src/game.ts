@@ -91,8 +91,8 @@ export async function loadMainScript(
   // is being executed
   await resources.loadScript(config.gameScriptURL, { async: false });
 
-  if (domReadyCallback == null) {
-    throw new Error('ig._DOMReady is not available. Is your main game script valid?');
+  if (!(domReadyCallback != null)) {
+    throw new Error('Assertion failed: domReadyCallback != null');
   }
 
   return domReadyCallback;
@@ -135,18 +135,30 @@ export function getStartFunction(): Promise<() => void> {
   });
 }
 
-export function waitForIgGameInitialization(): Promise<void> {
+export function waitForIgGameInitialization(): Promise<() => void> {
   return new Promise((resolve) => {
-    if (ig.game != null) {
-      resolve();
-    } else {
-      let realSetGameNow = ig.system.setGameNow;
-      ig.system.setGameNow = function (...args) {
-        let result = realSetGameNow.apply(this, args);
-        resolve();
-        return result;
-      };
+    if (!(ig.game == null)) {
+      throw new Error('Assertion failed: ig.game == null');
     }
+
+    let realSetGameNow = ig.system.setGameNow;
+    ig.system.setGameNow = function (...args) {
+      ig.system.setGameNow = realSetGameNow;
+      let result = realSetGameNow.apply(this, args);
+
+      // TODO: block game initialization on `poststart` for real, that is, don't
+      // start loading the loadables at all while `poststart` hooks are running
+      ig.addResource({
+        cacheType: 'modloader-fake-resource',
+        path: 'block-full-load-after-game-init',
+        load(callback) {
+          let unblockFullLoad = (): void => callback!(this.cacheType, this.path, true);
+          resolve(unblockFullLoad);
+        },
+      });
+
+      return result;
+    };
   });
 }
 
@@ -154,13 +166,15 @@ export function waitForGameToFullyLoad(): Promise<void> {
   return new Promise((resolve) => {
     if (ig.system.delegate != null) {
       resolve();
-    } else {
-      let realSetDelegate = ig.system.setDelegate;
-      ig.system.setDelegate = function (...args) {
-        let result = realSetDelegate.apply(this, args);
-        resolve();
-        return result;
-      };
+      return;
     }
+
+    let realSetDelegate = ig.system.setDelegate;
+    ig.system.setDelegate = function (...args) {
+      ig.system.setDelegate = realSetDelegate;
+      let result = realSetDelegate.apply(this, args);
+      resolve();
+      return result;
+    };
   });
 }
