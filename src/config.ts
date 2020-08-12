@@ -51,7 +51,7 @@ export async function load(
 }
 
 function createDefaultConfig(): Config {
-  let gameAssetsDir = utils.cwdFilePathFromURL(new URL('../assets/', document.baseURI));
+  let gameAssetsDir = 'assets/';
   return {
     gameAssetsDir,
     modsDirs: [`${gameAssetsDir}mods/`],
