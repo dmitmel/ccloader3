@@ -82,3 +82,21 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
 
   return modDirectories;
 }
+
+export async function getCCModsIn(dir: string): Promise<string[]> {
+  let allContents: string[];
+  try {
+    allContents = await fs.readdir(dir);
+  } catch (err) {
+    if (utils.errorHasCode(err) && err.code === 'ENOENT') {
+      console.warn(`Directory '${dir}' not found, did you forget to create it?`);
+      allContents = [];
+    } else {
+      throw err;
+    }
+  }
+
+  return allContents
+            .filter(content => content.endsWith('.ccmod'))
+            .map(ccmodFileName => `${dir}/${ccmodFileName}`);
+}

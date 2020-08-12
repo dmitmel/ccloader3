@@ -50,3 +50,7 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
 
   return index.map((modDirPath) => paths.join(dir, modDirPath));
 }
+
+export async function getCCModsIn(dir: string): Promise<string[]> {
+  return [];
+}
