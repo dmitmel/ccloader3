@@ -10,6 +10,7 @@ import * as modDataStorage from './mod-data-storage.js';
 import { LegacyManifest, Manifest } from 'ultimate-crosscode-typedefs/file-types/mod-manifest';
 import { LoadingStage, ModID } from 'ultimate-crosscode-typedefs/modloader/mod';
 import * as consoleM from '../common/dist/console.js';
+import jszip from '../common/vendor-libs/jszip.js';
 
 type ModsMap = Map<ModID, Mod>;
 type ReadonlyModsMap = ReadonlyMap<ModID, Mod>;
@@ -54,8 +55,12 @@ export async function boot(): Promise<void> {
 
   let installedMods = new Map<ModID, Mod>();
   installedMods.set(runtimeMod.id, runtimeMod);
+
   for (let dir of config.modsDirs) {
+    // maybe do unzipping here? 
+    
     let count = await loadAllModMetadata(dir, installedMods);
+    count += await loadAllCCMods(dir, installedMods);
     console.log(`found ${count} mods in '${dir}'`);
   }
   installedMods = dependencyResolver.sortModsInLoadOrder(runtimeMod, installedMods);
@@ -165,6 +170,58 @@ async function loadModloaderMetadata(): Promise<{
   let toolJsonText = await files.loadText(`${CCLOADER_DIR}tool.config.json`);
   let data = JSON.parse(toolJsonText) as { name: string; version: string };
   return { name: data.name, version: new semver.SemVer(data.version) };
+}
+
+/**
+ * 
+ * @param modsDir tak
+ */
+async function loadAllCCMods(modsDir: string, installMods: ModsMap) : Promise<number> {
+  const ccmodFilePaths = await files.getCCModsIn(modsDir);
+  let zipManager = new jszip;
+  let count = 0;
+  for (const ccmodFilePath of ccmodFilePaths) {
+    const response = await fetch('/' + ccmodFilePath);
+    
+    await zipManager.loadAsync(await response.arrayBuffer());
+    let id: string = '';
+    if (zipManager.files['ccmod.json']) {
+      id = JSON.parse(await zipManager.files['ccmod.json'].async('text')).id;
+    } else if (zipManager.files['package.json']) {
+      id = JSON.parse(await zipManager.files['package.json'].async('text')).name;
+    }
+
+    const modWithSameId = installMods.get(id);
+    if (modWithSameId != null) {
+      console.error(
+        `An error occured while unpacking ${ccmodFilePath}:`,
+        new Error(`[${id}]: Could not extract "${ccmodFilePath}" because "${modWithSameId.baseDirectory}" is already loaded.`),
+      );
+      continue;
+    }
+
+    const basePath = modsDir + id;
+    const {success, error} = await files.makeDir(basePath);
+    if (!success) {
+      console.log(error);
+      continue;
+    }
+    const zipFiles = Object.keys(zipManager.files)
+          .filter(file => !zipManager.files[file].dir);
+    
+    await Promise.all(zipFiles.map(async file => {
+      const targetFilePath = modsDir + id + '/' + file;
+      return files.writeToFile(targetFilePath, await zipManager.files[file].async('uint8array'));
+    }));
+    let mod = await loadModMetadata(basePath);
+    if (mod == null) {
+      continue;
+    }
+    installMods.set(id, mod);
+    count++;
+    zipManager = new jszip;
+  }
+  return count;
 }
 
 async function loadAllModMetadata(modsDir: string, installedMods: ModsMap): Promise<number> {
