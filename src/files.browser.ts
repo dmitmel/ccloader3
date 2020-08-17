@@ -54,3 +54,14 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
 export async function getCCModsIn(dir: string): Promise<string[]> {
   return [];
 }
+
+export async function writeToFile(path: string, data: Uint8Array) {
+  throw new Error('unsupported');
+}
+
+export async function makeDir(path: string): Promise<{ success: boolean, error: Error | null}> {
+  return {
+    success: false,
+    error: Error('unsupported')
+  }
+}

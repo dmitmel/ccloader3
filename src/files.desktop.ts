@@ -4,6 +4,10 @@ const { promises: fs } = (typeof require === 'function'
   ? require('fs')
   : {}) as typeof import('fs');
 
+const path = (typeof require === 'function'
+? require('path')
+: {}) as typeof import('path');
+
 export async function loadText(path: string): Promise<string> {
   return fs.readFile(path, 'utf8');
 }
@@ -99,4 +103,24 @@ export async function getCCModsIn(dir: string): Promise<string[]> {
   return allContents
             .filter(content => content.endsWith('.ccmod'))
             .map(ccmodFileName => `${dir}/${ccmodFileName}`);
+}
+
+export async function writeToFile(filePath: string, data: Uint8Array) {
+  await fs.mkdir(path.dirname(filePath), {recursive: true});
+  await fs.writeFile(filePath, data);
+}
+
+export async function makeDir(path: string): Promise<{ success: boolean, error: Error | null}> {
+  try {
+    await fs.mkdir(path);
+  } catch (e) {
+    return {
+      success: false,
+      error: e
+    };
+  }
+  return {
+    success: true,
+    error: null
+  };
 }
