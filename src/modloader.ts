@@ -207,9 +207,14 @@ async function loadAllCCMods(modsDir: string, installMods: ModsMap) : Promise<nu
           .filter(file => !zipManager.files[file].dir);
     
     try {
+      const totalFiles = zipFiles.length;
+      let writtenFiles = 0;
       await Promise.all(zipFiles.map(async file => {
         const targetFilePath = modsDir + id + '/' + file;
-        return files.writeToFile(targetFilePath, await zipManager.files[file].async('uint8array'));
+        return files.writeToFile(targetFilePath, await zipManager.files[file].async('uint8array'))
+                    .then(() => {
+                      writtenFiles++;
+                    });
       }));
     } catch (error) {
       console.error(error);
