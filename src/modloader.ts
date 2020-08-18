@@ -172,15 +172,12 @@ async function loadModloaderMetadata(): Promise<{
   return { name: data.name, version: new semver.SemVer(data.version) };
 }
 
-/**
- * 
- * @param modsDir tak
- */
 async function loadAllCCMods(modsDir: string, installMods: ModsMap) : Promise<number> {
   const ccmodFilePaths = await files.getCCModsIn(modsDir);
-  let zipManager = new jszip;
+  let zipManager: jszip;
   let count = 0;
   for (const ccmodFilePath of ccmodFilePaths) {
+    zipManager = new jszip;
     const response = await fetch('/' + ccmodFilePath);
     
     await zipManager.loadAsync(await response.arrayBuffer());
@@ -209,17 +206,22 @@ async function loadAllCCMods(modsDir: string, installMods: ModsMap) : Promise<nu
     const zipFiles = Object.keys(zipManager.files)
           .filter(file => !zipManager.files[file].dir);
     
-    await Promise.all(zipFiles.map(async file => {
-      const targetFilePath = modsDir + id + '/' + file;
-      return files.writeToFile(targetFilePath, await zipManager.files[file].async('uint8array'));
-    }));
+    try {
+      await Promise.all(zipFiles.map(async file => {
+        const targetFilePath = modsDir + id + '/' + file;
+        return files.writeToFile(targetFilePath, await zipManager.files[file].async('uint8array'));
+      }));
+    } catch (error) {
+      console.error(error);
+      continue;
+    }
+
     let mod = await loadModMetadata(basePath);
     if (mod == null) {
       continue;
     }
     installMods.set(id, mod);
     count++;
-    zipManager = new jszip;
   }
   return count;
 }
