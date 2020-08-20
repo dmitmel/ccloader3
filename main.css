@@ -35,17 +35,17 @@
   font-family: monospace;
 }
 
-#ccloader-console > .ccloader-message.LOG {
+#ccloader-console > .ccloader-message.ccloader-LOG {
   background-color: rgba(27, 27, 27, 0.8); /* Grey 800 dark */
   border-color: #424242; /* Grey 800 */
 }
 
-#ccloader-console > .ccloader-message.WARN {
+#ccloader-console > .ccloader-message.ccloader-WARN {
   background-color: rgba(196, 62, 0, 0.8); /* Amber 900 dark */
   border-color: #ff6f00; /* Amber 900 */
 }
 
-#ccloader-console > .ccloader-message.ERROR {
+#ccloader-console > .ccloader-message.ccloader-ERROR {
   background-color: rgba(127, 0, 0, 0.8); /* Red 900 dark */
   border-color: #b71c1c; /* Red 900 */
 }

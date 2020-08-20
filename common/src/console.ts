@@ -113,7 +113,7 @@ function log(level: LogLevel, ...message: unknown[]): void {
   let levelName = LogLevel[level] as LogLevelName;
 
   let el = htmlElement('div', {
-    class: ['ccloader-message', levelName],
+    class: ['ccloader-message', `ccloader-${levelName}`],
     children: [`[${LogLevel[level]}] ${formatMessage(...message)}`],
   });
 

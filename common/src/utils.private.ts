@@ -14,23 +14,6 @@ export function cwdFilePathFromURL(url: URL): string {
   return paths.stripRoot(decodeURI(url.pathname));
 }
 
-export interface Color {
-  r: number;
-  g: number;
-  b: number;
-  a?: number | null;
-}
-
-export namespace Color {
-  export function toCSS({ r, g, b, a }: Readonly<Color>): string {
-    return a != null ? `rgb(${r},${g},${b},${a})` : `rgb(${r},${g},${b})`;
-  }
-
-  export function rgb(r: number, g: number, b: number, a?: number | null): Color {
-    return { r, g, b, a };
-  }
-}
-
 export namespace htmlElement {
   export interface CommonOptions {
     attrs?: Record<string, string> | null;
