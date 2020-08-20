@@ -1,8 +1,6 @@
 import * as utils from '../common/dist/utils.js';
 
-const { promises: fs } = (typeof require === 'function'
-  ? require('fs')
-  : {}) as typeof import('fs');
+const fs = (window.require?.('fs') as typeof import('fs'))?.promises;
 
 export async function loadText(path: string): Promise<string> {
   return fs.readFile(path, 'utf8');
@@ -62,7 +60,7 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
   } catch (err) {
     if (utils.errorHasCode(err) && err.code === 'ENOENT') {
       console.warn(`Directory '${dir}' not found, did you forget to create it?`);
-      allContents = [];
+      return [];
     } else {
       throw err;
     }

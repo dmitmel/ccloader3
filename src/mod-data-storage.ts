@@ -11,9 +11,7 @@ import { FileData } from 'ultimate-crosscode-typedefs/file-types/mod-data-storag
 import { ModEntry } from 'ultimate-crosscode-typedefs/file-types/mod-data-storage/v1';
 import { ModID } from 'ultimate-crosscode-typedefs/modloader/mod';
 
-const { promises: fs } = (typeof require === 'function'
-  ? require('fs')
-  : {}) as typeof import('fs');
+const fs = (window.require?.('fs') as typeof import('fs'))?.promises;
 
 export const filePath: string | null = (function getFilePath() {
   if (typeof nw === 'undefined') return null;

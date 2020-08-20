@@ -28,10 +28,6 @@ export async function exists(path: string): Promise<boolean> {
   }
 }
 
-export function findRecursively(_dir: string): Promise<string[]> {
-  throw new Error('unsupported');
-}
-
 export async function getModDirectoriesIn(dir: string): Promise<string[]> {
   if (dir.endsWith('/')) dir = dir.slice(0, -1);
 

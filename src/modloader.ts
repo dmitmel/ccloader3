@@ -55,7 +55,7 @@ export async function boot(): Promise<void> {
   let installedMods = new Map<ModID, Mod>();
   installedMods.set(runtimeMod.id, runtimeMod);
   for (let dir of config.modsDirs) {
-    let count = await loadAllModMetadata(dir, installedMods);
+    let count = await loadAllModMetadataInDir(dir, installedMods);
     console.log(`found ${count} mods in '${dir}'`);
   }
   installedMods = dependencyResolver.sortModsInLoadOrder(runtimeMod, installedMods);
@@ -167,7 +167,7 @@ async function loadModloaderMetadata(): Promise<{
   return { name: data.name, version: new semver.SemVer(data.version) };
 }
 
-async function loadAllModMetadata(modsDir: string, installedMods: ModsMap): Promise<number> {
+async function loadAllModMetadataInDir(modsDir: string, installedMods: ModsMap): Promise<number> {
   let count = 0;
   await Promise.all(
     (await files.getModDirectoriesIn(modsDir)).map(async (fullPath) => {
@@ -242,7 +242,7 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
     throw err;
   }
 
-  return new Mod(`${baseDirectory}/`, manifestData, legacyMode);
+  return new Mod(baseDirectory, manifestData, legacyMode);
 }
 
 async function initModClasses(mods: ReadonlyModsMap): Promise<void> {

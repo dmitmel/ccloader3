@@ -9,7 +9,7 @@ export enum PlatformType {
 }
 
 export const PLATFORM_TYPE =
-  typeof require === 'function' ? PlatformType.DESKTOP : PlatformType.BROWSER;
+  typeof nw !== 'undefined' ? PlatformType.DESKTOP : PlatformType.BROWSER;
 
 export function showDevTools(): Promise<void> {
   return new Promise((resolve) =>

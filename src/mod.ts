@@ -1,7 +1,7 @@
 import * as semver from '../common/vendor-libs/semver.js';
 import * as paths from '../common/dist/paths.js';
 import * as utils from '../common/dist/utils.private.js';
-import * as files from './files.js';
+import * as filesDesktop from './files.desktop.js';
 import { Manifest } from 'ultimate-crosscode-typedefs/file-types/mod-manifest';
 import {
   Dependency,
@@ -25,15 +25,17 @@ export class Mod implements ModPublic {
     public readonly manifest: Manifest,
     public readonly legacyMode: boolean,
   ) {
-    this.id = manifest.id;
+    if (!this.baseDirectory.endsWith('/')) this.baseDirectory += '/';
 
-    if (manifest.version != null) {
+    this.id = this.manifest.id;
+
+    if (this.manifest.version != null) {
       try {
-        this.version = new semver.SemVer(manifest.version);
+        this.version = new semver.SemVer(this.manifest.version);
       } catch (err) {
         if (utils.errorHasMessage(err)) {
           // TODO: put a link to semver docs here
-          err.message = `mod version '${manifest.version}' is not a valid semver version: ${err.message}`;
+          err.message = `mod version '${this.manifest.version}' is not a valid semver version: ${err.message}`;
         }
         throw err;
       }
@@ -41,9 +43,8 @@ export class Mod implements ModPublic {
 
     let dependencies = new Map<ModID, Dependency>();
 
-    if (manifest.dependencies != null) {
-      for (let depId of Object.keys(manifest.dependencies)) {
-        let dep = manifest.dependencies[depId];
+    if (this.manifest.dependencies != null) {
+      for (let [depId, dep] of Object.entries(this.manifest.dependencies)) {
         if (typeof dep === 'string') dep = { version: dep };
 
         let depVersionRange: semver.Range;
@@ -73,7 +74,7 @@ export class Mod implements ModPublic {
     if (this.manifest.assets != null) {
       assets = this.manifest.assets.map((path) => paths.jailRelative(path));
     } else if (utils.PLATFORM_TYPE === utils.PlatformType.DESKTOP) {
-      assets = await files.findRecursively(this.assetsDirectory);
+      assets = await filesDesktop.findRecursively(this.assetsDirectory);
     }
     this.assets = new Set(assets);
   }

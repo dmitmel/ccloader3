@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-namespace */
 
-const nodejsUtil =
-  typeof require !== 'undefined' ? (require('util') as typeof import('util')) : null;
+const nodejsUtil = window.require?.('util') as typeof import('util');
 
 export enum LogLevel {
   LOG = 2,
