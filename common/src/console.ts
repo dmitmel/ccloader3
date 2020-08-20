@@ -1,4 +1,7 @@
-/* eslint-disable @typescript-eslint/no-namespace */
+import * as utils from './utils.private.js';
+import Color = utils.Color;
+import rgb = Color.rgb;
+import htmlElement = utils.htmlElement;
 
 const nodejsUtil = window.require?.('util') as typeof import('util');
 
@@ -66,27 +69,8 @@ const EVENTS_BLOCKED_BY_CONSOLE: Array<keyof WindowEventMap> = [
   'keypress',
 ];
 
-interface Color {
-  r: number;
-  g: number;
-  b: number;
-  a?: number | null;
-}
-
-namespace Color {
-  export function toCSS({ r, g, b, a }: Readonly<Color>): string {
-    return a != null ? `rgb(${r},${g},${b},${a})` : `rgb(${r},${g},${b})`;
-  }
-
-  export function rgb(r: number, g: number, b: number, a?: number | null): Color {
-    return { r, g, b, a };
-  }
-}
-
-import rgb = Color.rgb;
-
 // colors were taken from the material palette, see <https://material.io/resources/color/>
-const TEXT_COLOR = '#e0e0e0'; // Grey 300
+const TEXT_COLOR = rgb(224, 224, 224); // Grey 300
 const LOG_LEVEL_COLORS: LogLevelsDict<{
   readonly bg: Readonly<Color>;
   readonly border: Readonly<Color>;
@@ -102,35 +86,35 @@ const LOG_LEVEL_APPEARENCE_DURATIONS: LogLevelsDict<number> = {
   ERROR: 15000,
 };
 
-/* eslint-disable no-multi-assign */
-
 let rootElement: HTMLElement;
 export function inject(): void {
   let logLevels = getLogLevels();
 
-  {
-    let el = document.createElement('pre');
-    rootElement = el;
-    el.id = 'console';
-    el.style.display = 'flex';
-    el.style.flexDirection = 'column';
-    el.style.margin = '0';
-    el.style.padding = '0';
-    el.style.position = 'fixed';
-    el.style.top = el.style.left = el.style.right = '0';
-    el.style.zIndex = '9999';
-    el.style.maxHeight = '100%';
-    el.style.fontSize = '18px';
-    el.style.whiteSpace = 'pre-wrap';
-    el.style.wordBreak = 'break-all';
-    el.style.overflowY = 'auto';
+  rootElement = htmlElement('pre', {
+    id: 'console',
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      margin: '0',
+      padding: '0',
+      position: 'fixed',
+      top: '0',
+      left: '0',
+      right: '0',
+      zIndex: '9999',
+      maxHeight: '100%',
+      font: '18px monospace',
+      whiteSpace: 'pre-wrap',
+      wordBreak: 'break-all',
+      overflowY: 'auto',
+    },
+  });
 
-    for (let eventType of EVENTS_BLOCKED_BY_CONSOLE) {
-      el.addEventListener(eventType, (event) => event.stopPropagation());
-    }
-
-    document.body.append(el);
+  for (let eventType of EVENTS_BLOCKED_BY_CONSOLE) {
+    rootElement.addEventListener(eventType, (event) => event.stopPropagation());
   }
+
+  document.body.append(rootElement);
 
   function hookConsoleMethod(name: keyof typeof console, level: LogLevel): void {
     let old = console[name] as (...message: unknown[]) => void;
@@ -156,17 +140,19 @@ export function inject(): void {
 function log(level: LogLevel, ...message: unknown[]): void {
   let levelName = LogLevel[level] as LogLevelName;
 
-  let el = document.createElement('code');
-  el.classList.add('message', levelName);
-  el.style.padding = '4px';
-  el.style.borderBottom = '2px solid';
-
-  el.style.color = TEXT_COLOR;
   let colors = LOG_LEVEL_COLORS[levelName];
-  el.style.backgroundColor = Color.toCSS({ ...colors.bg, a: 0.8 });
-  el.style.borderColor = Color.toCSS(colors.border);
 
-  el.textContent = `[${LogLevel[level]}] ${formatMessage(...message)}`;
+  let el = htmlElement('code', {
+    class: ['message', levelName],
+    style: {
+      padding: '4px',
+      borderBottom: '2px solid',
+      color: Color.toCSS(TEXT_COLOR),
+      backgroundColor: Color.toCSS({ ...colors.bg, a: 0.8 }),
+      borderColor: Color.toCSS(colors.border),
+    },
+    children: [`[${LogLevel[level]}] ${formatMessage(...message)}`],
+  });
 
   rootElement.append(el);
 

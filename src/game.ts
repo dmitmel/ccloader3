@@ -32,20 +32,27 @@ export async function loadVersion(
 }
 
 export async function buildNecessaryDOM(config: Config): Promise<void> {
-  let base = document.createElement('base');
-  base.href = utils.cwdFilePathToURL(
-    paths.join(config.gameAssetsDir, '/'),
-    window.location.origin,
-  ).href;
-  document.head.appendChild(base);
+  document.head.appendChild(
+    utils.htmlElement('base', {
+      attrs: {
+        href: utils.cwdFilePathToURL(paths.join(config.gameAssetsDir, '/'), window.location.origin)
+          .href,
+      },
+    }),
+  );
 
   // meta tags have been removed, they appear to not affect anything
 
-  let canvas = document.createElement('canvas');
-  canvas.id = 'canvas';
-  let div = document.createElement('div');
-  div.id = 'game';
-  div.appendChild(canvas);
+  document.body.appendChild(
+    utils.htmlElement('div', {
+      id: 'game',
+      children: [
+        utils.htmlElement('canvas', {
+          id: 'canvas',
+        }),
+      ],
+    }),
+  );
 
   // By default the game's HTML page also contains a div element for the "option
   // list" described above, but it is useless as described above, so I removed
@@ -59,7 +66,6 @@ export async function buildNecessaryDOM(config: Config): Promise<void> {
   //  b) responsibility of `doStartCrossCodePlz` is handled by the modloader
   //     itself.
 
-  document.body.appendChild(div);
   document.body.style.overflow = 'hidden';
 
   Object.assign(window, config.impactConfig);
