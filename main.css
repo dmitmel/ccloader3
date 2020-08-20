@@ -1,0 +1,51 @@
+/* colors were taken from the Material Palette, see <https://material.io/resources/color/> */
+
+.ccloader-vbox {
+  display: flex;
+  flex-direction: column;
+}
+
+.ccloader-hscroll {
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.ccloader-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+
+  font: 18px sans-serif;
+  color: #e0e0e0; /* Grey 300 */
+}
+
+#ccloader-console {
+  bottom: unset;
+  z-index: 9999;
+
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+#ccloader-console > .ccloader-message {
+  padding: 4px;
+  border-bottom: 2px solid;
+  font-family: monospace;
+}
+
+#ccloader-console > .ccloader-message.LOG {
+  background-color: rgba(27, 27, 27, 0.8); /* Grey 800 dark */
+  border-color: #424242; /* Grey 800 */
+}
+
+#ccloader-console > .ccloader-message.WARN {
+  background-color: rgba(196, 62, 0, 0.8); /* Amber 900 dark */
+  border-color: #ff6f00; /* Amber 900 */
+}
+
+#ccloader-console > .ccloader-message.ERROR {
+  background-color: rgba(127, 0, 0, 0.8); /* Red 900 dark */
+  border-color: #b71c1c; /* Red 900 */
+}

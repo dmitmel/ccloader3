@@ -1,6 +1,4 @@
 import * as utils from './utils.private.js';
-import Color = utils.Color;
-import rgb = Color.rgb;
 import htmlElement = utils.htmlElement;
 
 const nodejsUtil = window.require?.('util') as typeof import('util');
@@ -69,17 +67,6 @@ const EVENTS_BLOCKED_BY_CONSOLE: Array<keyof WindowEventMap> = [
   'keypress',
 ];
 
-// colors were taken from the material palette, see <https://material.io/resources/color/>
-const TEXT_COLOR = rgb(224, 224, 224); // Grey 300
-const LOG_LEVEL_COLORS: LogLevelsDict<{
-  readonly bg: Readonly<Color>;
-  readonly border: Readonly<Color>;
-}> = {
-  LOG: { bg: rgb(27, 27, 27) /* Grey 800 dark */, border: rgb(66, 66, 66) /* Grey 800 */ },
-  WARN: { bg: rgb(196, 62, 0) /* Amber 900 dark */, border: rgb(255, 111, 0) /* Amber 900 */ },
-  ERROR: { bg: rgb(127, 0, 0) /* Red 900 dark */, border: rgb(183, 28, 28) /* Red 900 */ },
-};
-
 const LOG_LEVEL_APPEARENCE_DURATIONS: LogLevelsDict<number> = {
   LOG: 2000,
   WARN: 5000,
@@ -90,24 +77,9 @@ let rootElement: HTMLElement;
 export function inject(): void {
   let logLevels = getLogLevels();
 
-  rootElement = htmlElement('pre', {
-    id: 'console',
-    style: {
-      display: 'flex',
-      flexDirection: 'column',
-      margin: '0',
-      padding: '0',
-      position: 'fixed',
-      top: '0',
-      left: '0',
-      right: '0',
-      zIndex: '9999',
-      maxHeight: '100%',
-      font: '18px monospace',
-      whiteSpace: 'pre-wrap',
-      wordBreak: 'break-all',
-      overflowY: 'auto',
-    },
+  rootElement = htmlElement('div', {
+    id: 'ccloader-console',
+    class: ['ccloader-overlay', 'ccloader-vbox', 'ccloader-hscroll'],
   });
 
   for (let eventType of EVENTS_BLOCKED_BY_CONSOLE) {
@@ -140,17 +112,8 @@ export function inject(): void {
 function log(level: LogLevel, ...message: unknown[]): void {
   let levelName = LogLevel[level] as LogLevelName;
 
-  let colors = LOG_LEVEL_COLORS[levelName];
-
-  let el = htmlElement('code', {
-    class: ['message', levelName],
-    style: {
-      padding: '4px',
-      borderBottom: '2px solid',
-      color: Color.toCSS(TEXT_COLOR),
-      backgroundColor: Color.toCSS({ ...colors.bg, a: 0.8 }),
-      borderColor: Color.toCSS(colors.border),
-    },
+  let el = htmlElement('div', {
+    class: ['ccloader-message', levelName],
     children: [`[${LogLevel[level]}] ${formatMessage(...message)}`],
   });
 
