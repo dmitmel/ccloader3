@@ -1,5 +1,4 @@
 import * as utils from './utils.private.js';
-import htmlElement = utils.htmlElement;
 
 const nodejsUtil = window.require?.('util') as typeof import('util');
 
@@ -77,9 +76,9 @@ let rootElement: HTMLElement;
 export function inject(): void {
   let logLevels = getLogLevels();
 
-  rootElement = htmlElement('div', {
+  rootElement = utils.html('div', {
     id: 'ccloader-console',
-    class: ['ccloader-overlay', 'ccloader-vbox', 'ccloader-hscroll'],
+    class: ['ccloader-overlay', 'ccloader-vbox', 'ccloader-vscroll'],
   });
 
   for (let eventType of EVENTS_BLOCKED_BY_CONSOLE) {
@@ -112,7 +111,7 @@ export function inject(): void {
 function log(level: LogLevel, ...message: unknown[]): void {
   let levelName = LogLevel[level] as LogLevelName;
 
-  let el = htmlElement('div', {
+  let el = utils.html('div', {
     class: ['ccloader-message', `ccloader-${levelName}`],
     children: [`[${LogLevel[level]}] ${formatMessage(...message)}`],
   });

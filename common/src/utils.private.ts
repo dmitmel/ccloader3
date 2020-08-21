@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-namespace */
-
 import * as paths from './paths.js';
 
 export * from './utils.js';
@@ -14,40 +12,25 @@ export function cwdFilePathFromURL(url: URL): string {
   return paths.stripRoot(decodeURI(url.pathname));
 }
 
-export namespace htmlElement {
-  export interface CommonOptions {
-    attrs?: Record<string, string> | null;
+export function html<K extends keyof HTMLElementTagNameMap>(
+  tagName: K,
+  options: {
+    attrs?: { [attr: string]: string | null | undefined } | null;
     id?: string | null;
     class?: string[] | null;
     style?: {
       [P in keyof CSSStyleDeclaration]?: Extract<CSSStyleDeclaration[P], string | number> | null;
     };
     children?: Array<string | Node> | null;
-  }
-
-  export interface ButtonOptions extends CommonOptions {
-    type: string;
-  }
-}
-
-export function htmlElement(
-  tagName: 'button',
-  options: htmlElement.ButtonOptions,
-): HTMLButtonElement;
-export function htmlElement<K extends keyof HTMLElementTagNameMap>(
-  tagName: K,
-  options: htmlElement.CommonOptions,
-): HTMLElementTagNameMap[K];
-
-export function htmlElement<K extends keyof HTMLElementTagNameMap>(
-  tagName: K,
-  options: htmlElement.CommonOptions,
+  },
 ): HTMLElementTagNameMap[K] {
   let element = document.createElement(tagName);
 
   if (options.attrs != null) {
     for (let [k, v] of Object.entries(options.attrs)) {
-      element.setAttribute(k, v);
+      if (v != null) {
+        element.setAttribute(k, v);
+      }
     }
   }
 
@@ -69,14 +52,6 @@ export function htmlElement<K extends keyof HTMLElementTagNameMap>(
 
   if (options.children != null) {
     element.append(...options.children);
-  }
-
-  if (tagName === 'button') {
-    let options_ = options as htmlElement.ButtonOptions;
-    let element_ = element as HTMLButtonElement;
-    if (options_.type != null) {
-      element_.type = options_.type;
-    }
   }
 
   return element;

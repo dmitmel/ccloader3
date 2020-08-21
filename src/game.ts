@@ -33,7 +33,7 @@ export async function loadVersion(
 
 export async function buildNecessaryDOM(config: Config): Promise<void> {
   document.head.appendChild(
-    utils.htmlElement('base', {
+    utils.html('base', {
       attrs: {
         href: utils.cwdFilePathToURL(paths.join(config.gameAssetsDir, '/'), window.location.origin)
           .href,
@@ -44,10 +44,10 @@ export async function buildNecessaryDOM(config: Config): Promise<void> {
   // meta tags have been removed, they appear to not affect anything
 
   document.body.appendChild(
-    utils.htmlElement('div', {
+    utils.html('div', {
       id: 'game',
       children: [
-        utils.htmlElement('canvas', {
+        utils.html('canvas', {
           id: 'canvas',
         }),
       ],
