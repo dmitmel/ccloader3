@@ -2,6 +2,7 @@ import * as paths from '../../common/dist/paths.js';
 import { stdlibNamespace as utils } from '../../common/dist/utils.js';
 import requireFixed from '../../common/dist/require.js';
 import * as semver from '../../common/vendor-libs/semver.js';
+import * as patchStepsLib from '../../common/vendor-libs/patch-steps-lib.js';
 
 import { namespace as patchList } from './patch-list.js';
 import { namespace as impactInitHooks } from './impact-init-hooks.js';
@@ -23,6 +24,7 @@ export default class RuntimeModMainClass implements modloader.Mod.MainClass {
       utils,
       require: requireFixed,
       semver,
+      patchStepsLib,
       patchList,
       impactInitHooks,
       impactModuleHooks,

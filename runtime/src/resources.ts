@@ -1,5 +1,5 @@
 import * as resourcesPlain from './resources-plain.js';
-import * as patchsteps from '../../common/vendor-libs/patchsteps.js';
+import * as patchsteps from '../../common/vendor-libs/patch-steps-lib.js';
 import * as utils from '../../common/dist/utils.js';
 import { PatchList, ResourcePatchList } from './patch-list.js';
 import * as paths from '../../common/dist/paths.js';
