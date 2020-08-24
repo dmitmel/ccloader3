@@ -4,7 +4,7 @@ import * as files from './files.js';
 import { ChangelogFileData } from 'ultimate-crosscode-typedefs/file-types/changelog';
 import { Config } from './config.js';
 import * as paths from '../common/dist/paths.js';
-import * as utils from '../common/dist/utils.private.js';
+import * as utils from '../common/dist/utils.js';
 
 export async function loadVersion(
   config: Config,

@@ -1,6 +1,6 @@
 import * as semver from '../common/vendor-libs/semver.js';
 import * as paths from '../common/dist/paths.js';
-import * as utils from '../common/dist/utils.private.js';
+import * as utils from '../common/dist/utils.js';
 import * as filesDesktop from './files.desktop.js';
 import { Manifest } from 'ultimate-crosscode-typedefs/file-types/mod-manifest';
 import {

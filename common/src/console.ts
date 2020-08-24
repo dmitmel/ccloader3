@@ -1,4 +1,4 @@
-import * as utils from './utils.private.js';
+import * as utils from './utils.js';
 
 const nodejsUtil = window.require?.('util') as typeof import('util');
 

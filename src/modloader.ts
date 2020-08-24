@@ -4,7 +4,7 @@ import * as manifestM from './manifest.js';
 import { Mod } from './mod.js';
 import * as game from './game.js';
 import * as semver from '../common/vendor-libs/semver.js';
-import * as utils from '../common/dist/utils.private.js';
+import * as utils from '../common/dist/utils.js';
 import * as dependencyResolver from './dependency-resolver.js';
 import * as modDataStorage from './mod-data-storage.js';
 import { LegacyManifest, Manifest } from 'ultimate-crosscode-typedefs/file-types/mod-manifest';

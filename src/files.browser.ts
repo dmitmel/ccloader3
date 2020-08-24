@@ -1,4 +1,4 @@
-import * as utils from '../common/dist/utils.private.js';
+import * as utils from '../common/dist/utils.js';
 import * as paths from '../common/dist/paths.js';
 
 export async function loadText(path: string): Promise<string> {

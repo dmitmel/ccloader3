@@ -1,4 +1,4 @@
-import * as utils from '../common/dist/utils.private.js';
+import * as utils from '../common/dist/utils.js';
 import * as files from './files.js';
 import * as semver from '../common/vendor-libs/semver.js';
 

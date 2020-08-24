@@ -1,7 +1,7 @@
 // This code is based on the `mod-require-fix` mod:
 // https://github.com/CCDirectLink/CCdiscord/blob/8c5dce9653b170ecb4d4a1ba5b170629539c2644/mod-require-fix/preload.js
 
-import * as utils from './utils.private.js';
+import * as utils from './utils.js';
 
 let requireFixed: NodeRequire = null!;
 
