@@ -1,6 +1,6 @@
 import * as utils from '../../common/dist/utils.js';
 
-export * from '../../common/dist/resources.js';
+import { loadScript, loadStylesheet } from '../../common/dist/resources.js';
 
 export async function loadText(url: string): Promise<string> {
   let res: Response;
@@ -36,3 +36,11 @@ export function loadImage(url: string): Promise<HTMLImageElement> {
     img.onerror = () => reject(new Error(`Failed to load image '${url}'`));
   });
 }
+
+export const namespace: typeof ccmod.resources.plain = {
+  loadText,
+  loadJSON,
+  loadImage,
+  loadScript,
+  loadStylesheet,
+};

@@ -1,7 +1,6 @@
-import { MOD_PROTOCOL_PREFIX } from './resources.private.js';
+import * as resources from './resources.js';
 import * as impactInitHooks from './impact-init-hooks.js';
 import * as impactModuleHooks from './impact-module-hooks.js';
-import * as resources from './resources.js';
 import * as utils from '../../common/dist/utils.js';
 
 impactInitHooks.add(() => {
@@ -16,7 +15,7 @@ impactInitHooks.add(() => {
         return true;
       }
 
-      if (!url.startsWith(MOD_PROTOCOL_PREFIX)) {
+      if (!url.startsWith(resources.MOD_PROTOCOL_PREFIX)) {
         let gameAssetsURL = resources.getGameAssetsURL().href;
 
         let parsedURL = new URL(encodeURI(url), document.baseURI).href;

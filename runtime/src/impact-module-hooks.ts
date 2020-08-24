@@ -22,3 +22,5 @@ impactInitHooks.add(() => {
     });
   };
 });
+
+export const namespace: typeof ccmod.impactModuleHooks = { patchList, add };

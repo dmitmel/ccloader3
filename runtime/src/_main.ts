@@ -3,10 +3,12 @@ import * as utils from '../../common/dist/utils.js';
 import requireFixed from '../../common/dist/require.js';
 import * as semver from '../../common/vendor-libs/semver.js';
 
-import * as patchList from './patch-list.js';
-import * as impactInitHooks from './impact-init-hooks.js';
-import * as impactModuleHooks from './impact-module-hooks.js';
-import * as resources from './resources.js';
+import { namespace as patchList } from './patch-list.js';
+import { namespace as impactInitHooks } from './impact-init-hooks.js';
+import { namespace as impactModuleHooks } from './impact-module-hooks.js';
+import { namespace as resources } from './resources.js';
+
+import './error-screen.js';
 import './resources-injections.js';
 import './lang-file-patcher.js';
 import './greenworks-fix.js';

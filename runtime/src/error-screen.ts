@@ -1,5 +1,7 @@
 // inspired by https://github.com/20kdc/decrossfuscator/blob/b5c4250aade5bf8d41b12ec7c346d49ba107b2a9/mods/raptureui/decontaminant.js
 
+export {};
+
 let originalErrorCallback = window.GAME_ERROR_CALLBACK;
 if (originalErrorCallback != null) {
   const MODLOADER_NAME = modloader.name;

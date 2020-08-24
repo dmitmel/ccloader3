@@ -45,3 +45,5 @@ export class ResourcePatchList<Data, Ctx>
     super.add(path, (patcher as unknown) as ResourcePatcherWithDeps<Data, unknown, Ctx>);
   }
 }
+
+export const namespace: typeof ccmod.patchList = { PatchList, ResourcePatchList };

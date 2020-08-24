@@ -1,4 +1,3 @@
-import { MOD_PROTOCOL_PREFIX } from './resources.private.js';
 import * as resourcesPlain from './resources-plain.js';
 import * as patchsteps from '../../common/vendor-libs/patchsteps.js';
 import * as utils from '../../common/dist/utils.private.js';
@@ -10,7 +9,8 @@ import {
   ResourcePatcherWithDeps,
 } from 'ultimate-crosscode-typedefs/modloader-stdlib/patch-list';
 
-export { resourcesPlain as plain };
+export const MOD_PROTOCOL = 'mod:';
+export const MOD_PROTOCOL_PREFIX = `${MOD_PROTOCOL}//`;
 
 export const assetOverridesTable = new Map<string, string>();
 export const textGenerators = new PatchList<
@@ -396,3 +396,22 @@ class PatchstepsCustomDebugState extends patchsteps.DebugState {
     return super.translateParsedPath(parsedPath);
   }
 }
+
+export const namespace: typeof ccmod.resources = {
+  plain: resourcesPlain.namespace,
+  assetOverridesTable,
+  textGenerators,
+  jsonPatches,
+  jsonGenerators,
+  imagePatches,
+  imageGenerators,
+  loadText,
+  loadJSON,
+  loadImage,
+  resolvePath,
+  resolvePathToURL,
+  resolvePathAdvanced,
+  wrapPathIntoURL,
+  getGameAssetsURL,
+  getCacheSuffix,
+};

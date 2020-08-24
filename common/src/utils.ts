@@ -1,7 +1,9 @@
+import { MaybePromise, PromiseResult } from 'ultimate-crosscode-typedefs/modloader-stdlib/utils';
+
 // eslint-disable-next-line no-var, @typescript-eslint/no-explicit-any
 declare var chrome: any;
 
-export type MaybePromise<T> = T | Promise<T>;
+export { MaybePromise };
 
 export enum PlatformType {
   DESKTOP = 'DESKTOP',
@@ -50,8 +52,6 @@ export function errorHasMessage(error: any): error is { message: string } {
 export function errorHasCode(error: any): error is { code: string } {
   return typeof error.code === 'string';
 }
-
-export type PromiseResult<T> = { type: 'resolved'; value: T } | { type: 'rejected'; reason: any };
 
 /* eslint-enable @typescript-eslint/no-explicit-any */
 

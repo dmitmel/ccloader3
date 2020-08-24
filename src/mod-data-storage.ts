@@ -133,3 +133,13 @@ export function isModEnabled(id: ModID): boolean {
 export function setModEnabled(id: ModID, enabled: boolean): void {
   utils.mapGetOrInsert(data, id, { enabled }).enabled = enabled;
 }
+
+export const namespace: typeof modloader.modDataStorage = {
+  filePath,
+  data,
+  readImmediately,
+  writeImmediately,
+  write,
+  isModEnabled,
+  setModEnabled,
+};
