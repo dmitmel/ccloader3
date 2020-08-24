@@ -172,6 +172,7 @@ for ArchiveAdapter in [TarGzArchiveAdapter, ZipArchiveAdapter]:
             )
 
         add("LICENSE")
+        add("main.css")
         add("main.html")
         add("tool.config.json")
         add("common/", recursive=False)
