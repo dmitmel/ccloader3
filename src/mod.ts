@@ -94,12 +94,12 @@ export class Mod implements ModPublic {
       throw err;
     }
 
-    if (!('default' in module)) {
+    if (!utils.hasKey(module, 'default')) {
       throw new Error(`Module '${scriptFullPath}' has no default export`);
     }
 
-    // eslint-disable-next-line new-cap
-    this.mainClassInstance = new module.default(this);
+    let ModMainClass = module.default;
+    this.mainClassInstance = new ModMainClass(this);
   }
 
   public async executeStage(stage: LoadingStage): Promise<void> {

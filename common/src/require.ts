@@ -21,10 +21,7 @@ if (typeof require === 'function') {
     }
   }) as NodeRequire;
 
-  for (let prop in require) {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (requireFixed as any)[prop] = (require as any)[prop];
-  }
+  Object.assign<NodeRequire, NodeRequire>(requireFixed, require);
 
   requireFixed.prototype = { constructor: requireFixed };
 
