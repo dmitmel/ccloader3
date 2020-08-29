@@ -14,6 +14,8 @@ const MOD_ENABLED_OPTION_ID_PREFIX = 'modEnabled-';
 
 const INSTALLED_MODS: modloader.Mod[] = Array.from(modloader.installedMods.values())
   .filter((mod) => mod !== modloader._runtimeMod)
+  // TODO: sort this based on the localized title, see
+  // <https://stackoverflow.com/questions/2140627/how-to-do-case-insensitive-string-comparison>
   .sort((mod1, mod2) => utils.compare(mod1.id, mod2.id));
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
