@@ -14,10 +14,10 @@ export enum PlatformType {
 export const PLATFORM_TYPE =
   typeof nw !== 'undefined' ? PlatformType.DESKTOP : PlatformType.BROWSER;
 
-export function showDevTools(): Promise<void> {
+export function showDevTools(window: nw.Window = nw.Window.get()): Promise<void> {
   return new Promise((resolve) =>
     // eslint-disable-next-line no-undefined
-    nw.Window.get().showDevTools(undefined, () => resolve()),
+    window.showDevTools(undefined, () => resolve()),
   );
 }
 
