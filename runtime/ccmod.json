@@ -1,7 +1,7 @@
 {
   "id": "ccloader-runtime",
   "title": "CCLoader Runtime",
-  "version": "1.0.0-alpha",
+  "version": "3.0.0-alpha",
   "description": "CCLoader's graphical user interface and standard library implementation",
   "main": "dist/_main.js",
   "assets": ["data/lang/sc/gui.en_US.json.patch"],
