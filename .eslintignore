@@ -1,3 +1,4 @@
 dist/
 src/node-module-imports/
 common/vendor-libs/**/*.js
+ultimate-crosscode-typedefs/

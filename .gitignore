@@ -2,5 +2,7 @@ node_modules/
 dist/
 *.tsbuildinfo
 
+/ultimate-crosscode-typedefs/
+
 ccloader_*_quick-install.*
 ccloader_*_package.*
