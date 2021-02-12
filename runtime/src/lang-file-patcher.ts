@@ -89,7 +89,6 @@ impactModuleHooks.add('game.config', () => {
         for (let feature of ig.langFileList) {
           resources.jsonPatches.add(getLangFilePath(feature, locale), {
             dependencies: () => resources.loadJSON(getLangFilePath(feature, DEFAULT_LOCALE)),
-            // eslint-disable-next-line no-loop-func
             patcher: (data, defaultLocaleData) =>
               ig.merge(/* original */ defaultLocaleData, /* new */ data, /* noArrayMerge */ true),
           });

@@ -350,8 +350,8 @@ escape-string-regexp@^1.0.5:
   integrity sha1-G2HAViGQqN/2rjuyzwIAyhMLhtQ=
 
 eslint-config-dmitmel@dmitmel/eslint-config-dmitmel:
-  version "7.1.0"
-  resolved "https://codeload.github.com/dmitmel/eslint-config-dmitmel/tar.gz/342afb0da03ff89f92fda299f5d0d8ca28a8bf66"
+  version "7.2.0"
+  resolved "https://codeload.github.com/dmitmel/eslint-config-dmitmel/tar.gz/1d4c7bccde6812183d1a5fdb4a07e0cf9bfdacb1"
 
 eslint-plugin-es@^3.0.0:
   version "3.0.1"

@@ -181,7 +181,7 @@ export class Validator {
   ): void {
     let assertion = this.assertType(valuePath, value, [Type.object, Type.string], optional);
     if (assertion.status !== 'ok') return;
-    value = value as LocalizedString;
+    value = value!;
 
     if (assertion.type === Type.string) return;
     for (let [key, value2] of Object.entries(value as Record<Locale, string>)) {
