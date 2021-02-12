@@ -2,7 +2,7 @@ import * as modloader from './modloader.js';
 import * as utils from '../common/dist/utils.js';
 
 async function main(): Promise<void> {
-  let onloadPromise = new Promise((resolve) => {
+  let onloadPromise = new Promise<void>((resolve) => {
     window.addEventListener('load', () => resolve());
   });
 

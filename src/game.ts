@@ -115,7 +115,9 @@ function callOnImpactInit(callback: () => void): void {
     },
 
     set(value: typeof ig) {
-      delete window.ig;
+      // This deletion is needed in order to force a reset of the property
+      // descriptor of `window.ig`. Not sure if it can be handled more cleanly.
+      delete (window as { ig?: typeof ig }).ig;
       window.ig = value;
       callback();
     },
