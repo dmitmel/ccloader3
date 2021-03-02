@@ -3,6 +3,7 @@
 import * as utils from './utils.js';
 import * as consoleM from '../../../common/dist/console.js';
 import * as resources from '../resources.js';
+import * as unknown from '../../../common/vendor-libs/semver.js';
 
 const LOG_LEVEL_OPTION_IDS: consoleM.LogLevelsDict<string> = {
   LOG: 'logLevel-log',
@@ -24,6 +25,7 @@ resources.jsonPatches.add('data/lang/sc/gui.en_US.json', (data: any) => {
   for (let mod of INSTALLED_MODS) {
     options[`modEnabled-${mod.id}`] = {
       name: utils.getModTitle(mod) || ' ',
+      icon: '',
       description: utils.getLocalizedString(mod.manifest.description) || ' ',
     };
   }
@@ -63,13 +65,19 @@ ig.module('ccloader-runtime.ui.options')
 
     for (let mod of INSTALLED_MODS) {
       sc.OPTIONS_DEFINITION[`${MOD_ENABLED_OPTION_ID_PREFIX}${mod.id}`] = {
-        type: 'CHECKBOX',
+        type: 'MOD',
         cat: sc.OPTION_CATEGORY.MODS,
         init: true,
         restart: true,
-        checkboxRightAlign: true,
+        checkboxRightAlign: true
       };
     }
+
+    // @ts-ignore
+    sc.OPTION_TYPES.MOD = 7;
+
+    // @ts-ignore
+    sc.OPTION_GUIS[sc.OPTION_TYPES.MOD] = sc.OPTION_GUIS[sc.OPTION_TYPES.CHECKBOX].extend({});
 
     const MODS_TAB_ID = 'mods' as const;
     sc.fontsystem.font.pushIconSet(
@@ -84,6 +92,38 @@ ig.module('ccloader-runtime.ui.options')
         this.tabs[MODS_TAB_ID] = btn;
         this._rearrangeTabs();
       },
+    });
+
+    sc.OptionRow.inject(<{[key: string] : any}>{
+      icon: null, 
+      // @ts-ignore
+      init: function(optionName, b, d, g, h, i) {
+        
+        if (sc.OPTIONS_DEFINITION[optionName].type === "MOD") {
+          this.parent(optionName,b,d,g, h, 28);
+          this.nameGui.setPos(34, 5);
+          const img: any = new ig.Image("icon.png");
+          img.addLoadListener({
+            onLoadableComplete: function() {
+              // @ts-ignore
+              const icon = this.icon = new ig.ImageGui(img,0,0, 24, 24);
+              icon.setAlign(ig.GUI_ALIGN.X_LEFT, ig.GUI_ALIGN.Y_BOTTOM);
+              let x = (24 - Math.min(24, img.width))/2;
+              let y = (24 - Math.min(24, img.height));
+              if (y < 5) {
+                y += 5;
+              }
+
+              icon.setPos(x,y);
+              // @ts-ignore
+              this.addChildGui(icon);
+            }.bind(this)
+          });
+        } else {
+          this.parent(...arguments);
+        }
+
+      }
     });
 
     const { modDataStorage } = modloader;
