@@ -10,6 +10,7 @@ import {
   Person,
   PersonDetails,
 } from 'ultimate-crosscode-typedefs/file-types/mod-manifest';
+import { ModIcon } from 'ultimate-crosscode-typedefs/modloader/mod';
 
 enum Type {
   string = 'string',
@@ -91,6 +92,7 @@ export class Validator {
 
       this.assertLocalizedString(['title'], data.title, true);
       this.assertLocalizedString(['description'], data.description, true);
+      this.assertIcon(['icon'], data.icon);
       this.assertType(['license'], data.license, [Type.string], true);
       this.assertLocalizedString(['homepage'], data.homepage, true);
       this.assertKeywords(['keywords'], data.keywords);
@@ -123,6 +125,7 @@ export class Validator {
 
       this.assertType(['ccmodHumanName'], data.ccmodHumanName, [Type.string], true);
       this.assertType(['description'], data.description, [Type.string], true);
+      this.assertIcon(['icon'], data.icon);
       this.assertType(['license'], data.license, [Type.string], true);
       this.assertType(['homepage'], data.homepage, [Type.string], true);
 
@@ -144,6 +147,12 @@ export class Validator {
     if (this.problems.length > 0) {
       throw new ManifestValidationError(this.problems);
     }
+  }
+
+  assertIcon(valuePath: JsonPath, value: ModIcon | undefined) {
+    let assertion = this.assertType(valuePath, value, [Type.object], true);
+    if (assertion.status !== 'ok') return;
+    this.assertType([...valuePath, '24x24'], '24x24', [Type.string], true);
   }
 
   private assertType(
@@ -271,6 +280,7 @@ export function convertFromLegacy(data: LegacyManifest): Manifest {
 
     title: data.ccmodHumanName,
     description: data.description,
+    icon: data.icon,
     homepage: data.homepage,
 
     dependencies: data.ccmodDependencies ?? data.dependencies,
