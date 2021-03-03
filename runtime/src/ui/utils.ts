@@ -13,16 +13,16 @@ export function getModTitle(mod: modloader.Mod): string {
   return getLocalizedString(mod.manifest.title) ?? mod.id;
 }
 
-export function getModIcon(mod: modloader.Mod, res: '24x24') {
-  if (!mod.manifest.icon) {
+export function getModIcon(mod: modloader.Mod, res: '24'): string {
+  if (!mod.manifest.icons) {
     return '';
   }
-  const iconPath = mod.manifest.icon[res];
+  const iconPath = mod.manifest.icons[res];
   if (!iconPath) {
     return '';
   }
 
-  return '/' + mod.resolvePath(iconPath);
+  return `/${mod.resolvePath(iconPath)}`;
 }
 
 export function addEnumMember<N extends string>(enumObj: { [k in N]: number }, name: N): number {
