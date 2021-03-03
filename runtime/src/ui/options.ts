@@ -100,7 +100,7 @@ ig.module('ccloader-runtime.ui.options')
         this.rows
           .filter((e: any) => e.option?.type === 'MOD')
           .forEach((mod: any) => {
-            mod.setPos(11, 48);
+            mod.setPos(11, mod.hook.pos.y);
           });
       },
     });
