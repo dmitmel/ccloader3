@@ -94,27 +94,30 @@ ig.module('ccloader-runtime.ui.options')
       },
     });
 
+    sc.OptionsTabBox.inject(<{[key: string] : any}>{
+      _createOptionList: function() {
+        this.parent(...arguments);
+        this.rows.filter((e: any) => e.option?.type === "MOD").forEach((mod: any) => {
+          mod.setPos(11, 48);
+        });
+      }
+    });
+
     sc.OptionRow.inject(<{[key: string] : any}>{
       icon: null, 
       // @ts-ignore
       init: function(optionName, b, d, g, h, i) {
-        
+
         if (sc.OPTIONS_DEFINITION[optionName].type === "MOD") {
           this.parent(optionName,b,d,g, h, 28);
-          this.nameGui.setPos(34, 5);
+          this.nameGui.setPos(27, 6);
           const img: any = new ig.Image("icon.png");
           img.addLoadListener({
             onLoadableComplete: function() {
               // @ts-ignore
               const icon = this.icon = new ig.ImageGui(img,0,0, 24, 24);
               icon.setAlign(ig.GUI_ALIGN.X_LEFT, ig.GUI_ALIGN.Y_BOTTOM);
-              let x = (24 - Math.min(24, img.width))/2;
-              let y = (24 - Math.min(24, img.height));
-              if (y < 5) {
-                y += 5;
-              }
-
-              icon.setPos(x,y);
+              icon.setPos(0, 5);
               // @ts-ignore
               this.addChildGui(icon);
             }.bind(this)
