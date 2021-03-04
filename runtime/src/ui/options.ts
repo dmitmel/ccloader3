@@ -3,7 +3,6 @@
 import * as utils from './utils.js';
 import * as consoleM from '../../../common/dist/console.js';
 import * as resources from '../resources.js';
-import * as unknown from '../../../common/vendor-libs/semver.js';
 
 const LOG_LEVEL_OPTION_IDS: consoleM.LogLevelsDict<string> = {
   LOG: 'logLevel-log',
@@ -105,11 +104,27 @@ ig.module('ccloader-runtime.ui.options')
     const defaultModIcon =  new ig.ImageGui(new ig.Image('media/gui/menu.png'), 536, 160, 23, 23);
     sc.OptionRow.inject({
       init(option: string, row: number, rowGroup: sc.RowButtonGroup, local?: boolean | undefined, width?: number | undefined, height?: number | undefined) {
+        this.parent(option, row, rowGroup, local, width, height);
+        if ((this.option.type === 'CHECKBOX' || this.option.type === 'MOD') && this.option.checkboxRightAlign) {
+          const typeGui = this.typeGui as sc.OPTION_GUIS_DEFS.CHECKBOX;
+					typeGui.button.hook.align.x = ig.GUI_ALIGN.X_RIGHT;
+					const additionalWidth = typeGui.hook.size.x - typeGui.button.hook.size.x;
+					const lineHook = this.hook.children[1];
+					const slopeHook = this.hook.children[2];
+					lineHook.size.x += additionalWidth;
+					slopeHook.pos.x += additionalWidth;
+				}
+
+      }
+    });
+
+    sc.OptionRow.inject({
+      init(option: string, row: number, rowGroup: sc.RowButtonGroup, local?: boolean | undefined, width?: number | undefined, height?: number | undefined) {
         if (sc.OPTIONS_DEFINITION[option].type !== 'MOD') {
           this.parent(option, row, rowGroup, local, width, height);
           return;
         }
-        this.parent(option, row, rowGroup, local, width, 28);
+        this.parent(option, row, rowGroup, local, (width || 400) - 24, 28);
         this.nameGui.setPos(27, 6);
         const iconPath = ig.lang.get(`sc.gui.options.${option}.icon`);
         if (iconPath) {
