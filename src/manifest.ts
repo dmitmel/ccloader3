@@ -92,7 +92,7 @@ export class Validator {
 
       this.assertLocalizedString(['title'], data.title, true);
       this.assertLocalizedString(['description'], data.description, true);
-      this.assertIcon(['icon'], data.icon);
+      this.assertIcon(['icons'], data.icons);
       this.assertType(['license'], data.license, [Type.string], true);
       this.assertLocalizedString(['homepage'], data.homepage, true);
       this.assertKeywords(['keywords'], data.keywords);
@@ -125,7 +125,7 @@ export class Validator {
 
       this.assertType(['ccmodHumanName'], data.ccmodHumanName, [Type.string], true);
       this.assertType(['description'], data.description, [Type.string], true);
-      this.assertIcon(['icon'], data.icon);
+      this.assertIcon(['icons'], data.icons);
       this.assertType(['license'], data.license, [Type.string], true);
       this.assertType(['homepage'], data.homepage, [Type.string], true);
 
@@ -149,10 +149,10 @@ export class Validator {
     }
   }
 
-  assertIcon(valuePath: JsonPath, value: ModIcon | undefined) {
+  public assertIcon(valuePath: JsonPath, value: ModIcon | undefined) : void {
     let assertion = this.assertType(valuePath, value, [Type.object], true);
     if (assertion.status !== 'ok') return;
-    this.assertType([...valuePath, '24x24'], '24x24', [Type.string], true);
+    this.assertType([...valuePath, '24'], '24', [Type.string], true);
   }
 
   private assertType(
@@ -280,7 +280,7 @@ export function convertFromLegacy(data: LegacyManifest): Manifest {
 
     title: data.ccmodHumanName,
     description: data.description,
-    icon: data.icon,
+    icons: data.icons,
     homepage: data.homepage,
 
     dependencies: data.ccmodDependencies ?? data.dependencies,
