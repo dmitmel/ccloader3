@@ -149,7 +149,7 @@ export class Validator {
     }
   }
 
-  public assertIcon(valuePath: JsonPath, value: ModIcon | undefined) : void {
+  public assertIcon(valuePath: JsonPath, value: ModIcon | undefined): void {
     let assertion = this.assertType(valuePath, value, [Type.object], true);
     if (assertion.status !== 'ok') return;
     this.assertType([...valuePath, '24'], '24', [Type.string], true);
