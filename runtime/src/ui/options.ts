@@ -58,17 +58,37 @@ ig.module('ccloader-runtime.ui.options')
       type: 'INFO',
       cat: sc.OPTION_CATEGORY.MODS,
       data: 'options.mods-description.description',
-      marginBottom: 6,
+      marginBottom: 10,
     };
 
     for (let mod of INSTALLED_MODS) {
-      sc.OPTIONS_DEFINITION[`${MOD_ENABLED_OPTION_ID_PREFIX}${mod.id}`] = {
+      let definition: sc.OptionDefinitionCommon & sc.OptionDefinition.CHECKBOX = {
         type: 'CHECKBOX',
         cat: sc.OPTION_CATEGORY.MODS,
         init: true,
         restart: true,
         checkboxRightAlign: true,
       };
+
+      let modIconPath: string | undefined = mod.manifest.icons?.['24'];
+      definition.icon =
+        modIconPath != null
+          ? {
+              path: `/${mod.resolvePath(modIconPath)}`,
+              offsetX: 0,
+              offsetY: 0,
+              sizeX: 24,
+              sizeY: 24,
+            }
+          : {
+              path: 'media/gui/menu.png',
+              offsetX: 536,
+              offsetY: 160,
+              sizeX: 23,
+              sizeY: 23,
+            };
+
+      sc.OPTIONS_DEFINITION[`${MOD_ENABLED_OPTION_ID_PREFIX}${mod.id}`] = definition;
     }
 
     const MODS_TAB_ID = 'mods' as const;

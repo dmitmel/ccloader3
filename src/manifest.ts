@@ -7,6 +7,7 @@ import {
   ModDependencies,
   ModDependency,
   ModDependencyDetails,
+  ModIcons,
   Person,
   PersonDetails,
 } from 'ultimate-crosscode-typedefs/file-types/mod-manifest';
@@ -94,6 +95,7 @@ export class Validator {
       this.assertType(['license'], data.license, [Type.string], true);
       this.assertLocalizedString(['homepage'], data.homepage, true);
       this.assertKeywords(['keywords'], data.keywords);
+      this.assertModIcons(['icons'], data.icons);
 
       this.assertPeople(['authors'], data.authors);
 
@@ -125,6 +127,7 @@ export class Validator {
       this.assertType(['description'], data.description, [Type.string], true);
       this.assertType(['license'], data.license, [Type.string], true);
       this.assertType(['homepage'], data.homepage, [Type.string], true);
+      this.assertModIcons(['icons'], data.icons);
 
       if (data.ccmodDependencies !== undefined) {
         this.assertDependencies(['ccmodDependencies'], data.ccmodDependencies, true);
@@ -261,6 +264,17 @@ export class Validator {
       this.assertType([...valuePath, index], value2, [Type.string]);
     }
   }
+
+  private assertModIcons(valuePath: JsonPath, value: ModIcons | undefined): void {
+    let assertion = this.assertType(valuePath, value, [Type.object], true);
+    if (assertion.status !== 'ok') return;
+    value = value!;
+
+    this.assertType([...valuePath, '24'], '24', [Type.string], true);
+    for (let [key, value2] of Object.entries(value)) {
+      this.assertType([...valuePath, key], value2, [Type.string]);
+    }
+  }
 }
 
 export function convertFromLegacy(data: LegacyManifest): Manifest {
@@ -272,6 +286,7 @@ export function convertFromLegacy(data: LegacyManifest): Manifest {
     title: data.ccmodHumanName,
     description: data.description,
     homepage: data.homepage,
+    icons: data.icons,
 
     dependencies: data.ccmodDependencies ?? data.dependencies,
 
