@@ -24,7 +24,6 @@ resources.jsonPatches.add('data/lang/sc/gui.en_US.json', (data: any) => {
   for (let mod of INSTALLED_MODS) {
     options[`modEnabled-${mod.id}`] = {
       name: utils.getModTitle(mod) || ' ',
-      icon: utils.getModIcon(mod, '24'),
       description: utils.getLocalizedString(mod.manifest.description) || ' ',
     };
   }
@@ -68,11 +67,14 @@ ig.module('ccloader-runtime.ui.options')
         cat: sc.OPTION_CATEGORY.MODS,
         init: true,
         restart: true,
+        data:{
+          iconPath: utils.getModIcon(mod, '24')
+        },
         checkboxRightAlign: true,
       };
     }
 
-    (sc.OPTION_TYPES as { MOD: number }).MOD = Object.entries(sc.OPTION_TYPES).length;
+    utils.addEnumMember(sc.OPTION_TYPES, 'MOD');
     sc.OPTION_GUIS[sc.OPTION_TYPES.MOD] = sc.OPTION_GUIS[sc.OPTION_TYPES.CHECKBOX];
 
     const MODS_TAB_ID = 'mods' as const;
@@ -101,7 +103,6 @@ ig.module('ccloader-runtime.ui.options')
       },
     });
 
-    const defaultModIcon = new ig.ImageGui(new ig.Image('media/gui/menu.png'), 536, 160, 23, 23);
     sc.OptionRow.inject({
       init(
         option: string,
@@ -142,29 +143,25 @@ ig.module('ccloader-runtime.ui.options')
         }
         this.parent(option, row, rowGroup, local, (width || 400) - 24, 28);
         this.nameGui.setPos(27, 6);
-        const iconPath = ig.lang.get(`sc.gui.options.${option}.icon`);
-        if (iconPath) {
-          const img: ig.Image = new ig.Image(iconPath);
-          img.addLoadListener({
-            onLoadableComplete: (success: boolean) => {
-              let icon;
-              if (success) {
-                icon = new ig.ImageGui(img, 0, 0, 24, 24);
-              } else {
-                icon = defaultModIcon;
-              }
-              icon.setAlign(ig.GUI_ALIGN.X_LEFT, ig.GUI_ALIGN.Y_BOTTOM);
-              icon.setPos(0, 5);
 
-              this.addChildGui(icon);
-            },
-          });
-        } else {
-          const icon = defaultModIcon;
-          icon.setAlign(ig.GUI_ALIGN.X_LEFT, ig.GUI_ALIGN.Y_BOTTOM);
-          icon.setPos(0, 5);
-          this.addChildGui(icon);
-        }
+        const defaultIcon = new ig.ImageGui(new ig.Image('media/gui/menu.png'), 536, 160, 23, 23);
+        defaultIcon.setAlign(ig.GUI_ALIGN.X_LEFT, ig.GUI_ALIGN.Y_BOTTOM);
+        defaultIcon.setPos(0, 5);
+        this.addChildGui(defaultIcon);
+
+        const img = new ig.Image((sc.OPTIONS_DEFINITION[option] as sc.OptionDefinition.MOD).data.iconPath);
+        img.addLoadListener({
+          onLoadableComplete: (success) => {
+            if (success) {
+              this.removeChildGui(defaultIcon);
+              const customIcon = new ig.ImageGui(img, 0,0,24,24);
+              customIcon.setAlign(ig.GUI_ALIGN.X_LEFT, ig.GUI_ALIGN.Y_BOTTOM);
+              customIcon.setPos(0, 5);
+              this.addChildGui(customIcon);
+            }
+          } 
+        });
+        
       },
     });
 
