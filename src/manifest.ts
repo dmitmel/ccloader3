@@ -270,7 +270,6 @@ export class Validator {
     if (assertion.status !== 'ok') return;
     value = value!;
 
-    this.assertType([...valuePath, '24'], '24', [Type.string], true);
     for (let [key, value2] of Object.entries(value)) {
       this.assertType([...valuePath, key], value2, [Type.string]);
     }
