@@ -81,6 +81,7 @@ ig.module('ccloader-runtime.ui.options')
               sizeY: 24,
             }
           : {
+              // Coordinates were taken from `sc.QuickMenuAnalysisCursor#updateDrawables`
               path: 'media/gui/menu.png',
               offsetX: 536,
               offsetY: 160,
