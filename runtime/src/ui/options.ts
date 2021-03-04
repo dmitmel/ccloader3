@@ -25,7 +25,7 @@ resources.jsonPatches.add('data/lang/sc/gui.en_US.json', (data: any) => {
   for (let mod of INSTALLED_MODS) {
     options[`modEnabled-${mod.id}`] = {
       name: utils.getModTitle(mod) || ' ',
-      icon: utils.getModIcon(mod, '24x24'),
+      icon: utils.getModIcon(mod, '24'),
       description: utils.getLocalizedString(mod.manifest.description) || ' ',
     };
   }
@@ -72,12 +72,9 @@ ig.module('ccloader-runtime.ui.options')
         checkboxRightAlign: true,
       };
     }
-
-    // @ts-ignore
-    sc.OPTION_TYPES.MOD = 7;
-
-    // @ts-ignore
-    sc.OPTION_GUIS[sc.OPTION_TYPES.MOD] = sc.OPTION_GUIS[sc.OPTION_TYPES.CHECKBOX].extend({});
+  
+    (sc.OPTION_TYPES as {MOD: number}).MOD = Object.entries(sc.OPTION_TYPES).length;
+    sc.OPTION_GUIS[sc.OPTION_TYPES.MOD] = sc.OPTION_GUIS[sc.OPTION_TYPES.CHECKBOX];
 
     const MODS_TAB_ID = 'mods' as const;
     sc.fontsystem.font.pushIconSet(
@@ -94,52 +91,48 @@ ig.module('ccloader-runtime.ui.options')
       },
     });
 
-    sc.OptionsTabBox.inject(<{ [key: string]: any }>{
-      _createOptionList: function () {
-        this.parent(...arguments);
-        this.rows
-          .filter((e: any) => e.option?.type === 'MOD')
-          .forEach((mod: any) => {
+    sc.OptionsTabBox.inject({
+      _createOptionList(category: sc.OPTION_CATEGORY) {
+        this.parent(category);
+        for (const mod of this.rows) {
+          if (mod instanceof sc.OptionRow && mod.option.type === 'MOD') {
             mod.setPos(11, mod.hook.pos.y);
-          });
+          }
+        }
       },
     });
 
-    sc.OptionRow.inject(<{ [key: string]: any }>{
-      icon: null,
-      defaultIcon: new ig.ImageGui(new ig.Image('media/gui/menu.png'), 536, 160, 23, 23),
-      // @ts-ignore
-      init: function (optionName, row, rowButtonGroup, isLocal, width, height) {
-        if (sc.OPTIONS_DEFINITION[optionName].type !== 'MOD') {
-          return this.parent(...arguments);
+    const defaultModIcon =  new ig.ImageGui(new ig.Image('media/gui/menu.png'), 536, 160, 23, 23);
+    sc.OptionRow.inject({
+      init(option: string, row: number, rowGroup: sc.RowButtonGroup, local?: boolean | undefined, width?: number | undefined, height?: number | undefined) {
+        if (sc.OPTIONS_DEFINITION[option].type !== 'MOD') {
+          this.parent(option, row, rowGroup, local, width, height);
+          return;
         }
-        this.parent(optionName, row, rowButtonGroup, isLocal, width, 28);
+        this.parent(option, row, rowGroup, local, width, 28);
         this.nameGui.setPos(27, 6);
-        const iconPath = ig.lang.get('sc.gui.options.' + optionName + '.icon');
+        const iconPath = ig.lang.get(`sc.gui.options.${option}.icon`);
         if (iconPath) {
-          const img: any = new ig.Image(iconPath);
+          const img: ig.Image = new ig.Image(iconPath);
           img.addLoadListener({
-            onLoadableComplete: function (success: boolean) {
+            onLoadableComplete: (success: boolean)  => {
               let icon;
               if (success) {
-                // @ts-ignore
-                icon = this.icon = new ig.ImageGui(img, 0, 0, 24, 24);
+                icon = new ig.ImageGui(img, 0, 0, 24, 24);
               } else {
-                // @ts-ignore
-                icon = this.icon = this.defaultIcon;
+                icon = defaultModIcon;
               }
               icon.setAlign(ig.GUI_ALIGN.X_LEFT, ig.GUI_ALIGN.Y_BOTTOM);
               icon.setPos(0, 5);
-              // @ts-ignore
+
               this.addChildGui(icon);
-            }.bind(this),
+            },
           });
         } else {
-          // @ts-ignore
-          this.icon = this.defaultIcon;
-          this.icon.setAlign(ig.GUI_ALIGN.X_LEFT, ig.GUI_ALIGN.Y_BOTTOM);
-          this.icon.setPos(0, 5);
-          this.addChildGui(this.icon);
+          const icon = defaultModIcon;
+          icon.setAlign(ig.GUI_ALIGN.X_LEFT, ig.GUI_ALIGN.Y_BOTTOM);
+          icon.setPos(0, 5);
+          this.addChildGui(icon);
         }
       },
     });
