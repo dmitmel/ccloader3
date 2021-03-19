@@ -104,7 +104,7 @@ export class Validator {
       this.assertAssets(['assets'], data.assets);
       this.assertType(['assetsDir'], data.assetsDir, [Type.string], true);
 
-      this.assertType(['main'], data.main, [Type.string], true);
+      this.assertType(['plugin'], data.plugin, [Type.string], true);
       this.assertType(['preload'], data.preload, [Type.string], true);
       this.assertType(['postload'], data.postload, [Type.string], true);
       this.assertType(['prestart'], data.prestart, [Type.string], true);
@@ -291,7 +291,7 @@ export function convertFromLegacy(data: LegacyManifest): Manifest {
 
     assets: data.assets?.map((path) => (path.startsWith('assets/') ? path.slice(7) : path)),
 
-    main: data.plugin,
+    plugin: data.plugin,
     preload: data.preload,
     postload: data.postload,
     prestart: data.prestart,

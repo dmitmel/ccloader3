@@ -127,8 +127,8 @@ export async function boot(): Promise<void> {
   console.log('beginning the game boot sequence...');
   await game.buildNecessaryDOM(config);
 
-  await initModClasses(loadedMods);
-  console.log('mod main classes created!');
+  await initModPluginClasses(loadedMods);
+  console.log('mod plugin classes created!');
 
   console.log("stage 'preload' reached!");
   await executeStage(loadedMods, 'preload');
@@ -136,7 +136,7 @@ export async function boot(): Promise<void> {
   console.log('running the main game script...');
   let domReadyCallback = await game.loadMainScript(
     config,
-    runtimeMod.mainClassInstance as import('../runtime/src/_main').default,
+    runtimeMod.pluginClassInstance as import('../runtime/src/_main').default,
   );
 
   console.log("stage 'postload' reached!");
@@ -245,7 +245,7 @@ async function loadModMetadata(baseDirectory: string): Promise<Mod | null> {
   return new Mod(baseDirectory, manifestData, legacyMode);
 }
 
-async function initModClasses(mods: ReadonlyModsMap): Promise<void> {
+async function initModPluginClasses(mods: ReadonlyModsMap): Promise<void> {
   for (let mod of mods.values()) {
     try {
       await mod.initClass();

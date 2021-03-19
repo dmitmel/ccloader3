@@ -5,11 +5,11 @@ import * as filesDesktop from './files.desktop.js';
 import { Manifest } from 'ultimate-crosscode-typedefs/file-types/mod-manifest';
 import {
   Dependency,
-  LegacyMainClass,
+  LegacyPluginClass,
   LoadingStage,
-  MainClass,
   ModID,
   Mod as ModPublic,
+  PluginClass,
 } from 'ultimate-crosscode-typedefs/modloader/mod';
 
 export class Mod implements ModPublic {
@@ -18,7 +18,7 @@ export class Mod implements ModPublic {
   public readonly dependencies: ReadonlyMap<ModID, Dependency>;
   public readonly assetsDirectory: string;
   public assets: Set<string> = new Set();
-  public mainClassInstance: MainClass | null = null;
+  public pluginClassInstance: PluginClass | null = null;
 
   public constructor(
     public readonly baseDirectory: string,
@@ -80,11 +80,11 @@ export class Mod implements ModPublic {
   }
 
   public async initClass(): Promise<void> {
-    let script = this.manifest.main;
+    let script = this.manifest.plugin;
     if (script == null) return;
     let scriptFullPath = this.resolvePath(script);
 
-    let module: { default: new (mod: ModPublic) => MainClass };
+    let module: { default: new (mod: ModPublic) => PluginClass };
     try {
       module = await import(utils.cwdFilePathToURL(scriptFullPath).href);
     } catch (err) {
@@ -98,19 +98,19 @@ export class Mod implements ModPublic {
       throw new Error(`Module '${scriptFullPath}' has no default export`);
     }
 
-    let ModMainClass = module.default;
-    this.mainClassInstance = new ModMainClass(this);
+    let ModPluginClass = module.default;
+    this.pluginClassInstance = new ModPluginClass(this);
   }
 
   public async executeStage(stage: LoadingStage): Promise<void> {
-    let mainCls = this.mainClassInstance;
-    if (mainCls != null) {
+    let pluginCls = this.pluginClassInstance;
+    if (pluginCls != null) {
       if (!this.legacyMode) {
-        if (stage in mainCls) await mainCls[stage]!(this);
+        if (stage in pluginCls) await pluginCls[stage]!(this);
       } else {
-        let legacyMainCls = mainCls as LegacyMainClass;
-        let methodName: keyof LegacyMainClass = stage === 'poststart' ? 'main' : stage;
-        if (methodName in legacyMainCls) await legacyMainCls[methodName]!();
+        let legacyPluginCls = pluginCls as LegacyPluginClass;
+        let methodName: keyof LegacyPluginClass = stage === 'poststart' ? 'main' : stage;
+        if (methodName in legacyPluginCls) await legacyPluginCls[methodName]!();
       }
     }
 

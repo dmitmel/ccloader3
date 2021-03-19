@@ -14,7 +14,7 @@ import './resources-injections.js';
 import './lang-file-patcher.js';
 import './greenworks-fix.js';
 
-export default class RuntimeModMainClass implements modloader.Mod.MainClass {
+export default class RuntimeModMainClass implements modloader.Mod.PluginClass {
   public constructor(mod: modloader.Mod) {
     if (window.ccmod == null) window.ccmod = {} as typeof ccmod;
     Object.assign<typeof ccmod, Partial<typeof ccmod>>(window.ccmod, {
