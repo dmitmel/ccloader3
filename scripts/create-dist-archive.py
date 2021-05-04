@@ -38,6 +38,7 @@ PACKAGE_JSON_DATA = {
   "chromium-args":
     " ".join([
       "--ignore-gpu-blacklist",
+      "--ignore-gpu-blocklist",
       "--disable-direct-composition",
       "--disable-background-networking",
       "--in-process-gpu",
