@@ -170,7 +170,9 @@ async function loadModloaderMetadata(): Promise<{
 async function loadAllModMetadataInDir(modsDir: string, installedMods: ModsMap): Promise<number> {
   let count = 0;
   await Promise.all(
-    (await files.getModDirectoriesIn(modsDir)).map(async (fullPath) => {
+    (
+      await files.getModDirectoriesIn(modsDir)
+    ).map(async (fullPath) => {
       try {
         let mod = await loadModMetadata(fullPath);
         if (mod == null) return;

@@ -144,7 +144,7 @@ impactModuleHooks.add('impact.base.sound', () => {
   function loadAudio<
     Ret,
     Args extends [string, ...unknown[]],
-    This extends { parent(this: This, ...args: Args): Ret }
+    This extends { parent(this: This, ...args: Args): Ret },
   >(this: This, ...args: Args): Ret {
     let path = args[0];
 

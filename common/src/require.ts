@@ -78,7 +78,7 @@ if (typeof require === 'function') {
       Error.prepareStackTrace = function (_err, stack2) {
         return stack2;
       };
-      stack = (err.stack as unknown) as NodeJS.CallSite[];
+      stack = err.stack as unknown as NodeJS.CallSite[];
     } finally {
       Error.prepareStackTrace = originalPrepareStackTrace;
     }

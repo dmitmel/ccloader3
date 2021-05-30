@@ -36,13 +36,14 @@ export class PatchList<P> implements PatchListPublic<P> {
 
 export class ResourcePatchList<Data, Ctx>
   extends PatchList<ResourcePatcherWithDeps<Data, unknown, Ctx>>
-  implements ResourcePatchListPublic<Data, Ctx> {
+  implements ResourcePatchListPublic<Data, Ctx>
+{
   public add<Data2 extends Data = Data, Deps = never>(
     path: string | RegExp,
     patcher: ResourcePatcherSimple<Data2, Deps, Ctx> | ResourcePatcherWithDeps<Data2, Deps, Ctx>,
   ): void {
     if (typeof patcher === 'function') patcher = { patcher };
-    super.add(path, (patcher as unknown) as ResourcePatcherWithDeps<Data, unknown, Ctx>);
+    super.add(path, patcher as unknown as ResourcePatcherWithDeps<Data, unknown, Ctx>);
   }
 }
 
