@@ -1,6 +1,6 @@
 import * as utils from '../common/dist/utils.js';
 import * as files from './files.js';
-import * as semver from '../common/vendor-libs/semver.js';
+import semver from '../common/vendor-libs/semver.js';
 
 export interface Config {
   gameAssetsDir: string;

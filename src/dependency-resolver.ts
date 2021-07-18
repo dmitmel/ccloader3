@@ -1,6 +1,6 @@
 import { Mod } from './mod.js';
 import * as utils from '../common/dist/utils.js';
-import * as semver from '../common/vendor-libs/semver.js';
+import semver from '../common/vendor-libs/semver.js';
 import * as modDataStorage from './mod-data-storage.js';
 import { Dependency, ModID } from 'ultimate-crosscode-typedefs/modloader/mod';
 

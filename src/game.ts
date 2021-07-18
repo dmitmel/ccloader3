@@ -1,5 +1,5 @@
 import * as resources from '../common/dist/resources.js';
-import * as semver from '../common/vendor-libs/semver.js';
+import semver from '../common/vendor-libs/semver.js';
 import * as files from './files.js';
 import { ChangelogFileData } from 'ultimate-crosscode-typedefs/file-types/changelog';
 import { Config } from './config.js';
