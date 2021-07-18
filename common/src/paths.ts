@@ -143,7 +143,7 @@ export function isAbsolute(path: string): boolean {
 // equivalent to relative('/', path)
 export function stripRoot(path: string): string {
   validateString(path, 'path');
-  if (path.length > 0 && path.charCodeAt(0) === CHAR_FORWARD_SLASH) {
+  while (path.length > 0 && path.charCodeAt(0) === CHAR_FORWARD_SLASH) {
     path = path.slice(1);
   }
   return path;
