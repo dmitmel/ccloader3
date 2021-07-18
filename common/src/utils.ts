@@ -78,12 +78,29 @@ export function mapGetOrInsert<K, V>(map: Map<K, V>, key: K, defaultValue: V): V
 
 export function cwdFilePathToURL(path: string, base: string = document.baseURI): URL {
   let url = new URL(base);
+  // Implicitly percent-encodes and doesn't trim path on the ends.
   url.pathname = path;
   return url;
 }
 
 export function cwdFilePathFromURL(url: URL): string {
-  return paths.stripRoot(decodeURI(url.pathname));
+  // Why use decodeURIComponent here instead of decodeURI, you might ask? You
+  // see, the crucial difference between the two is that decodeURIComponent
+  // decodes every percent-encoded character without exceptions, while
+  // decodeURI, as the ES262 specification says, does not decode "escape
+  // sequences that could not have been introduced by encodeURI", which, in
+  // practice, means that it doesn't decode percent-encodings of these
+  // characters: ;/?:@&=+$,# . Now, how is this behavior useful in practice?
+  // Perhaps the intended usecase is to make URLs look nicer by decoding stuff
+  // like Unicode characters, yet preserving the validity and meaning of the
+  // original URL. But it may lead to obscure bugs in handling file paths
+  // because, albeit seldom used, all of the mentioned characters, with the
+  // exception of slash, are valid in filenames on UNIX, and, except colon and
+  // question mark, the rest is also valid on Windows, and so those characters
+  // will be kept undecoded. Here are some specification links:
+  // <https://tc39.es/ecma262/multipage/global-object.html#sec-decodeuri-encodeduri>
+  // <https://tc39.es/ecma262/multipage/global-object.html#sec-decodeuricomponent-encodeduricomponent>
+  return paths.stripRoot(decodeURIComponent(url.pathname));
 }
 
 export function html<K extends keyof HTMLElementTagNameMap>(

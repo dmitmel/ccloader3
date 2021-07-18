@@ -18,7 +18,7 @@ impactInitHooks.add(() => {
       if (!url.startsWith(resources.MOD_PROTOCOL_PREFIX)) {
         let gameAssetsURL = resources.getGameAssetsURL().href;
 
-        let parsedURL = new URL(encodeURI(url), document.baseURI).href;
+        let parsedURL = new URL(url, document.baseURI).href;
         if (!parsedURL.startsWith(gameAssetsURL)) {
           return true;
         }
@@ -105,6 +105,10 @@ impactModuleHooks.add('impact.base.image', () => {
       // encodes URIs before requesting and there are no instances of leading
       // whitespace because `ig.root` is not empty in the development version.
       path = path.trimRight();
+      // NOTE: Strictly speaking, Impact's file forwarding must be applied
+      // first, before trimming, as in the game, but I'm not sure if this will
+      // break anything because the current behavior certainly haven't so far,
+      // so TODO: test this and restore the correct order.
       path = applyImpactFileForwarding(path);
       resources.loadImage(path, { callerThisValue: this }).then(
         (img) => {
