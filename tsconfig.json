@@ -2,7 +2,8 @@
   "include": [
     "src",
     "node_modules/ultimate-crosscode-typedefs/nw.d.ts",
-    "node_modules/ultimate-crosscode-typedefs/modloader.d.ts"
+    "node_modules/ultimate-crosscode-typedefs/modloader.d.ts",
+    "common/vender-libs/node-stream-zip/node_stream_zip.d.ts"
   ],
   "compilerOptions": {
     "outDir": "dist",

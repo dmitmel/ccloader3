@@ -46,3 +46,15 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
 
   return index.map((modDirPath) => paths.join(dir, modDirPath));
 }
+
+export function getModArchivesIn(_: string): Promise<string[]> {
+  return Promise.resolve([]);
+}
+
+export function deleteFile(): Promise<void> {
+  throw Error('Can not delete a file!');
+}
+
+export function mkdir(): Promise<void> {
+  throw Error('Can not make directory!');
+}
