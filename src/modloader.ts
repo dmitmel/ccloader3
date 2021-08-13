@@ -10,6 +10,8 @@ import * as modDataStorage from './mod-data-storage.js';
 import { LegacyManifest, Manifest } from 'ultimate-crosscode-typedefs/file-types/mod-manifest';
 import { LoadingStage, ModID } from 'ultimate-crosscode-typedefs/modloader/mod';
 import * as consoleM from '../common/dist/console.js';
+import * as zip from './zip';
+
 
 type ModsMap = Map<ModID, Mod>;
 type ReadonlyModsMap = ReadonlyMap<ModID, Mod>;
@@ -55,6 +57,9 @@ export async function boot(): Promise<void> {
   let installedMods = new Map<ModID, Mod>();
   installedMods.set(runtimeMod.id, runtimeMod);
   for (let dir of config.modsDirs) {
+    // find and extract all ccmod files in 
+    await extractAllModArchives(dir);
+    
     let count = await loadAllModMetadataInDir(dir, installedMods);
     console.log(`found ${count} mods in '${dir}'`);
   }
@@ -266,3 +271,21 @@ async function executeStage(mods: ReadonlyModsMap, stage: LoadingStage): Promise
     }
   }
 }
+
+async function extractAllModArchives(dir: string): Promise<void> {
+  const modArchives = await files.getModArchivesIn(dir);
+  for (const modArchive of modArchives) {
+    const archivePath = `${dir}/${modArchive}.ccmod`;
+    // generate unique file path
+    let targetPath = `${dir}/${modArchive}/`;
+    for(let i = 0; await files.exists(targetPath); i++) {
+      targetPath = `${dir}/${modArchive}${i}/`
+    }
+    await files.mkdir(targetPath);
+    // extract it there
+    await zip.extract(archivePath, targetPath);
+    // delete it after successful extraction
+    await files.deleteFile(archivePath);
+  }
+}
+

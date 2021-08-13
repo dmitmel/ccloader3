@@ -6,6 +6,10 @@ export async function loadText(path: string): Promise<string> {
   return fs.readFile(path, 'utf8');
 }
 
+export async function loadBinary(path: string): Promise<Buffer|ArrayBuffer> {
+  return fs.readFile(path);
+}
+
 export async function exists(path: string): Promise<boolean> {
   try {
     await fs.access(path);
@@ -50,21 +54,41 @@ async function findRecursivelyInternal(
   );
 }
 
-export async function getModDirectoriesIn(dir: string): Promise<string[]> {
-  if (dir.endsWith('/')) dir = dir.slice(0, -1);
-
-  let allContents: string[];
-
+async function getAllFilesInDirectory(dir: string): Promise<string[]> {
+  let allFiles: string[] = [];
   try {
-    allContents = await fs.readdir(dir);
+    allFiles = await fs.readdir(dir);
   } catch (err) {
     if (utils.errorHasCode(err) && err.code === 'ENOENT') {
       console.warn(`Directory '${dir}' not found, did you forget to create it?`);
-      return [];
     } else {
       throw err;
     }
   }
+  return allFiles;
+}
+
+export async function getModArchivesIn(dir: string): Promise<string[]> {
+  const files = await getAllFilesInDirectory(dir);
+  const modArchives: string[] = [];
+  await Promise.all(
+    files.map(async (name) => {
+      let fullPath = `${dir}/${name}`;
+
+      let stat = await fs.stat(fullPath);
+      const extension = '.ccmod';
+      if (!stat.isDirectory() && name.endsWith(extension)) {
+        modArchives.push(name.slice(0, -extension.length));
+      }
+    })
+  );
+  return modArchives;
+}
+
+export async function getModDirectoriesIn(dir: string): Promise<string[]> {
+  if (dir.endsWith('/')) dir = dir.slice(0, -1);
+
+  let allContents: string[] = await getAllFilesInDirectory(dir);
 
   let modDirectories: string[] = [];
 
@@ -79,4 +103,18 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
   );
 
   return modDirectories;
+}
+
+
+export async function createFile(filePath: string, data: Uint8Array): Promise<void> {
+  await fs.writeFile(filePath, data);
+}
+
+export async function deleteFile(filePath: string): Promise<void> {
+  await fs.unlink(filePath);
+}
+
+
+export async function mkdir(dir: string): Promise<void> {
+  await fs.mkdir(dir);
 }
