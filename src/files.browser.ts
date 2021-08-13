@@ -14,19 +14,6 @@ export async function loadText(path: string): Promise<string> {
   }
 }
 
-export async function loadBinary(path: string): Promise<Buffer | ArrayBuffer> {
-  try {
-    let res = await fetch(utils.cwdFilePathToURL(path).href);
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    return await res.arrayBuffer();
-  } catch (err) {
-    if (utils.errorHasMessage(err)) {
-      err.message = `Failed to load file '${path}': ${err.message}`;
-    }
-    throw err;
-  }
-}
-
 export async function exists(path: string): Promise<boolean> {
   try {
     let res = await fetch(utils.cwdFilePathToURL(path).href, { method: 'HEAD' });
@@ -62,10 +49,6 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
 
 export function getModArchivesIn(_: string): Promise<string[]> {
   return Promise.resolve([]);
-}
-
-export function createFile(): Promise<void> {
-  throw Error('Can not create a file!');
 }
 
 export function deleteFile(): Promise<void> {

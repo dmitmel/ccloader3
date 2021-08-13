@@ -6,10 +6,6 @@ export async function loadText(path: string): Promise<string> {
   return fs.readFile(path, 'utf8');
 }
 
-export async function loadBinary(path: string): Promise<Buffer | ArrayBuffer> {
-  return fs.readFile(path);
-}
-
 export async function exists(path: string): Promise<boolean> {
   try {
     await fs.access(path);
@@ -103,10 +99,6 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
   );
 
   return modDirectories;
-}
-
-export async function createFile(filePath: string, data: Uint8Array): Promise<void> {
-  await fs.writeFile(filePath, data);
 }
 
 export async function deleteFile(filePath: string): Promise<void> {

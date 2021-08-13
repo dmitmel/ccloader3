@@ -10,7 +10,7 @@ import * as modDataStorage from './mod-data-storage.js';
 import { LegacyManifest, Manifest } from 'ultimate-crosscode-typedefs/file-types/mod-manifest';
 import { LoadingStage, ModID } from 'ultimate-crosscode-typedefs/modloader/mod';
 import * as consoleM from '../common/dist/console.js';
-import * as zip from './zip.js';
+import StreamZip from '../common/vendor-libs/node-stream-zip/node_stream_zip.js';
 
 type ModsMap = Map<ModID, Mod>;
 type ReadonlyModsMap = ReadonlyMap<ModID, Mod>;
@@ -277,14 +277,19 @@ async function extractAllModArchives(dir: string): Promise<void> {
     const archivePath = `${dir}${modArchive}.ccmod`;
     console.info(`Found "${archivePath}".`);
     // generate unique file path
-    let targetPath = `${dir}${modArchive}/`;
-    for (let i = 0; await files.exists(targetPath); i++) {
-      targetPath = `${dir}${modArchive}${i}/`;
+    let targetDirectory = `${dir}${modArchive}/`;
+    for (let i = 0; await files.exists(targetDirectory); i++) {
+      targetDirectory = `${dir}${modArchive}${i}/`;
     }
-    await files.mkdir(targetPath);
+    await files.mkdir(targetDirectory);
     // extract it there
-    console.info(`Extracting mod archive to "${targetPath}".`);
-    await zip.extract(archivePath, targetPath);
+    console.info(`Extracting mod archive to "${targetDirectory}".`);
+
+    // eslint-disable-next-line new-cap
+    const zip = new StreamZip.async({ file: archivePath });
+    await zip.extract(null, targetDirectory);
+    await zip.close();
+
     // delete it after successful extraction
     await files.deleteFile(archivePath);
   }
