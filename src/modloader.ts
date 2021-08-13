@@ -12,7 +12,6 @@ import { LoadingStage, ModID } from 'ultimate-crosscode-typedefs/modloader/mod';
 import * as consoleM from '../common/dist/console.js';
 import * as zip from './zip.js';
 
-
 type ModsMap = Map<ModID, Mod>;
 type ReadonlyModsMap = ReadonlyMap<ModID, Mod>;
 
@@ -57,9 +56,9 @@ export async function boot(): Promise<void> {
   let installedMods = new Map<ModID, Mod>();
   installedMods.set(runtimeMod.id, runtimeMod);
   for (let dir of config.modsDirs) {
-    // find and extract all ccmod files in 
+    // find and extract all ccmod files in
     await extractAllModArchives(dir);
-    
+
     let count = await loadAllModMetadataInDir(dir, installedMods);
     console.log(`found ${count} mods in '${dir}'`);
   }
@@ -279,8 +278,8 @@ async function extractAllModArchives(dir: string): Promise<void> {
     console.info(`Found "${archivePath}".`);
     // generate unique file path
     let targetPath = `${dir}${modArchive}/`;
-    for(let i = 0; await files.exists(targetPath); i++) {
-      targetPath = `${dir}${modArchive}${i}/`
+    for (let i = 0; await files.exists(targetPath); i++) {
+      targetPath = `${dir}${modArchive}${i}/`;
     }
     await files.mkdir(targetPath);
     // extract it there
@@ -290,4 +289,3 @@ async function extractAllModArchives(dir: string): Promise<void> {
     await files.deleteFile(archivePath);
   }
 }
-

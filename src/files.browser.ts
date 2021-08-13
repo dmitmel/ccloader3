@@ -14,7 +14,7 @@ export async function loadText(path: string): Promise<string> {
   }
 }
 
-export async function loadBinary(path: string): Promise<Buffer|ArrayBuffer> {
+export async function loadBinary(path: string): Promise<Buffer | ArrayBuffer> {
   try {
     let res = await fetch(utils.cwdFilePathToURL(path).href);
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
@@ -60,21 +60,17 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
   return index.map((modDirPath) => paths.join(dir, modDirPath));
 }
 
-
-export function getModArchivesIn(_: string): Promise<string []> {
+export function getModArchivesIn(_: string): Promise<string[]> {
   return Promise.resolve([]);
 }
-
 
 export function createFile(): Promise<void> {
   throw Error('Can not create a file!');
 }
 
-
 export function deleteFile(): Promise<void> {
   throw Error('Can not delete a file!');
 }
-
 
 export function mkdir(): Promise<void> {
   throw Error('Can not make directory!');
