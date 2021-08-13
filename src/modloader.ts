@@ -10,7 +10,7 @@ import * as modDataStorage from './mod-data-storage.js';
 import { LegacyManifest, Manifest } from 'ultimate-crosscode-typedefs/file-types/mod-manifest';
 import { LoadingStage, ModID } from 'ultimate-crosscode-typedefs/modloader/mod';
 import * as consoleM from '../common/dist/console.js';
-import * as zip from './zip';
+import * as zip from './zip.js';
 
 
 type ModsMap = Map<ModID, Mod>;
@@ -275,14 +275,16 @@ async function executeStage(mods: ReadonlyModsMap, stage: LoadingStage): Promise
 async function extractAllModArchives(dir: string): Promise<void> {
   const modArchives = await files.getModArchivesIn(dir);
   for (const modArchive of modArchives) {
-    const archivePath = `${dir}/${modArchive}.ccmod`;
+    const archivePath = `${dir}${modArchive}.ccmod`;
+    console.info(`Found "${archivePath}".`);
     // generate unique file path
-    let targetPath = `${dir}/${modArchive}/`;
+    let targetPath = `${dir}${modArchive}/`;
     for(let i = 0; await files.exists(targetPath); i++) {
-      targetPath = `${dir}/${modArchive}${i}/`
+      targetPath = `${dir}${modArchive}${i}/`
     }
     await files.mkdir(targetPath);
     // extract it there
+    console.info(`Extracting mod archive to "${targetPath}".`);
     await zip.extract(archivePath, targetPath);
     // delete it after successful extraction
     await files.deleteFile(archivePath);
