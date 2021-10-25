@@ -4,7 +4,7 @@
     "node": ">=11.0.0"
   },
   "dependencies": {
-    "jszip": "=3.5.0",
+    "jszip": "=3.7.0",
     "semver": "=6.3.0"
   },
   "devDependencies": {
