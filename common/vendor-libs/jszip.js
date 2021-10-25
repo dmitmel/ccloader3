@@ -965,9 +965,10 @@ var require_utf8 = __commonJS({
     var nodejsUtils = require_nodejsUtils();
     var GenericWorker = require_GenericWorker();
     var _utf8len = new Array(256);
-    for (var i = 0; i < 256; i++) {
+    for (i = 0; i < 256; i++) {
       _utf8len[i] = i >= 252 ? 6 : i >= 248 ? 5 : i >= 240 ? 4 : i >= 224 ? 3 : i >= 192 ? 2 : 1;
     }
+    var i;
     _utf8len[254] = _utf8len[254] = 1;
     var string2buf = function(str) {
       var buf, c, c2, m_pos, i2, str_len = str.length, buf_len = 0;
@@ -1437,29 +1438,6 @@ var require_DataWorker = __commonJS({
   }
 });
 
-// node_modules/jszip/lib/stream/DataLengthProbe.js
-var require_DataLengthProbe = __commonJS({
-  "node_modules/jszip/lib/stream/DataLengthProbe.js"(exports, module) {
-    "use strict";
-    var utils = require_utils();
-    var GenericWorker = require_GenericWorker();
-    function DataLengthProbe(propName) {
-      GenericWorker.call(this, "DataLengthProbe for " + propName);
-      this.propName = propName;
-      this.withStreamInfo(propName, 0);
-    }
-    utils.inherits(DataLengthProbe, GenericWorker);
-    DataLengthProbe.prototype.processChunk = function(chunk) {
-      if (chunk) {
-        var length = this.streamInfo[this.propName] || 0;
-        this.streamInfo[this.propName] = length + chunk.data.length;
-      }
-      GenericWorker.prototype.processChunk.call(this, chunk);
-    };
-    module.exports = DataLengthProbe;
-  }
-});
-
 // node_modules/jszip/lib/crc32.js
 var require_crc32 = __commonJS({
   "node_modules/jszip/lib/crc32.js"(exports, module) {
@@ -1527,13 +1505,35 @@ var require_Crc32Probe = __commonJS({
   }
 });
 
+// node_modules/jszip/lib/stream/DataLengthProbe.js
+var require_DataLengthProbe = __commonJS({
+  "node_modules/jszip/lib/stream/DataLengthProbe.js"(exports, module) {
+    "use strict";
+    var utils = require_utils();
+    var GenericWorker = require_GenericWorker();
+    function DataLengthProbe(propName) {
+      GenericWorker.call(this, "DataLengthProbe for " + propName);
+      this.propName = propName;
+      this.withStreamInfo(propName, 0);
+    }
+    utils.inherits(DataLengthProbe, GenericWorker);
+    DataLengthProbe.prototype.processChunk = function(chunk) {
+      if (chunk) {
+        var length = this.streamInfo[this.propName] || 0;
+        this.streamInfo[this.propName] = length + chunk.data.length;
+      }
+      GenericWorker.prototype.processChunk.call(this, chunk);
+    };
+    module.exports = DataLengthProbe;
+  }
+});
+
 // node_modules/jszip/lib/compressedObject.js
 var require_compressedObject = __commonJS({
   "node_modules/jszip/lib/compressedObject.js"(exports, module) {
     "use strict";
     var external = require_external();
     var DataWorker = require_DataWorker();
-    var DataLengthProbe = require_DataLengthProbe();
     var Crc32Probe = require_Crc32Probe();
     var DataLengthProbe = require_DataLengthProbe();
     function CompressedObject(compressedSize, uncompressedSize, crc32, compression, data) {
@@ -1645,9 +1645,10 @@ var require_zipObject = __commonJS({
     var removedFn = function() {
       throw new Error("This method has been removed in JSZip 3.0, please check the upgrade guide.");
     };
-    for (var i = 0; i < removedMethods.length; i++) {
+    for (i = 0; i < removedMethods.length; i++) {
       ZipObject.prototype[removedMethods[i]] = removedFn;
     }
+    var i;
     module.exports = ZipObject;
   }
 });
@@ -3465,9 +3466,10 @@ var require_strings = __commonJS({
       STR_APPLY_UIA_OK = false;
     }
     var _utf8len = new utils.Buf8(256);
-    for (var q = 0; q < 256; q++) {
+    for (q = 0; q < 256; q++) {
       _utf8len[q] = q >= 252 ? 6 : q >= 248 ? 5 : q >= 240 ? 4 : q >= 224 ? 3 : q >= 192 ? 2 : 1;
     }
+    var q;
     _utf8len[254] = _utf8len[254] = 1;
     exports.string2buf = function(str) {
       var buf, c, c2, m_pos, i, str_len = str.length, buf_len = 0;
@@ -6284,9 +6286,6 @@ var require_object = __commonJS({
       forEach: function(cb) {
         var filename, relativePath, file;
         for (filename in this.files) {
-          if (!this.files.hasOwnProperty(filename)) {
-            continue;
-          }
           file = this.files[filename];
           relativePath = filename.slice(this.root.length, filename.length);
           if (relativePath && filename.slice(0, this.root.length) === this.root) {
@@ -6962,7 +6961,6 @@ var require_load = __commonJS({
     var utils = require_utils();
     var external = require_external();
     var utf8 = require_utf8();
-    var utils = require_utils();
     var ZipEntries = require_zipEntries();
     var Crc32Probe = require_Crc32Probe();
     var nodejsUtils = require_nodejsUtils();
@@ -7041,7 +7039,7 @@ var require_lib = __commonJS({
       if (arguments.length) {
         throw new Error("The constructor with parameters has been removed in JSZip 3.0, please check the upgrade guide.");
       }
-      this.files = {};
+      this.files = Object.create(null);
       this.comment = null;
       this.root = "";
       this.clone = function() {
@@ -7058,7 +7056,7 @@ var require_lib = __commonJS({
     JSZip.prototype.loadAsync = require_load();
     JSZip.support = require_support();
     JSZip.defaults = require_defaults();
-    JSZip.version = "3.5.0";
+    JSZip.version = "3.7.1";
     JSZip.loadAsync = function(content, options) {
       return new JSZip().loadAsync(content, options);
     };

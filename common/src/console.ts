@@ -52,7 +52,7 @@ export function setLogLevels(levels: LogLevelsDict): void {
   localStorage.setItem('logFlags', String(logLevelsToBitFlags(levels)));
 }
 
-const EVENTS_BLOCKED_BY_CONSOLE: Array<keyof WindowEventMap> = [
+const EVENTS_BLOCKED_BY_CONSOLE = [
   'mousewheel',
   'contextmenu',
   'mousedown',
@@ -64,7 +64,7 @@ const EVENTS_BLOCKED_BY_CONSOLE: Array<keyof WindowEventMap> = [
   'keydown',
   'keyup',
   'keypress',
-];
+] as const;
 
 const LOG_LEVEL_APPEARENCE_DURATIONS: LogLevelsDict<number> = {
   LOG: 2000,
@@ -87,7 +87,7 @@ export function inject(): void {
 
   document.body.append(rootElement);
 
-  function hookConsoleMethod(name: keyof typeof console, level: LogLevel): void {
+  function hookConsoleMethod(name: 'error' | 'warn' | 'log' | 'info', level: LogLevel): void {
     let old = console[name] as (...message: unknown[]) => void;
     console[name] = function (...message: unknown[]): void {
       let result = old.apply(this, message);

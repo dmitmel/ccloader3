@@ -110,12 +110,13 @@ var require_semver = __commonJS({
     src[t.HYPHENRANGELOOSE] = "^\\s*(" + src[t.XRANGEPLAINLOOSE] + ")\\s+-\\s+(" + src[t.XRANGEPLAINLOOSE] + ")\\s*$";
     tok("STAR");
     src[t.STAR] = "(<|>)?=?\\s*\\*";
-    for (var i = 0; i < R; i++) {
+    for (i = 0; i < R; i++) {
       debug(i, src[i]);
       if (!re[i]) {
         re[i] = new RegExp(src[i]);
       }
     }
+    var i;
     exports.parse = parse;
     function parse(version, options) {
       if (!options || typeof options !== "object") {
