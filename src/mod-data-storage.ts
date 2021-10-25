@@ -58,7 +58,9 @@ export async function readImmediately(): Promise<void> {
 export async function writeImmediately(): Promise<void> {
   if (filePath != null) {
     let rawData: Buffer = serialize();
-    await fs.writeFile(filePath, rawData);
+    let tmpFilePath = `${filePath}~`;
+    await fs.writeFile(tmpFilePath, rawData);
+    await fs.rename(tmpFilePath, filePath);
   } else {
     writeToLocalStorage();
   }
