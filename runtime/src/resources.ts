@@ -62,7 +62,7 @@ function registerPatchstepsPatch(
 ): void {
   jsonPatches.add(patchedAssetPath, {
     dependencies: () => {
-      return resourcesPlain.loadJSON<patchsteps.Patch>(
+      return resourcesPlain.loadJSON<patchsteps.PatchFile>(
         wrapPathIntoURL(`${mod.assetsDirectory}${patchFileRelativePath}`).href,
       );
     },
