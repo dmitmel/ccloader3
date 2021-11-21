@@ -4,7 +4,15 @@ on: [push, pull_request, workflow_dispatch]
 jobs:
   build:
     name: Build
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
 
     steps:
       - uses: actions/checkout@v2
@@ -27,6 +35,7 @@ jobs:
         with:
           repository: dmitmel/ultimate-crosscode-typedefs
           path: ultimate-crosscode-typedefs
+
       - name: Set up ultimate-crosscode-typedefs
         working-directory: ultimate-crosscode-typedefs
         run: |
@@ -43,4 +52,5 @@ jobs:
       - name: Lint
         run: yarn run lint
       - name: Check formatting
+        if: runner.os != 'Windows'
         run: yarn run check-fmt
