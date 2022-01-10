@@ -150,18 +150,19 @@ ig.module('ccloader-runtime.ui.options')
 
         if (this.option.modIcon) {
           let mod = this.option.mod!;
-          let maxSize: number | null = null;
-          let maxSizePath: string | null = null;
-          for (let [sizeStr, path] of Object.entries(mod.manifest.icons ?? {})) {
-            let size = parseInt(sizeStr, 10);
-            if (Number.isNaN(size)) continue;
-            if (maxSize == null || size > maxSize) {
-              maxSize = size;
-              maxSizePath = path;
-            }
+          let currentScale = ig.system.scale * ig.system.contextScale;
+          // The loop will select the crispest icon for the current pixel size,
+          // it kind of does mipmap selection. We don't pick the largest icon
+          // resolution available because we don't get more pixels on the
+          // canvas than the internal resolution times the current pixel size.
+          for (let iconScale = currentScale; iconScale > 0; iconScale--) {
+            let iconSize = iconScale * MOD_ICON_GUI_SIZE;
+            if (currentScale % iconScale !== 0) continue;
+            let iconPath: string | undefined = mod.manifest.icons?.[iconSize];
+            if (iconPath == null) continue;
+            this.modIconGfx = new ig.Image(`/${mod.resolvePath(iconPath)}`);
+            break;
           }
-          this.modIconGfx =
-            maxSizePath != null ? new ig.Image(`/${mod.resolvePath(maxSizePath)}`) : null;
           this.modIconPosX = this.nameGui.hook.pos.x;
           this.modIconPosY = this.lineGui.hook.pos.y + 2;
           this.nameGui.hook.pos.x += this.modIconPosX + MOD_ICON_GUI_SIZE;
@@ -172,12 +173,12 @@ ig.module('ccloader-runtime.ui.options')
         this.parent(renderer);
         if (this.option.modIcon) {
           let iconGfx: ig.Image;
-          let srcX: number = 0;
-          let srcY: number = 0;
-          let sizeX: number = 0;
-          let sizeY: number = 0;
-          let scaleX: number = 1;
-          let scaleY: number = 1;
+          let srcX = 0;
+          let srcY = 0;
+          let sizeX = 0;
+          let sizeY = 0;
+          let scaleX = 1;
+          let scaleY = 1;
           if (this.modIconGfx?.loaded) {
             iconGfx = this.modIconGfx;
             sizeX = iconGfx.width;
