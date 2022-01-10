@@ -68,26 +68,9 @@ ig.module('ccloader-runtime.ui.options')
         init: true,
         restart: true,
         checkboxRightAlign: true,
+        mod,
+        modIcon: true,
       };
-
-      let modIconPath: string | undefined = mod.manifest.icons?.['24'];
-      definition.icon =
-        modIconPath != null
-          ? {
-              path: `/${mod.resolvePath(modIconPath)}`,
-              offsetX: 0,
-              offsetY: 0,
-              sizeX: 24,
-              sizeY: 24,
-            }
-          : {
-              // Coordinates were taken from `sc.QuickMenuAnalysisCursor#updateDrawables`
-              path: 'media/gui/menu.png',
-              offsetX: 536,
-              offsetY: 160,
-              sizeX: 23,
-              sizeY: 23,
-            };
 
       sc.OPTIONS_DEFINITION[`${MOD_ENABLED_OPTION_ID_PREFIX}${mod.id}`] = definition;
     }
@@ -151,6 +134,72 @@ ig.module('ccloader-runtime.ui.options')
         });
 
         return result;
+      },
+    });
+
+    const MOD_ICON_GUI_SIZE = 24;
+
+    sc.OptionRow.inject({
+      modIconGfx: null,
+      modIconFallbackGfx: new ig.Image('media/gui/menu.png'),
+      modIconPosX: 0,
+      modIconPosY: 0,
+
+      init(...args) {
+        this.parent(...args);
+
+        if (this.option.modIcon) {
+          let mod = this.option.mod!;
+          let maxSize: number | null = null;
+          let maxSizePath: string | null = null;
+          for (let [sizeStr, path] of Object.entries(mod.manifest.icons ?? {})) {
+            let size = parseInt(sizeStr, 10);
+            if (Number.isNaN(size)) continue;
+            if (maxSize == null || size > maxSize) {
+              maxSize = size;
+              maxSizePath = path;
+            }
+          }
+          this.modIconGfx =
+            maxSizePath != null ? new ig.Image(`/${mod.resolvePath(maxSizePath)}`) : null;
+          this.modIconPosX = this.nameGui.hook.pos.x;
+          this.modIconPosY = this.lineGui.hook.pos.y + 2;
+          this.nameGui.hook.pos.x += this.modIconPosX + MOD_ICON_GUI_SIZE;
+        }
+      },
+
+      updateDrawables(renderer) {
+        this.parent(renderer);
+        if (this.option.modIcon) {
+          let iconGfx: ig.Image;
+          let srcX: number = 0;
+          let srcY: number = 0;
+          let sizeX: number = 0;
+          let sizeY: number = 0;
+          let scaleX: number = 1;
+          let scaleY: number = 1;
+          if (this.modIconGfx?.loaded) {
+            iconGfx = this.modIconGfx;
+            sizeX = iconGfx.width;
+            sizeY = iconGfx.height;
+            scaleX = MOD_ICON_GUI_SIZE / iconGfx.width;
+            scaleY = MOD_ICON_GUI_SIZE / iconGfx.height;
+          } else {
+            iconGfx = this.modIconFallbackGfx;
+            // Coordinates were taken from `sc.QuickMenuAnalysisCursor#updateDrawables`
+            srcX = 536;
+            srcY = 160;
+            sizeX = 23;
+            sizeY = 23;
+          }
+          // Pretend that the icon is a child GUI element with X_LEFT and
+          // Y_BOTTOM alignments.
+          let iconX = this.modIconPosX / scaleX;
+          let iconY = (this.hook.size.y - MOD_ICON_GUI_SIZE - this.modIconPosY) / scaleY;
+          renderer.addTransform().setScale(scaleX, scaleY);
+          renderer.addGfx(iconGfx, iconX, iconY, srcX, srcY, sizeX, sizeY);
+          renderer.undoTransform();
+        }
       },
     });
   });
