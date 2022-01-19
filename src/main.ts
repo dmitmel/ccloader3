@@ -20,7 +20,7 @@ async function main(): Promise<void> {
     let urlOverride = env.CCLOADER_OVERRIDE_MAIN_URL;
     if (urlOverride != null) {
       delete env.CCLOADER_OVERRIDE_MAIN_URL;
-      window.location.replace(urlOverride);
+      window.location.replace(new URL(urlOverride, window.location.origin));
       return;
     }
   }
