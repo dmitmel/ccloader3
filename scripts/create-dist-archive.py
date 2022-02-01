@@ -11,19 +11,17 @@ import stat
 from shutil import copyfileobj
 import time
 
-
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-with open(os.path.join(PROJECT_DIR, "tool.config.json")) as f:
+with open(os.path.join(PROJECT_DIR, "metadata.json")) as f:
   MODLOADER_METADATA = json.load(f)
 
-MODLOADER_NAME = MODLOADER_METADATA["name"]
 MODLOADER_VERSION = MODLOADER_METADATA["version"]
-MODLOADER_DIR_NAME = MODLOADER_NAME
+MODLOADER_DIR_NAME = "ccloader"
 
 # specific archive extensions are appended when the respective archives are packed
-ARCHIVE_NAME_QUICK_INSTALL = "{}_{}_quick-install".format(MODLOADER_NAME, MODLOADER_VERSION)
-ARCHIVE_NAME_PACKAGE = "{}_{}_package".format(MODLOADER_NAME, MODLOADER_VERSION)
+ARCHIVE_NAME_QUICK_INSTALL = "ccloader_{}_quick-install".format(MODLOADER_VERSION)
+ARCHIVE_NAME_PACKAGE = "ccloader_{}_package".format(MODLOADER_VERSION)
 
 DEFAULT_FILE_MODE = 0o644
 DEFAULT_DIR_MODE = 0o755
@@ -180,7 +178,7 @@ for ArchiveAdapter in [TarGzArchiveAdapter, ZipArchiveAdapter]:
     add("LICENSE")
     add("main.css")
     add("main.html")
-    add("tool.config.json")
+    add("metadata.json")
     add("common/", recursive=False)
     add("common/dist/")
     add("common/vendor-libs/")

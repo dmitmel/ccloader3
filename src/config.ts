@@ -17,18 +17,16 @@ export interface ConfigModule {
 }
 
 export interface ConfigModuleContext {
-  modloaderName: string;
   modloaderVersion: semver.SemVer;
 }
 
-export async function load(
-  modloaderName: string,
-  modloaderVersion: semver.SemVer,
-): Promise<Config> {
-  let config = createDefaultConfig();
-  let ctx: ConfigModuleContext = { modloaderName, modloaderVersion };
+const CONFIG_SCRIPT_NAME = `ccloader-user-config.js`;
 
-  let configScriptPath = `${modloaderName}-user-config.js`;
+export async function load(modloaderVersion: semver.SemVer): Promise<Config> {
+  let config = createDefaultConfig();
+  let ctx: ConfigModuleContext = { modloaderVersion };
+
+  let configScriptPath = CONFIG_SCRIPT_NAME;
 
   // there is no way to check if an error thrown by `import()` was a network
   // error (such as the 404 status code) and error messages thrown by it

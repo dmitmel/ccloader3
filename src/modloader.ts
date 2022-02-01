@@ -20,9 +20,9 @@ export async function boot(): Promise<void> {
   consoleM.inject();
 
   let modloaderMetadata = await loadModloaderMetadata();
-  console.log(`${modloaderMetadata.name} ${modloaderMetadata.version}`);
+  console.log(`CCLoader ${modloaderMetadata.version}`);
 
-  let config = await configM.load(modloaderMetadata.name, modloaderMetadata.version);
+  let config = await configM.load(modloaderMetadata.version);
 
   try {
     await modDataStorage.readImmediately();
@@ -65,7 +65,7 @@ export async function boot(): Promise<void> {
 
   let virtualPackages = new Map<ModID, semver.SemVer>()
     .set('crosscode', gameVersion)
-    .set(modloaderMetadata.name, modloaderMetadata.version);
+    .set('ccloader', modloaderMetadata.version);
   if (typeof process !== 'undefined') {
     virtualPackages.set('nw', new semver.SemVer(process.versions.nw));
   }
@@ -113,7 +113,7 @@ export async function boot(): Promise<void> {
   );
 
   window.modloader = {
-    name: modloaderMetadata.name,
+    name: 'ccloader',
     version: modloaderMetadata.version,
     gameVersion,
     gameVersionHotfix,
@@ -158,13 +158,10 @@ export async function boot(): Promise<void> {
   console.log('crosscode with mods is now fully loaded!');
 }
 
-async function loadModloaderMetadata(): Promise<{
-  name: string;
-  version: semver.SemVer;
-}> {
-  let toolJsonText = await files.loadText(`${CCLOADER_DIR}tool.config.json`);
-  let data = JSON.parse(toolJsonText) as { name: string; version: string };
-  return { name: data.name, version: new semver.SemVer(data.version) };
+async function loadModloaderMetadata(): Promise<{ version: semver.SemVer }> {
+  let toolJsonText = await files.loadText(`${CCLOADER_DIR}metadata.json`);
+  let data = JSON.parse(toolJsonText) as { version: string };
+  return { version: new semver.SemVer(data.version) };
 }
 
 async function loadAllModMetadataInDir(modsDir: string, installedMods: ModsMap): Promise<number> {
