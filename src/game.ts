@@ -6,6 +6,16 @@ import { Config } from './config.js';
 import * as paths from '../common/dist/paths.js';
 import * as utils from '../common/dist/utils.js';
 
+export const KNOWN_EXTENSION_IDS: ReadonlySet<string> = new Set([
+  'fish-gear',
+  'flying-hedgehag',
+  'manlea',
+  'ninja-skin',
+  'post-game',
+  'scorpion-robo',
+  'snowman-tank',
+]);
+
 export async function loadVersion(
   config: Config,
 ): Promise<{ version: semver.SemVer; hotfix: number }> {

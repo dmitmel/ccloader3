@@ -1,5 +1,6 @@
 import * as utils from '../common/dist/utils.js';
 import * as paths from '../common/dist/paths.js';
+import { Config } from './config.js';
 
 export async function loadText(path: string): Promise<string> {
   try {
@@ -45,4 +46,22 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
   }
 
   return index.map((modDirPath) => paths.join(dir, modDirPath));
+}
+
+// Replicates the behavior of `ig.ExtensionList#loadExtensionsPHP`.
+export async function getInstalledExtensions(config: Config): Promise<string[]> {
+  let igRoot = config.impactConfig.IG_ROOT ?? '';
+  let igDebug = Boolean(config.impactConfig.IG_GAME_DEBUG);
+  let extensionsApiUrl = `${igRoot}page/api/get-extension-list.php?debug=${igDebug ? 1 : 0}`;
+  try {
+    let res = await fetch(extensionsApiUrl);
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    // Should the response be validated?
+    return JSON.parse(await res.text());
+  } catch (err) {
+    if (utils.errorHasMessage(err)) {
+      err.message = `Failed to send request to '${extensionsApiUrl}': ${err.message}`;
+    }
+    throw err;
+  }
 }

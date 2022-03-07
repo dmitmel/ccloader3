@@ -3,10 +3,12 @@ import * as utils from '../common/dist/utils.js';
 import semver from '../common/vendor-libs/semver.js';
 import * as modDataStorage from './mod-data-storage.js';
 import { Dependency, ModID } from 'ultimate-crosscode-typedefs/modloader/mod';
+import { KNOWN_EXTENSION_IDS } from './game.js';
 
 type ModsMap = Map<ModID, Mod>;
 type ReadonlyModsMap = ReadonlyMap<ModID, Mod>;
 type ReadonlyVirtualPackagesMap = ReadonlyMap<ModID, semver.SemVer>;
+type ReadonlyExtensionsMap = ReadonlyMap<ModID, semver.SemVer>;
 
 export function sortModsInLoadOrder(runtimeMod: Mod, installedMods: ReadonlyModsMap): ModsMap {
   // note that maps preserve insertion order as defined in the ECMAScript spec
@@ -68,6 +70,8 @@ export function verifyModDependencies(
   mod: Mod,
   installedMods: ReadonlyModsMap,
   virtualPackages: ReadonlyVirtualPackagesMap,
+  installedExtensions: ReadonlyExtensionsMap,
+  enabledExtensions: ReadonlyExtensionsMap,
   loadedMods: ReadonlyModsMap,
 ): string[] {
   let problems = [];
@@ -81,6 +85,8 @@ export function verifyModDependencies(
         dep,
         installedMods,
         virtualPackages,
+        installedExtensions,
+        enabledExtensions,
         loadedMods,
       );
       if (problem != null) problems.push(problem);
@@ -95,41 +101,55 @@ function checkDependencyConstraint(
   depConstraint: Dependency,
   installedMods: ReadonlyModsMap,
   virtualPackages: ReadonlyVirtualPackagesMap,
+  installedExtensions: ReadonlyExtensionsMap,
+  enabledExtensions: ReadonlyExtensionsMap,
   loadedMods: ReadonlyModsMap,
 ): string | null {
-  let availableDepVersion: semver.SemVer;
   let depTitle = depId;
+  let depVersion: semver.SemVer | null = null;
+  let depIsInstalled = false;
+  let depIsEnabled = false;
+  let depIsLoaded = false;
 
-  let virtualPackageVersion = virtualPackages.get(depId);
-  if (virtualPackageVersion != null) {
-    availableDepVersion = virtualPackageVersion;
+  if (virtualPackages.has(depId)) {
+    depVersion = virtualPackages.get(depId)!;
+    depIsInstalled = true;
+    depIsEnabled = true;
+    depIsLoaded = true;
+  } else if (installedExtensions.has(depId) || KNOWN_EXTENSION_IDS.has(depId)) {
+    depTitle = `extension '${depId}'`;
+    depIsInstalled = installedExtensions.has(depId);
+    if (depIsInstalled) {
+      depVersion = installedExtensions.get(depId)!;
+      depIsEnabled = enabledExtensions.has(depId);
+      depIsLoaded = depIsEnabled;
+    }
   } else {
     depTitle = `mod '${depId}'`;
-
-    let { optional } = depConstraint;
-
-    let depMod = installedMods.get(depId);
-    if (depMod == null) {
-      return optional ? null : `${depTitle} is not installed`;
+    depIsInstalled = installedMods.has(depId);
+    if (depIsInstalled) {
+      let depMod = installedMods.get(depId)!;
+      depVersion = depMod.version;
+      depIsEnabled = modDataStorage.isModEnabled(depId);
+      depIsLoaded = loadedMods.has(depId);
     }
-
-    if (depMod.version == null) {
-      return optional ? null : `${depTitle} doesn't have a version`;
-    }
-
-    if (!modDataStorage.isModEnabled(depId)) {
-      return optional ? null : `${depTitle} is disabled`;
-    }
-
-    if (!loadedMods.has(depId)) {
-      return optional ? null : `${depTitle} is not loaded`;
-    }
-
-    availableDepVersion = depMod.version;
   }
 
-  if (!depConstraint.version.test(availableDepVersion)) {
-    return `version of ${depTitle} (${availableDepVersion}) is not in range '${depConstraint.version}'`;
+  let { optional } = depConstraint;
+  if (!depIsInstalled) {
+    return optional ? null : `${depTitle} is not installed`;
+  }
+  if (depVersion == null) {
+    return optional ? null : `${depTitle} doesn't have a version`;
+  }
+  if (!depIsEnabled) {
+    return optional ? null : `${depTitle} is disabled`;
+  }
+  if (!depIsLoaded) {
+    return optional ? null : `${depTitle} is not loaded`;
+  }
+  if (!depConstraint.version.test(depVersion)) {
+    return `version of ${depTitle} (${depVersion}) is not in range '${depConstraint.version}'`;
   }
 
   return null;

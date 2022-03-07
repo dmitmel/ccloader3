@@ -1,4 +1,5 @@
 import * as utils from '../common/dist/utils.js';
+import { Config } from './config.js';
 
 const fs = (window.require?.('fs') as typeof import('fs'))?.promises;
 
@@ -54,20 +55,17 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
   if (dir.endsWith('/')) dir = dir.slice(0, -1);
 
   let allContents: string[];
-
   try {
     allContents = await fs.readdir(dir);
   } catch (err) {
     if (utils.errorHasCode(err) && err.code === 'ENOENT') {
       console.warn(`Directory '${dir}' not found, did you forget to create it?`);
       return [];
-    } else {
-      throw err;
     }
+    throw err;
   }
 
   let modDirectories: string[] = [];
-
   await Promise.all(
     allContents.map(async (name) => {
       let fullPath = `${dir}/${name}`;
@@ -77,6 +75,51 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
       if (stat.isDirectory()) modDirectories.push(fullPath);
     }),
   );
-
   return modDirectories;
+}
+
+// Replicates the behavior of `ig.ExtensionList#loadExtensionsNWJS`.
+export async function getInstalledExtensions(config: Config): Promise<string[]> {
+  let igRoot = config.impactConfig.IG_ROOT ?? '';
+  let igDebug = Boolean(config.impactConfig.IG_GAME_DEBUG);
+  let extensionsDir = `${igRoot}${igDebug ? 'data' : 'assets'}/extension`;
+
+  let allContents: string[];
+  try {
+    allContents = await fs.readdir(extensionsDir);
+  } catch (err) {
+    // Older versions of the game simply don't have the support for extensions.
+    if (utils.errorHasCode(err) && err.code === 'ENOENT') return [];
+    throw err;
+  }
+
+  let extensionIds: string[] = [];
+  await Promise.all(
+    allContents.map(async (name) => {
+      // No idea why this is checked by the game.
+      if (name.startsWith('.')) return;
+
+      if (igDebug) {
+        // The debug mode is interesting: it seems that when it is enabled,
+        // only extension manifests are loaded from `data/extension/`, while
+        // the files of the extensions reside inside game's normal directory
+        // structure. So, extension directories with assets are created only
+        // when the game is compiled for release.
+        if (name.endsWith('.json')) {
+          extensionIds.push(name.slice(0, -5));
+        }
+        return;
+      }
+
+      try {
+        // The game also checks if the containing directory exists before
+        // checking if there is a file inside, but it is redundant.
+        await fs.access(`${extensionsDir}/${name}/${name}.json`);
+      } catch (_err) {
+        return;
+      }
+      extensionIds.push(name);
+    }),
+  );
+  return extensionIds;
 }

@@ -70,6 +70,32 @@ export async function boot(): Promise<void> {
     virtualPackages.set('nw', new semver.SemVer(process.versions.nw));
   }
 
+  let installedExtensions = new Map<ModID, semver.SemVer>();
+  let enabledExtensions = new Map<ModID, semver.SemVer>();
+  try {
+    for (let extID of await files.getInstalledExtensions(config)) {
+      let extVersion = gameVersion;
+      if (extID.startsWith('-')) {
+        installedExtensions.set(extID.slice(1), extVersion);
+      } else {
+        installedExtensions.set(extID, extVersion);
+        enabledExtensions.set(extID, extVersion);
+      }
+    }
+  } catch (err) {
+    console.error('Failed to load the extensions list:', err);
+  }
+
+  console.log(
+    `found ${installedExtensions.size} extensions: ${Array.from(installedExtensions.keys())
+      .map((extID) => {
+        let str = extID;
+        if (!enabledExtensions.has(extID)) str += ' (disabled)';
+        return str;
+      })
+      .join(', ')}`,
+  );
+
   for (let [modID, mod] of installedMods) {
     if (mod !== runtimeMod && !modDataStorage.isModEnabled(modID)) {
       continue;
@@ -79,6 +105,8 @@ export async function boot(): Promise<void> {
       mod,
       installedMods,
       virtualPackages,
+      installedExtensions,
+      enabledExtensions,
       loadedMods,
     );
     if (dependencyProblems.length > 0) {
