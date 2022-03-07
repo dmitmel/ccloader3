@@ -69,7 +69,6 @@ ig.module('ccloader-runtime.ui.options')
         restart: true,
         checkboxRightAlign: true,
         mod,
-        modIcon: true,
       };
 
       sc.OPTIONS_DEFINITION[`${MOD_ENABLED_OPTION_ID_PREFIX}${mod.id}`] = definition;
@@ -144,12 +143,14 @@ ig.module('ccloader-runtime.ui.options')
       modIconFallbackGfx: new ig.Image('media/gui/menu.png'),
       modIconPosX: 0,
       modIconPosY: 0,
+      modVersionGui: null,
 
       init(...args) {
         this.parent(...args);
 
-        if (this.option.modIcon) {
-          let mod = this.option.mod!;
+        if (this.option.mod != null) {
+          let { mod } = this.option;
+
           let currentScale = ig.system.scale * ig.system.contextScale;
           // The loop will select the crispest icon for the current pixel size,
           // it kind of does mipmap selection. We don't pick the largest icon
@@ -163,15 +164,26 @@ ig.module('ccloader-runtime.ui.options')
             this.modIconGfx = new ig.Image(`/${mod.resolvePath(iconPath)}`);
             break;
           }
+
           this.modIconPosX = this.nameGui.hook.pos.x;
           this.modIconPosY = this.lineGui.hook.pos.y + 2;
           this.nameGui.hook.pos.x += this.modIconPosX + MOD_ICON_GUI_SIZE;
+
+          this.modVersionGui = new sc.TextGui(mod.version != null ? mod.version.toString() : '', {
+            font: sc.fontsystem.tinyFont,
+          });
+          this.modVersionGui.setAlign(ig.GUI_ALIGN.X_LEFT, ig.GUI_ALIGN.Y_BOTTOM);
+          this.modVersionGui.setPos(
+            this.lineGui.hook.size.x - this.modVersionGui.hook.size.x + 1,
+            this.lineGui.hook.pos.y + 1,
+          );
+          this.addChildGui(this.modVersionGui);
         }
       },
 
       updateDrawables(renderer) {
         this.parent(renderer);
-        if (this.option.modIcon) {
+        if (this.option.mod != null) {
           let iconGfx: ig.Image;
           let srcX = 0;
           let srcY = 0;
