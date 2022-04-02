@@ -169,9 +169,11 @@ ig.module('ccloader-runtime.ui.options')
           this.modIconPosY = this.lineGui.hook.pos.y + 2;
           this.nameGui.hook.pos.x += this.modIconPosX + MOD_ICON_GUI_SIZE;
 
-          this.modVersionGui = new sc.TextGui(mod.version != null ? mod.version.toString() : '', {
-            font: sc.fontsystem.tinyFont,
-          });
+          let modVersionStr = mod.version != null ? mod.version.toString() : '';
+          if (/^[^v]/i.test(modVersionStr)) {
+            modVersionStr = `v${modVersionStr}`;
+          }
+          this.modVersionGui = new sc.TextGui(modVersionStr, { font: sc.fontsystem.tinyFont });
           this.modVersionGui.setAlign(ig.GUI_ALIGN.X_LEFT, ig.GUI_ALIGN.Y_BOTTOM);
           this.modVersionGui.setPos(
             this.lineGui.hook.size.x - this.modVersionGui.hook.size.x + 1,
