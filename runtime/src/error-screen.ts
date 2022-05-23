@@ -2,6 +2,9 @@
 
 export {};
 
+// eslint-disable-next-line no-var, @typescript-eslint/no-explicit-any
+declare var chrome: any;
+
 let originalErrorCallback = window.GAME_ERROR_CALLBACK;
 if (originalErrorCallback != null) {
   const MODLOADER_NAME = modloader.name;
@@ -12,6 +15,20 @@ if (originalErrorCallback != null) {
   window.GAME_ERROR_CALLBACK = function (error, info, gameInfo, ...args) {
     info[`${MODLOADER_NAME} version`] = MODLOADER_VERSION;
     info[`${RUNTIME_MOD_ID} version`] = RUNTIME_MOD_VERSION;
-    return originalErrorCallback.call(this, error, info, gameInfo, ...args);
+    let result = originalErrorCallback.call(this, error, info, gameInfo, ...args);
+
+    if (typeof nw !== 'undefined' && typeof chrome !== 'undefined') {
+      for (let container of document.getElementsByClassName('errorMessage')) {
+        for (let button of container.getElementsByTagName('a')) {
+          // eslint-disable-next-line no-script-url
+          if (button.href === 'javascript:window.location.reload()') {
+            // eslint-disable-next-line no-script-url
+            button.href = 'javascript:chrome.runtime.reload()';
+          }
+        }
+      }
+    }
+
+    return result;
   };
 }
