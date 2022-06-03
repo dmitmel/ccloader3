@@ -75,8 +75,9 @@ const paths = require('path');
 
 esbuild.build({
   entryPoints: {
-    jszip: require.resolve('jszip'),
-    semver: require.resolve('semver'),
+    jszip: 'jszip/lib/index.js',
+    semver: 'semver',
+    'whatwg-fetch': 'whatwg-fetch',
   },
   bundle: true,
   outdir: paths.resolve(__dirname, '../common/vendor-libs'),

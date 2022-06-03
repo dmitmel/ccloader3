@@ -8,11 +8,20 @@ export { MaybePromise };
 
 export enum PlatformType {
   DESKTOP = 'DESKTOP',
+  ANDROID = 'ANDROID',
   BROWSER = 'BROWSER',
 }
 
-export const PLATFORM_TYPE =
-  typeof nw !== 'undefined' ? PlatformType.DESKTOP : PlatformType.BROWSER;
+export const PLATFORM_TYPE: PlatformType = (() => {
+  if (typeof nw !== 'undefined') {
+    return PlatformType.DESKTOP;
+  }
+  let params = new URLSearchParams(window.location.search);
+  if (params.has('crossandroid')) {
+    return PlatformType.ANDROID;
+  }
+  return PlatformType.BROWSER;
+})();
 
 export function showDevTools(window: nw.Window = nw.Window.get()): Promise<void> {
   return new Promise((resolve) =>
@@ -80,6 +89,8 @@ export function cwdFilePathToURL(path: string, base: string = document.baseURI):
   let url = new URL(base);
   // Implicitly percent-encodes and doesn't trim path on the ends.
   url.pathname = path;
+  url.search = '';
+  url.hash = '';
   return url;
 }
 

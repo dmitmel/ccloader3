@@ -4,6 +4,7 @@ import * as manifestM from './manifest.js';
 import { Mod } from './mod.js';
 import * as game from './game.js';
 import semver from '../common/vendor-libs/semver.js';
+import * as fetchPolyfill from '../common/vendor-libs/whatwg-fetch.js';
 import * as utils from '../common/dist/utils.js';
 import * as dependencyResolver from './dependency-resolver.js';
 import * as modDataStorage from './mod-data-storage.js';
@@ -14,10 +15,19 @@ import * as consoleM from '../common/dist/console.js';
 type ModsMap = Map<ModID, Mod>;
 type ReadonlyModsMap = ReadonlyMap<ModID, Mod>;
 
-const CCLOADER_DIR = utils.cwdFilePathFromURL(new URL('../', import.meta.url));
-
 export async function boot(): Promise<void> {
   consoleM.inject();
+
+  if (utils.PLATFORM_TYPE === utils.PlatformType.ANDROID) {
+    // The fetch API refuses to work in Android's WebView where the application
+    // is served from `file://` URLs. On the contrary, XmlHttpRequest, which the
+    // polyfill uses, works fine, so we forcibly install it, like here:
+    // <https://github.com/github/fetch/blob/v3.6.2/fetch.js#L600-L605>.
+    window.fetch = fetchPolyfill.fetch;
+    window.Headers = fetchPolyfill.Headers;
+    window.Request = fetchPolyfill.Request;
+    window.Response = fetchPolyfill.Response;
+  }
 
   let modloaderMetadata = await loadModloaderMetadata();
   console.log(`CCLoader ${modloaderMetadata.version}`);
@@ -37,7 +47,7 @@ export async function boot(): Promise<void> {
   let { version: gameVersion, hotfix: gameVersionHotfix } = await game.loadVersion(config);
   console.log(`crosscode ${gameVersion}-${gameVersionHotfix}`);
 
-  let runtimeModBaseDirectory = `${CCLOADER_DIR}runtime`;
+  let runtimeModBaseDirectory = utils.cwdFilePathFromURL(new URL('../runtime', import.meta.url));
   let runtimeMod: Mod | null;
   try {
     runtimeMod = await loadModMetadata(runtimeModBaseDirectory);
@@ -158,6 +168,9 @@ export async function boot(): Promise<void> {
 
   let startGameFn = await game.getStartFunction();
   console.log("stage 'prestart' reached!");
+  if (utils.PLATFORM_TYPE === utils.PlatformType.ANDROID) {
+    window.CrossAndroid?.executePostGameLoad?.();
+  }
   await executeStage(loadedMods, 'prestart');
 
   console.log('running startCrossCode()...');
@@ -172,8 +185,9 @@ export async function boot(): Promise<void> {
 }
 
 async function loadModloaderMetadata(): Promise<{ version: semver.SemVer }> {
-  let toolJsonText = await files.loadText(`${CCLOADER_DIR}metadata.json`);
-  let data = JSON.parse(toolJsonText) as { version: string };
+  let filePath = utils.cwdFilePathFromURL(new URL('../metadata.json', import.meta.url));
+  let jsonText = await files.loadText(filePath);
+  let data = JSON.parse(jsonText) as { version: string };
   return { version: new semver.SemVer(data.version) };
 }
 
@@ -182,7 +196,7 @@ async function loadAllModMetadata(config: configM.Config, installedMods: ModsMap
   for (let dir of config.modsDirs) {
     let subdirsList: string[];
     try {
-      subdirsList = await files.getModDirectoriesIn(dir);
+      subdirsList = await files.getModDirectoriesIn(dir, config);
     } catch (err) {
       console.warn(`Failed to load the list of mods in '${dir}':`, err);
       continue;

@@ -27,12 +27,15 @@ export async function load(modloaderVersion: semver.SemVer): Promise<Config> {
   let ctx: ConfigModuleContext = { modloaderVersion };
 
   let configScriptPath = CONFIG_SCRIPT_NAME;
+  if (utils.PLATFORM_TYPE === utils.PlatformType.ANDROID) {
+    configScriptPath = `${config.gameAssetsDir}${configScriptPath}`;
+  }
 
   // there is no way to check if an error thrown by `import()` was a network
   // error (such as the 404 status code) and error messages thrown by it
   // aren't standardized, so we have to check beforehand if the config module
   // exists or not
-  if (await files.exists(configScriptPath)) {
+  if (await files.isReadable(configScriptPath)) {
     try {
       let configModule: ConfigModule = await import(utils.cwdFilePathToURL(configScriptPath).href);
       await configModule.default(config, ctx);
@@ -50,6 +53,10 @@ export async function load(modloaderVersion: semver.SemVer): Promise<Config> {
 
 function createDefaultConfig(): Config {
   let gameAssetsDir = 'assets/';
+  if (utils.PLATFORM_TYPE === utils.PlatformType.ANDROID) {
+    gameAssetsDir = utils.cwdFilePathFromURL(new URL('../../assets/', import.meta.url));
+  }
+
   return {
     gameAssetsDir,
     modsDirs: [`${gameAssetsDir}mods/`],

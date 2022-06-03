@@ -1,3 +1,4 @@
 /common/vendor-libs/jszip.js linguist-vendored
 /common/vendor-libs/patch-steps-lib/**/* linguist-vendored
 /common/vendor-libs/semver.js linguist-vendored
+/common/vendor-libs/whatwg-fetch.js linguist-vendored

@@ -15,21 +15,16 @@ export async function loadText(path: string): Promise<string> {
   }
 }
 
-export async function exists(path: string): Promise<boolean> {
+export async function isReadable(path: string): Promise<boolean> {
   try {
     let res = await fetch(utils.cwdFilePathToURL(path).href, { method: 'HEAD' });
-    if (res.status === 404) return false;
-    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-    return true;
-  } catch (err) {
-    if (utils.errorHasMessage(err)) {
-      err.message = `HEAD request to '${path}' failed: ${err.message}`;
-    }
-    throw err;
+    return res.ok;
+  } catch (_err) {
+    return false;
   }
 }
 
-export async function getModDirectoriesIn(dir: string): Promise<string[]> {
+export async function getModDirectoriesIn(dir: string, _config: Config): Promise<string[]> {
   if (dir.endsWith('/')) dir = dir.slice(0, -1);
 
   let indexPath = `${dir}/index.json`;
@@ -45,7 +40,7 @@ export async function getModDirectoriesIn(dir: string): Promise<string[]> {
     throw err;
   }
 
-  return index.map((modDirPath) => paths.join(dir, modDirPath));
+  return index.map((modDirPath) => paths.join(dir, paths.jailRelative(modDirPath)));
 }
 
 // Replicates the behavior of `ig.ExtensionList#loadExtensionsPHP`.

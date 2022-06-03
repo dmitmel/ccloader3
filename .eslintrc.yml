@@ -12,6 +12,10 @@ rules:
     - ignores:
         - modules
         - dynamicImport
+  node/no-unsupported-features/es-builtins:
+    - error
+    - ignores:
+        - globalThis
 
   node/no-unpublished-import: off
   node/no-unpublished-require: off
