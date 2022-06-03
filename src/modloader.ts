@@ -52,17 +52,6 @@ export async function boot(): Promise<void> {
   }
   console.log(`${runtimeMod.id} ${runtimeMod.version}`);
 
-  let installedMods = new Map<ModID, Mod>();
-  installedMods.set(runtimeMod.id, runtimeMod);
-  for (let dir of config.modsDirs) {
-    let count = await loadAllModMetadataInDir(dir, installedMods);
-    console.log(`found ${count} mods in '${dir}'`);
-  }
-  installedMods = dependencyResolver.sortModsInLoadOrder(runtimeMod, installedMods);
-
-  let loadedMods = new Map<ModID, Mod>();
-  let loadedModsSetupPromises: Array<Promise<void>> = [];
-
   let virtualPackages = new Map<ModID, semver.SemVer>()
     .set('crosscode', gameVersion)
     .set('ccloader', modloaderMetadata.version);
@@ -72,19 +61,7 @@ export async function boot(): Promise<void> {
 
   let installedExtensions = new Map<ModID, semver.SemVer>();
   let enabledExtensions = new Map<ModID, semver.SemVer>();
-  try {
-    for (let extID of await files.getInstalledExtensions(config)) {
-      let extVersion = gameVersion;
-      if (extID.startsWith('-')) {
-        installedExtensions.set(extID.slice(1), extVersion);
-      } else {
-        installedExtensions.set(extID, extVersion);
-        enabledExtensions.set(extID, extVersion);
-      }
-    }
-  } catch (err) {
-    console.error('Failed to load the extensions list:', err);
-  }
+  await findAllExtensions(config, installedExtensions, enabledExtensions, gameVersion);
 
   console.log(
     `found ${installedExtensions.size} extensions: ${Array.from(installedExtensions.keys())
@@ -95,6 +72,14 @@ export async function boot(): Promise<void> {
       })
       .join(', ')}`,
   );
+
+  let installedMods = new Map<ModID, Mod>();
+  installedMods.set(runtimeMod.id, runtimeMod);
+  await loadAllModMetadata(config, installedMods);
+
+  installedMods = dependencyResolver.sortModsInLoadOrder(runtimeMod, installedMods);
+  let loadedMods = new Map<ModID, Mod>();
+  let loadedModsSetupPromises: Array<Promise<void>> = [];
 
   for (let [modID, mod] of installedMods) {
     if (mod !== runtimeMod && !modDataStorage.isModEnabled(modID)) {
@@ -192,14 +177,26 @@ async function loadModloaderMetadata(): Promise<{ version: semver.SemVer }> {
   return { version: new semver.SemVer(data.version) };
 }
 
-async function loadAllModMetadataInDir(modsDir: string, installedMods: ModsMap): Promise<number> {
-  let count = 0;
+async function loadAllModMetadata(config: configM.Config, installedMods: ModsMap): Promise<void> {
+  let allModsList: Array<{ parentDir: string; dir: string }> = [];
+  for (let dir of config.modsDirs) {
+    let subdirsList: string[];
+    try {
+      subdirsList = await files.getModDirectoriesIn(dir);
+    } catch (err) {
+      console.warn(`Failed to load the list of mods in '${dir}':`, err);
+      continue;
+    }
+    for (let subdir of subdirsList) {
+      allModsList.push({ parentDir: dir, dir: subdir });
+    }
+  }
+
+  let modsCountPerDir = new Map<string, number>();
   await Promise.all(
-    (
-      await files.getModDirectoriesIn(modsDir)
-    ).map(async (fullPath) => {
+    allModsList.map(async ({ parentDir, dir }) => {
       try {
-        let mod = await loadModMetadata(fullPath);
+        let mod = await loadModMetadata(dir);
         if (mod == null) return;
 
         let modWithSameId = installedMods.get(mod.id);
@@ -210,16 +207,41 @@ async function loadAllModMetadataInDir(modsDir: string, installedMods: ModsMap):
         }
 
         installedMods.set(mod.id, mod);
-        count++;
+        modsCountPerDir.set(parentDir, (modsCountPerDir.get(parentDir) ?? 0) + 1);
       } catch (err) {
-        console.error(
-          `An error occured while loading the metadata of a mod in '${fullPath}':`,
-          err,
-        );
+        console.error(`An error occured while loading the metadata of a mod in '${dir}':`, err);
       }
     }),
   );
-  return count;
+
+  for (let [dir, count] of modsCountPerDir) {
+    console.log(`found ${count} mods in '${dir}'`);
+  }
+}
+
+async function findAllExtensions(
+  config: configM.Config,
+  installedExtensions: Map<string, semver.SemVer>,
+  enabledExtensions: Map<string, semver.SemVer>,
+  defaultExtVersion: semver.SemVer,
+): Promise<void> {
+  let extList: string[];
+  try {
+    extList = await files.getInstalledExtensions(config);
+  } catch (err) {
+    console.warn('Failed to load the extensions list:', err);
+    return;
+  }
+  for (let extID of extList) {
+    let extVersion = new semver.SemVer(defaultExtVersion, defaultExtVersion.options);
+    if (extID.startsWith('-')) {
+      // Extension is disabled
+      extID = extID.slice(1);
+    } else {
+      enabledExtensions.set(extID, extVersion);
+    }
+    installedExtensions.set(extID, extVersion);
+  }
 }
 
 let manifestValidator = new manifestM.Validator();

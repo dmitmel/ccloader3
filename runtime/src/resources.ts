@@ -110,18 +110,18 @@ export async function loadJSON<T = unknown>(
 
   let { resolvedPath, requestedAsset } = resolvePathAdvanced(path, options);
   let data: unknown = null!;
-  let shouldFetchRealData = false;
+  let shouldFetchRealData = true;
 
   if ((options.allowGenerators ?? true) && requestedAsset != null) {
     let generators = jsonGenerators.forPath(requestedAsset);
     if (generators.length > 0) {
       let ctx: types.JSONGeneratorContext = { resolvedPath, requestedAsset, options };
       data = await runResourceGenerator('JSON file', path, generators, ctx);
-      shouldFetchRealData = true;
+      shouldFetchRealData = false;
     }
   }
 
-  if (!shouldFetchRealData) {
+  if (shouldFetchRealData) {
     data = await resourcesPlain.loadJSON(wrapPathIntoURL(resolvedPath).href);
   }
 
@@ -144,18 +144,18 @@ export async function loadImage(
 
   let { resolvedPath, requestedAsset } = resolvePathAdvanced(path, options);
   let data: HTMLImageElement | HTMLCanvasElement = null!;
-  let shouldFetchRealData = false;
+  let shouldFetchRealData = true;
 
   if ((options.allowGenerators ?? true) && requestedAsset != null) {
     let generators = imageGenerators.forPath(requestedAsset);
     if (generators.length > 0) {
       let ctx: types.ImageGeneratorContext = { resolvedPath, requestedAsset, options };
       data = await runResourceGenerator('image', path, generators, ctx);
-      shouldFetchRealData = true;
+      shouldFetchRealData = false;
     }
   }
 
-  if (!shouldFetchRealData) {
+  if (shouldFetchRealData) {
     data = await resourcesPlain.loadImage(wrapPathIntoURL(resolvedPath).href);
   }
 
