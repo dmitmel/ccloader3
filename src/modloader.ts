@@ -4,7 +4,6 @@ import * as manifestM from './manifest.js';
 import { Mod } from './mod.js';
 import * as game from './game.js';
 import semver from '../common/vendor-libs/semver.js';
-import * as fetchPolyfill from '../common/vendor-libs/whatwg-fetch.js';
 import * as utils from '../common/dist/utils.js';
 import * as dependencyResolver from './dependency-resolver.js';
 import * as modDataStorage from './mod-data-storage.js';
@@ -17,17 +16,6 @@ type ReadonlyModsMap = ReadonlyMap<ModID, Mod>;
 
 export async function boot(): Promise<void> {
   consoleM.inject();
-
-  if (utils.PLATFORM_TYPE === utils.PlatformType.ANDROID) {
-    // The fetch API refuses to work in Android's WebView where the application
-    // is served from `file://` URLs. On the contrary, XmlHttpRequest, which the
-    // polyfill uses, works fine, so we forcibly install it, like here:
-    // <https://github.com/github/fetch/blob/v3.6.2/fetch.js#L600-L605>.
-    window.fetch = fetchPolyfill.fetch;
-    window.Headers = fetchPolyfill.Headers;
-    window.Request = fetchPolyfill.Request;
-    window.Response = fetchPolyfill.Response;
-  }
 
   let modloaderMetadata = await loadModloaderMetadata();
   console.log(`CCLoader ${modloaderMetadata.version}`);

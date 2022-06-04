@@ -77,7 +77,6 @@ esbuild.build({
   entryPoints: {
     jszip: 'jszip/lib/index.js',
     semver: 'semver',
-    'whatwg-fetch': 'whatwg-fetch',
   },
   bundle: true,
   outdir: paths.resolve(__dirname, '../common/vendor-libs'),

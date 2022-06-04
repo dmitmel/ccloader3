@@ -5,8 +5,7 @@
   },
   "dependencies": {
     "jszip": "=3.7.1",
-    "semver": "=6.3.0",
-    "whatwg-fetch": "=3.6.2"
+    "semver": "=6.3.0"
   },
   "devDependencies": {
     "@types/node": ">=11.9",

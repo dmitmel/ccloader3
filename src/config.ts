@@ -27,9 +27,6 @@ export async function load(modloaderVersion: semver.SemVer): Promise<Config> {
   let ctx: ConfigModuleContext = { modloaderVersion };
 
   let configScriptPath = CONFIG_SCRIPT_NAME;
-  if (utils.PLATFORM_TYPE === utils.PlatformType.ANDROID) {
-    configScriptPath = `${config.gameAssetsDir}${configScriptPath}`;
-  }
 
   // there is no way to check if an error thrown by `import()` was a network
   // error (such as the 404 status code) and error messages thrown by it
@@ -53,9 +50,6 @@ export async function load(modloaderVersion: semver.SemVer): Promise<Config> {
 
 function createDefaultConfig(): Config {
   let gameAssetsDir = 'assets/';
-  if (utils.PLATFORM_TYPE === utils.PlatformType.ANDROID) {
-    gameAssetsDir = utils.cwdFilePathFromURL(new URL('../../assets/', import.meta.url));
-  }
 
   return {
     gameAssetsDir,

@@ -32,19 +32,6 @@ export function loadImage(url: string): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     let img = new Image();
     img.src = url;
-    if (utils.PLATFORM_TYPE === utils.PlatformType.ANDROID) {
-      // For some reason not doing this causes troubles with our current
-      // implementation of the Android port, specifically, that causes
-      // `ig.Font#_loadMetrics` to fail. Apparently if you draw an image onto a
-      // canvas and both didn't come from the same origin, the canvas becomes
-      // "tainted" and you then can't read the image data off of it, and the
-      // same-origin rules aren't well-defined for `file://` URLs. This seems
-      // to magically fix the issue, but what really bothers me is that the
-      // game loads fine if we don't make the image-related injections, so this
-      // also has to do with in which scripts the `Image` class is
-      // instantiated... Whatever.
-      img.crossOrigin = 'anonymous';
-    }
     img.onload = () => resolve(img);
     img.onerror = () => reject(new Error(`Failed to load image '${url}'`));
   });
