@@ -157,7 +157,11 @@ export async function boot(): Promise<void> {
   let startGameFn = await game.getStartFunction();
   console.log("stage 'prestart' reached!");
   if (utils.PLATFORM_TYPE === utils.PlatformType.ANDROID) {
-    window.CrossAndroid?.executePostGameLoad?.();
+    try {
+      CrossAndroid.executePostGameLoad();
+    } catch (err) {
+      console.error(`Failed to apply CrossAndroid's built-in mods:`, err);
+    }
   }
   await executeStage(loadedMods, 'prestart');
 

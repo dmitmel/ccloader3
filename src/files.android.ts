@@ -5,25 +5,27 @@ export { isReadable, loadText } from './files.browser.js';
 
 export async function getModDirectoriesIn(dir: string, config: Config): Promise<string[]> {
   if (dir === `${config.gameAssetsDir}mods/`) {
-    let result: unknown = window.CrossAndroidModListProvider?.getModListAsJson?.();
-    if (typeof result === 'string') {
-      let rawList = JSON.parse(result) as string[];
-      let modDirs: string[] = [];
-      for (let modDirName of rawList) {
+    try {
+      let modsDirEntries = JSON.parse(CrossAndroidModListProvider.getModListAsJson()) as string[];
+      let modSubdirs: string[] = [];
+      for (let modDirName of modsDirEntries) {
         if (modDirName.endsWith('/')) {
-          modDirs.push(`${dir}/${modDirName.slice(0, -1)}`);
+          modSubdirs.push(`${dir}/${modDirName.slice(0, -1)}`);
         }
       }
-      return modDirs;
+      return modSubdirs;
+    } catch (err) {
+      console.error('Failed to get the list of mods from CrossAndroid:', err);
     }
   }
   return filesBrowser.getModDirectoriesIn(dir, config);
 }
 
 export async function getInstalledExtensions(config: Config): Promise<string[]> {
-  let result: unknown = window.CrossAndroidExtensionListProvider?.getExtensionListAsJson?.();
-  if (typeof result === 'string') {
-    return JSON.parse(result) as string[];
+  try {
+    return JSON.parse(CrossAndroidExtensionListProvider.getExtensionListAsJson());
+  } catch (err) {
+    console.error('Failed to get the list of extensions from CrossAndroid:', err);
   }
   return filesBrowser.getInstalledExtensions(config);
 }
