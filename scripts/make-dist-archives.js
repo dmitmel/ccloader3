@@ -6,6 +6,7 @@ const paths = require('path');
 const streams = require('stream');
 const glob = require('readdir-glob');
 const subprocess = require('child_process');
+const zlib = require('zlib');
 
 async function main() {
   let projectDir = paths.dirname(__dirname);
@@ -107,16 +108,18 @@ async function main() {
     await archivePromise;
   }
 
+  /** @type {zlib.ZlibOptions} */
+  let zlibOpts = { level: zlib.constants.Z_DEFAULT_COMPRESSION };
   for (let format of [
     {
       id: 'tar',
       fileExt: 'tgz',
-      options: { gzip: true, gzipOptions: { level: 6 } },
+      options: { gzip: true, gzipOptions: zlibOpts },
     },
     {
       id: 'zip',
       fileExt: 'zip',
-      options: { zlib: { level: 6 } },
+      options: { zlib: zlibOpts },
     },
   ]) {
     createArchive(
