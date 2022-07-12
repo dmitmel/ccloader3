@@ -4,7 +4,7 @@
 
 A temporary repository for _The Third Version of [CCLoader](https://github.com/CCDirectLink/CCLoader)_. Project is currently under construction. I promise, **there will be documentation here**.
 
-**Precompiled builds can be downloaded from:** https://stronghold.crosscode.ru/~dmitmel/ccloader3/
+**Precompiled builds can be downloaded from:** https://stronghold.openkrosskod.org/~dmitmel/ccloader3/
 
 ## Building from source
 
