@@ -1,5 +1,6 @@
+var __getOwnPropNames = Object.getOwnPropertyNames;
 var __commonJS = (cb, mod) => function __require() {
-  return mod || (0, cb[Object.keys(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
+  return mod || (0, cb[__getOwnPropNames(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
 };
 
 // null-loader-ns:stream
@@ -12,6 +13,7 @@ var require_stream = __commonJS({
 // node_modules/jszip/lib/readable-stream-browser.js
 var require_readable_stream_browser = __commonJS({
   "node_modules/jszip/lib/readable-stream-browser.js"(exports, module) {
+    "use strict";
     module.exports = require_stream();
   }
 });
@@ -95,7 +97,7 @@ var require_base64 = __commonJS({
       if (input.substr(0, dataUrlPrefix.length) === dataUrlPrefix) {
         throw new Error("Invalid base64 input, it looks like a data url.");
       }
-      input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+      input = input.replace(/[^A-Za-z0-9+/=]/g, "");
       var totalLength = input.length * 3 / 4;
       if (input.charAt(input.length - 1) === _keyStr.charAt(64)) {
         totalLength--;
@@ -164,18 +166,6 @@ var require_nodejsUtils = __commonJS({
       isStream: function(obj) {
         return obj && typeof obj.on === "function" && typeof obj.pause === "function" && typeof obj.resume === "function";
       }
-    };
-  }
-});
-
-// node_modules/set-immediate-shim/index.js
-var require_set_immediate_shim = __commonJS({
-  "node_modules/set-immediate-shim/index.js"(exports, module) {
-    "use strict";
-    module.exports = typeof setImmediate === "function" ? setImmediate : function setImmediate2() {
-      var args = [].slice.apply(arguments);
-      args.splice(1, 0, 0);
-      setTimeout.apply(null, args);
     };
   }
 });
@@ -515,6 +505,154 @@ var require_external = __commonJS({
   }
 });
 
+// node_modules/setimmediate/setImmediate.js
+var require_setImmediate = __commonJS({
+  "node_modules/setimmediate/setImmediate.js"(exports) {
+    (function(global2, undefined) {
+      "use strict";
+      if (global2.setImmediate) {
+        return;
+      }
+      var nextHandle = 1;
+      var tasksByHandle = {};
+      var currentlyRunningATask = false;
+      var doc = global2.document;
+      var registerImmediate;
+      function setImmediate2(callback) {
+        if (typeof callback !== "function") {
+          callback = new Function("" + callback);
+        }
+        var args = new Array(arguments.length - 1);
+        for (var i = 0; i < args.length; i++) {
+          args[i] = arguments[i + 1];
+        }
+        var task = { callback, args };
+        tasksByHandle[nextHandle] = task;
+        registerImmediate(nextHandle);
+        return nextHandle++;
+      }
+      function clearImmediate(handle) {
+        delete tasksByHandle[handle];
+      }
+      function run(task) {
+        var callback = task.callback;
+        var args = task.args;
+        switch (args.length) {
+          case 0:
+            callback();
+            break;
+          case 1:
+            callback(args[0]);
+            break;
+          case 2:
+            callback(args[0], args[1]);
+            break;
+          case 3:
+            callback(args[0], args[1], args[2]);
+            break;
+          default:
+            callback.apply(undefined, args);
+            break;
+        }
+      }
+      function runIfPresent(handle) {
+        if (currentlyRunningATask) {
+          setTimeout(runIfPresent, 0, handle);
+        } else {
+          var task = tasksByHandle[handle];
+          if (task) {
+            currentlyRunningATask = true;
+            try {
+              run(task);
+            } finally {
+              clearImmediate(handle);
+              currentlyRunningATask = false;
+            }
+          }
+        }
+      }
+      function installNextTickImplementation() {
+        registerImmediate = function(handle) {
+          process.nextTick(function() {
+            runIfPresent(handle);
+          });
+        };
+      }
+      function canUsePostMessage() {
+        if (global2.postMessage && !global2.importScripts) {
+          var postMessageIsAsynchronous = true;
+          var oldOnMessage = global2.onmessage;
+          global2.onmessage = function() {
+            postMessageIsAsynchronous = false;
+          };
+          global2.postMessage("", "*");
+          global2.onmessage = oldOnMessage;
+          return postMessageIsAsynchronous;
+        }
+      }
+      function installPostMessageImplementation() {
+        var messagePrefix = "setImmediate$" + Math.random() + "$";
+        var onGlobalMessage = function(event) {
+          if (event.source === global2 && typeof event.data === "string" && event.data.indexOf(messagePrefix) === 0) {
+            runIfPresent(+event.data.slice(messagePrefix.length));
+          }
+        };
+        if (global2.addEventListener) {
+          global2.addEventListener("message", onGlobalMessage, false);
+        } else {
+          global2.attachEvent("onmessage", onGlobalMessage);
+        }
+        registerImmediate = function(handle) {
+          global2.postMessage(messagePrefix + handle, "*");
+        };
+      }
+      function installMessageChannelImplementation() {
+        var channel = new MessageChannel();
+        channel.port1.onmessage = function(event) {
+          var handle = event.data;
+          runIfPresent(handle);
+        };
+        registerImmediate = function(handle) {
+          channel.port2.postMessage(handle);
+        };
+      }
+      function installReadyStateChangeImplementation() {
+        var html = doc.documentElement;
+        registerImmediate = function(handle) {
+          var script = doc.createElement("script");
+          script.onreadystatechange = function() {
+            runIfPresent(handle);
+            script.onreadystatechange = null;
+            html.removeChild(script);
+            script = null;
+          };
+          html.appendChild(script);
+        };
+      }
+      function installSetTimeoutImplementation() {
+        registerImmediate = function(handle) {
+          setTimeout(runIfPresent, 0, handle);
+        };
+      }
+      var attachTo = Object.getPrototypeOf && Object.getPrototypeOf(global2);
+      attachTo = attachTo && attachTo.setTimeout ? attachTo : global2;
+      if ({}.toString.call(global2.process) === "[object process]") {
+        installNextTickImplementation();
+      } else if (canUsePostMessage()) {
+        installPostMessageImplementation();
+      } else if (global2.MessageChannel) {
+        installMessageChannelImplementation();
+      } else if (doc && "onreadystatechange" in doc.createElement("script")) {
+        installReadyStateChangeImplementation();
+      } else {
+        installSetTimeoutImplementation();
+      }
+      attachTo.setImmediate = setImmediate2;
+      attachTo.clearImmediate = clearImmediate;
+    })(typeof self === "undefined" ? typeof global === "undefined" ? exports : global : self);
+  }
+});
+
 // node_modules/jszip/lib/utils.js
 var require_utils = __commonJS({
   "node_modules/jszip/lib/utils.js"(exports) {
@@ -522,8 +660,8 @@ var require_utils = __commonJS({
     var support = require_support();
     var base64 = require_base64();
     var nodejsUtils = require_nodejsUtils();
-    var setImmediate2 = require_set_immediate_shim();
     var external = require_external();
+    require_setImmediate();
     function string2binary(str) {
       var result = null;
       if (support.uint8array) {
@@ -706,6 +844,21 @@ var require_utils = __commonJS({
       var result = transform[inputType][outputType](input);
       return result;
     };
+    exports.resolve = function(path) {
+      var parts = path.split("/");
+      var result = [];
+      for (var index = 0; index < parts.length; index++) {
+        var part = parts[index];
+        if (part === "." || part === "" && index !== 0 && index !== parts.length - 1) {
+          continue;
+        } else if (part === "..") {
+          result.pop();
+        } else {
+          result.push(part);
+        }
+      }
+      return result.join("/");
+    };
     exports.getTypeOf = function(input) {
       if (typeof input === "string") {
         return "string";
@@ -740,7 +893,7 @@ var require_utils = __commonJS({
       return res;
     };
     exports.delay = function(callback, args, self2) {
-      setImmediate2(function() {
+      setImmediate(function() {
         callback.apply(self2 || null, args || []);
       });
     };
@@ -754,7 +907,7 @@ var require_utils = __commonJS({
       var result = {}, i, attr;
       for (i = 0; i < arguments.length; i++) {
         for (attr in arguments[i]) {
-          if (arguments[i].hasOwnProperty(attr) && typeof result[attr] === "undefined") {
+          if (Object.prototype.hasOwnProperty.call(arguments[i], attr) && typeof result[attr] === "undefined") {
             result[attr] = arguments[i][attr];
           }
         }
@@ -782,7 +935,9 @@ var require_utils = __commonJS({
       return promise.then(function(data) {
         var dataType = exports.getTypeOf(data);
         if (!dataType) {
-          return external.Promise.reject(new Error("Can't read the data of '" + name + "'. Is it in a supported JavaScript type (String, Blob, ArrayBuffer, etc) ?"));
+          return external.Promise.reject(
+            new Error("Can't read the data of '" + name + "'. Is it in a supported JavaScript type (String, Blob, ArrayBuffer, etc) ?")
+          );
         }
         if (dataType === "arraybuffer") {
           data = exports.transformTo("uint8array", data);
@@ -928,7 +1083,7 @@ var require_GenericWorker = __commonJS({
       },
       mergeStreamInfo: function() {
         for (var key in this.extraStreamInfo) {
-          if (!this.extraStreamInfo.hasOwnProperty(key)) {
+          if (!Object.prototype.hasOwnProperty.call(this.extraStreamInfo, key)) {
             continue;
           }
           this.streamInfo[key] = this.extraStreamInfo[key];
@@ -1034,7 +1189,7 @@ var require_utf8 = __commonJS({
       return pos + _utf8len[buf[pos]] > max ? pos : max;
     };
     var buf2string = function(buf) {
-      var str, i2, out, c, c_len;
+      var i2, out, c, c_len;
       var len = buf.length;
       var utf16buf = new Array(len * 2);
       for (out = 0, i2 = 0; i2 < len; ) {
@@ -3139,7 +3294,10 @@ var require_deflate = __commonJS({
             put_byte(s, OS_CODE);
             s.status = BUSY_STATE;
           } else {
-            put_byte(s, (s.gzhead.text ? 1 : 0) + (s.gzhead.hcrc ? 2 : 0) + (!s.gzhead.extra ? 0 : 4) + (!s.gzhead.name ? 0 : 8) + (!s.gzhead.comment ? 0 : 16));
+            put_byte(
+              s,
+              (s.gzhead.text ? 1 : 0) + (s.gzhead.hcrc ? 2 : 0) + (!s.gzhead.extra ? 0 : 4) + (!s.gzhead.name ? 0 : 8) + (!s.gzhead.comment ? 0 : 16)
+            );
             put_byte(s, s.gzhead.time & 255);
             put_byte(s, s.gzhead.time >> 8 & 255);
             put_byte(s, s.gzhead.time >> 16 & 255);
@@ -3654,7 +3812,14 @@ var require_deflate2 = __commonJS({
       this.chunks = [];
       this.strm = new ZStream();
       this.strm.avail_out = 0;
-      var status = zlib_deflate.deflateInit2(this.strm, opt.level, opt.method, opt.windowBits, opt.memLevel, opt.strategy);
+      var status = zlib_deflate.deflateInit2(
+        this.strm,
+        opt.level,
+        opt.method,
+        opt.windowBits,
+        opt.memLevel,
+        opt.strategy
+      );
       if (status !== Z_OK) {
         throw new Error(msg[status]);
       }
@@ -4762,7 +4927,13 @@ var require_inflate = __commonJS({
                     if (!state.head.extra) {
                       state.head.extra = new Array(state.head.extra_len);
                     }
-                    utils.arraySet(state.head.extra, input, next, copy, len);
+                    utils.arraySet(
+                      state.head.extra,
+                      input,
+                      next,
+                      copy,
+                      len
+                    );
                   }
                   if (state.flags & 512) {
                     state.check = crc32(state.check, input, copy, next);
@@ -5606,7 +5777,10 @@ var require_inflate2 = __commonJS({
       this.chunks = [];
       this.strm = new ZStream();
       this.strm.avail_out = 0;
-      var status = zlib_inflate.inflateInit2(this.strm, opt.windowBits);
+      var status = zlib_inflate.inflateInit2(
+        this.strm,
+        opt.windowBits
+      );
       if (status !== c.Z_OK) {
         throw new Error(msg[status]);
       }
@@ -5816,7 +5990,7 @@ var require_compressions = __commonJS({
     var GenericWorker = require_GenericWorker();
     exports.STORE = {
       magic: "\0\0",
-      compressWorker: function(compressionOptions) {
+      compressWorker: function() {
         return new GenericWorker("STORE compression");
       },
       uncompressWorker: function() {
@@ -5864,7 +6038,7 @@ var require_ZipFileWorker = __commonJS({
       }
       return (result & 65535) << 16;
     };
-    var generateDosExternalFileAttr = function(dosPermissions, isDir) {
+    var generateDosExternalFileAttr = function(dosPermissions) {
       return (dosPermissions || 0) & 63;
     };
     var generateZipParts = function(streamInfo, streamedContent, streamingEnded, offset, platform, encodeFileName) {
@@ -6359,7 +6533,7 @@ var require_object = __commonJS({
         }
         return this;
       },
-      generate: function(options) {
+      generate: function() {
         throw new Error("This method has been removed in JSZip 3.0, please check the upgrade guide.");
       },
       generateInternalStream: function(options) {
@@ -6440,7 +6614,7 @@ var require_DataReader = __commonJS({
       skip: function(n) {
         this.setIndex(this.index + n);
       },
-      byteAt: function(i) {
+      byteAt: function() {
       },
       readInt: function(size) {
         var result = 0, i;
@@ -6454,15 +6628,22 @@ var require_DataReader = __commonJS({
       readString: function(size) {
         return utils.transformTo("string", this.readData(size));
       },
-      readData: function(size) {
+      readData: function() {
       },
-      lastIndexOfSignature: function(sig) {
+      lastIndexOfSignature: function() {
       },
-      readAndCheckSignature: function(sig) {
+      readAndCheckSignature: function() {
       },
       readDate: function() {
         var dostime = this.readInt(4);
-        return new Date(Date.UTC((dostime >> 25 & 127) + 1980, (dostime >> 21 & 15) - 1, dostime >> 16 & 31, dostime >> 11 & 31, dostime >> 5 & 63, (dostime & 31) << 1));
+        return new Date(Date.UTC(
+          (dostime >> 25 & 127) + 1980,
+          (dostime >> 21 & 15) - 1,
+          dostime >> 16 & 31,
+          dostime >> 11 & 31,
+          dostime >> 5 & 63,
+          (dostime & 31) << 1
+        ));
       }
     };
     module.exports = DataReader;
@@ -6626,7 +6807,7 @@ var require_zipEntry = __commonJS({
     var MADE_BY_UNIX = 3;
     var findCompression = function(compressionMethod) {
       for (var method in compressions) {
-        if (!compressions.hasOwnProperty(method)) {
+        if (!Object.prototype.hasOwnProperty.call(compressions, method)) {
           continue;
         }
         if (compressions[method].magic === compressionMethod) {
@@ -6701,7 +6882,7 @@ var require_zipEntry = __commonJS({
           this.dir = true;
         }
       },
-      parseZIP64ExtraField: function(reader) {
+      parseZIP64ExtraField: function() {
         if (!this.extraFields[1]) {
           return;
         }
@@ -6799,7 +6980,6 @@ var require_zipEntries = __commonJS({
     var utils = require_utils();
     var sig = require_signature();
     var ZipEntry = require_zipEntry();
-    var utf8 = require_utf8();
     var support = require_support();
     function ZipEntries(loadOptions) {
       this.files = [];
@@ -7008,7 +7188,9 @@ var require_load = __commonJS({
         var files = zipEntries.files;
         for (var i = 0; i < files.length; i++) {
           var input = files[i];
-          zip.file(input.fileNameStr, input.decompressed, {
+          var unsafeName = input.fileNameStr;
+          var safeName = utils.resolve(input.fileNameStr);
+          zip.file(safeName, input.decompressed, {
             binary: true,
             optimizedBinaryString: true,
             date: input.date,
@@ -7018,6 +7200,9 @@ var require_load = __commonJS({
             dosPermissions: input.dosPermissions,
             createFolders: options.createFolders
           });
+          if (!input.dir) {
+            zip.file(safeName).unsafeOriginalName = unsafeName;
+          }
         }
         if (zipEntries.zipComment.length) {
           zip.comment = zipEntries.zipComment;
@@ -7031,7 +7216,6 @@ var require_load = __commonJS({
 // node_modules/jszip/lib/index.js
 var require_lib = __commonJS({
   "node_modules/jszip/lib/index.js"(exports, module) {
-    "use strict";
     function JSZip() {
       if (!(this instanceof JSZip)) {
         return new JSZip();
@@ -7039,7 +7223,7 @@ var require_lib = __commonJS({
       if (arguments.length) {
         throw new Error("The constructor with parameters has been removed in JSZip 3.0, please check the upgrade guide.");
       }
-      this.files = Object.create(null);
+      this.files = /* @__PURE__ */ Object.create(null);
       this.comment = null;
       this.root = "";
       this.clone = function() {
@@ -7056,7 +7240,7 @@ var require_lib = __commonJS({
     JSZip.prototype.loadAsync = require_load();
     JSZip.support = require_support();
     JSZip.defaults = require_defaults();
-    JSZip.version = "3.7.1";
+    JSZip.version = "3.10.1";
     JSZip.loadAsync = function(content, options) {
       return new JSZip().loadAsync(content, options);
     };
