@@ -12,11 +12,21 @@ import { ModEntry } from 'ultimate-crosscode-typedefs/file-types/mod-data-storag
 import { ModID } from 'ultimate-crosscode-typedefs/modloader/mod';
 
 const fs = (window.require?.('fs') as typeof import('fs'))?.promises;
+const pathsNative = require?.('path') as typeof import('path');
 
-export const filePath: string | null = (function getFilePath() {
+export const FILE_NAME = 'cc-mod-settings.json';
+
+export const fileDir: string | null = (function getFilePath() {
+  // NOTE: It has been observed that the current implementation very rarely
+  // (but not at a negligible rate) corrupts the settings file by filling it
+  // with zeroes. For some reason even writing to a temporary file first and
+  // then renaming it to the real file doesn't help either, so a more advanced
+  // implementation, similar to the one from the original game for example, is
+  // necessary. Until then writing mod settings to the filesystem separately is
+  // disabled.
+  return null;
+
   if (typeof nw === 'undefined') return null;
-
-  const pathsNative = require('path') as typeof import('path');
 
   // taken from https://github.com/dmitmel/crosscode-readable-saves/blob/ed25ab8b061f0a75acf54bc2485fead47523fc2e/src/postload.ts#L289-L298
   let saveDirPath = nw.App.dataPath;
@@ -30,7 +40,7 @@ export const filePath: string | null = (function getFilePath() {
   let userDataIndex = saveDirPath.indexOf('\\User Data\\Default');
   if (userDataIndex >= 0) saveDirPath = saveDirPath.slice(0, userDataIndex);
 
-  return pathsNative.join(saveDirPath, 'cc-mod-settings.json');
+  return saveDirPath;
 })();
 
 export const data = new Map<ModID, ModEntry>();
@@ -41,10 +51,10 @@ let queuedWritesFlag = false;
 export async function readImmediately(): Promise<void> {
   data.clear();
 
-  if (filePath != null) {
+  if (fileDir != null) {
     let rawData: Buffer;
     try {
-      rawData = await fs.readFile(filePath);
+      rawData = await fs.readFile(pathsNative.join(fileDir, FILE_NAME));
     } catch (err) {
       if (utils.errorHasCode(err) && err.code === 'ENOENT') return;
       throw err;
@@ -56,9 +66,10 @@ export async function readImmediately(): Promise<void> {
 }
 
 export async function writeImmediately(): Promise<void> {
-  if (filePath != null) {
+  if (fileDir != null) {
     let rawData: Buffer = serialize();
-    let tmpFilePath = `${filePath}~`;
+    let filePath = pathsNative.join(fileDir, FILE_NAME);
+    let tmpFilePath = pathsNative.join(fileDir, `~${FILE_NAME}`);
     await fs.writeFile(tmpFilePath, rawData);
     await fs.rename(tmpFilePath, filePath);
   } else {
@@ -108,7 +119,7 @@ function readFromLocalStorage(): void {
     let match = /^modEnabled-(.+)$/.exec(key);
     if (match != null && match.length === 2) {
       let modID = match[1];
-      data.set(modID, { enabled: value === '1' });
+      data.set(modID, { enabled: value !== 'false' });
     }
   }
 }
@@ -124,7 +135,7 @@ function serialize(): Buffer {
 
 function writeToLocalStorage(): void {
   for (let [modID, modEntry] of data) {
-    localStorage.setItem(`modEnabled-${modID}`, modEntry.enabled ? '1' : '0');
+    localStorage.setItem(`modEnabled-${modID}`, modEntry.enabled ? 'true' : 'false');
   }
 }
 
@@ -137,7 +148,8 @@ export function setModEnabled(id: ModID, enabled: boolean): void {
 }
 
 export const namespace: typeof modloader.modDataStorage = {
-  filePath,
+  FILE_NAME,
+  fileDir,
   data,
   readImmediately,
   writeImmediately,
