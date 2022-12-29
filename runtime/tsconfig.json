@@ -10,6 +10,7 @@
     "outDir": "dist",
     "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
     "declaration": true,
+    "declarationMap": true,
     "sourceMap": true,
     "strict": true,
     "module": "esnext",

@@ -5,8 +5,12 @@
     "node_modules/ultimate-crosscode-typedefs/modloader.d.ts"
   ],
   "compilerOptions": {
+    "composite": true,
+    "rootDir": "src",
     "outDir": "dist",
+    "tsBuildInfoFile": "dist/tsconfig.tsbuildinfo",
     "declaration": true,
+    "declarationMap": true,
     "sourceMap": true,
     "strict": true,
     "module": "esnext",
