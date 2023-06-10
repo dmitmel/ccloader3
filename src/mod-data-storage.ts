@@ -12,7 +12,7 @@ import { ModEntry } from 'ultimate-crosscode-typedefs/file-types/mod-data-storag
 import { ModID } from 'ultimate-crosscode-typedefs/modloader/mod';
 
 const fs = (window.require?.('fs') as typeof import('fs'))?.promises;
-const pathsNative = require?.('path') as typeof import('path');
+const pathsNative = window.require?.('path') as typeof import('path');
 
 export const FILE_NAME = 'cc-mod-settings.json';
 
